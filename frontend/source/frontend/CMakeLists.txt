@@ -47,4 +47,5 @@ nui_prepare_emscripten_target(
     OBSERVED_BUNDLE_FILES
         "${CMAKE_SOURCE_DIR}/static/styles/main.css"
         "${CMAKE_SOURCE_DIR}/styles/switch.css"
+        "${CMAKE_SOURCE_DIR}/styles/text_input.css"
 )

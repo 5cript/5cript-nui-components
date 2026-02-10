@@ -1,6 +1,7 @@
 #include <frontend/main_page.hpp>
 
 #include <script-nui-components/switch.hpp>
+#include <script-nui-components/text_input.hpp>
 
 #include <nui/frontend/elements.hpp>
 
@@ -10,7 +11,7 @@
 using namespace std::string_literals;
 
 MainPage::MainPage()
-    : massCreation()
+    : massSwitches()
 {}
 
 Nui::ElementRenderer MainPage::render()
@@ -25,10 +26,10 @@ Nui::ElementRenderer MainPage::render()
     return body{}(
         // Top bar
         div{class_ = "top-bar"}(
-            Switch{}(Switch::Options<bool, bool>{
+            Switch{}(Switch::Options<bool>{
                 .isChecked = true,
                 .onChange =
-                    [this](bool isChecked, Nui::WebApi::MouseEvent const&)
+                    [](bool isChecked, Nui::WebApi::MouseEvent const&)
                 {
                     if (isChecked)
                         Nui::val::global("document")["documentElement"].call<void>("setAttribute", "data-theme"s, "dark"s);
@@ -38,16 +39,30 @@ Nui::ElementRenderer MainPage::render()
             }),
             button{
                 onClick = [this](auto const&) {
-                    massCreation.resize(1000);
-                    std::iota(massCreation.begin(), massCreation.end(), 0);
+                    massSwitches.resize(1000);
+                    std::iota(massSwitches.begin(), massSwitches.end(), 0);
                 }
-            }("Create 1000 switches")                
+            }("Create 1000 switches"),
+            button{
+                onClick = [this](auto const&) {
+                    massInputs.resize(1000);
+                    std::iota(massInputs.begin(), massInputs.end(), 0);
+                }
+            }("Create 1000 inputs")                
         ),
         div{class_ = "content"}(
-            range(massCreation),
-            [this](long long i, auto) {
-                return switch_();
-            }
+            div{}(
+                range(massSwitches),
+                [this](long long, auto) {
+                    return switch_();
+                }
+            ),
+            div{}(
+                range(massInputs),
+                [this](long long, auto) {
+                    return textInput();
+                }
+            )
         )
     );
     // clang-format on
@@ -57,5 +72,16 @@ Nui::ElementRenderer MainPage::switch_()
 {
     using namespace ScriptNuiComponents;
 
-    return Switch{}(Switch::Options<decltype(isChecked_), bool>{.isChecked = isChecked_});
+    return Switch{}(Switch::Options<decltype(isChecked_)>{
+        .isChecked = isChecked_,
+    });
+}
+
+Nui::ElementRenderer MainPage::textInput()
+{
+    using namespace ScriptNuiComponents;
+
+    return TextInput{}(TextInput::Options<decltype(textInputValue_)>{
+        .value = textInputValue_,
+    });
 }

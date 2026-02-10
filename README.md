@@ -37,9 +37,8 @@ Nui::ElementRenderer MainPage::render()
     // isChecked_ is Nui::Observed<bool>, std::shared_ptr<Nui::Observed<bool>>, or bool.
 
     return body{}(
-        Switch{}(Switch::Options<decltype(isChecked_), bool>{
+        Switch{}(Switch::Options<decltype(isChecked_)>{
             .isChecked = isChecked_,
-            .isDisabled = false,
             .sizeFactor = 1,
             .colorActive = "#008000",
             .colorInactive = std::nullopt,
@@ -47,6 +46,10 @@ Nui::ElementRenderer MainPage::render()
             .onChange = [this](bool isChecked, Nui::WebApi::MouseEvent const&)
             {
                 Nui::WebApi::Console::log(fmt::format("Switch is now {}", isChecked));
+            },
+            .attributes = {
+                // and others...
+                .disabled = false
             }
         })
     );
@@ -63,6 +66,49 @@ Nui::ElementRenderer MainPage::render()
     --script-nui-components-switch-color-active: #008000;
     --script-nui-components-switch-color-inactive: #1f2228;
     --script-nui-components-switch-thumb-color: #dddddd;
+}
+
+### Text Input
+
+#### C++
+
+```cpp
+#include <script-nui-components/text_input.hpp>
+
+Nui::ElementRenderer MainPage::render()
+{
+    using namespace ScriptNuiComponents;
+
+    // value is Nui::Observed<std::string>, std::shared_ptr<Nui::Observed<std::string>>, or std::string.
+
+    return body{}(
+        TextInput{}(TextInput::Options<decltype(value_)>{
+            .value = value_,
+            .onChange = [this](std::string const& newValue, Nui::WebApi::InputEvent const&)
+            {
+                Nui::WebApi::Console::log(fmt::format("Text input is now {}", newValue));
+            },
+            .attributes = {
+                // and others...
+                .disabled = false
+            }
+        })
+    );
+}
+```
+
+#### Css Variables
+
+:root {
+    --script-nui-components-text-input-border-radius: 0px;
+    --script-nui-components-field-color: #dddddd;
+    --script-nui-components-field-background-color: #202020;
+    --script-nui-components-field-font: inherit;
+    --script-nui-components-field-font-size: 0.8rem;
+    --script-nui-components-field-theme-color: #5fbcff;
+    --script-nui-components-field-hover-shadow: 0 0 0 0.1rem var(--script-nui-components-field-theme-color);
+    --script-nui-components-field-border-color: #505050;
+    --script-nui-components-field-focus-shadow: var(--script-nui-components-field-hover-shadow);
 }
 
 ## Styling

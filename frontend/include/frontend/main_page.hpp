@@ -15,11 +15,12 @@ class MainPage
 
     Nui::ElementRenderer render();
     Nui::ElementRenderer switch_();
+    Nui::ElementRenderer textInput();
 
   private:
-    Nui::Observed<std::vector<int>> massCreation;
+    Nui::Observed<std::vector<int>> massSwitches;
+    Nui::Observed<std::vector<int>> massInputs;
 
-    // std::shared_ptr<Nui::Observed<bool>> isChecked_{std::make_shared<Nui::Observed<bool>>(false)};
     Nui::Observed<bool> isChecked_{false};
-    // bool isChecked_ = false;
+    Nui::Observed<std::string> textInputValue_{};
 };

@@ -1,0 +1,44 @@
+.script-nui-text-input {
+    --border-radius: var(--script-nui-components-text-input-border-radius, 0px);
+    --color: var(--script-nui-components-field-color, #dddddd);
+    --background-color: var(--script-nui-components-field-background-color, #202020);
+    --font: var(--script-nui-components-field-font, inherit);
+    --font-size: var(--script-nui-components-field-font-size, 0.8rem);
+    --theme-color: var(--script-nui-components-field-theme-color, #5fbcff);
+    --hover-shadow: var(--script-nui-components-field-hover-shadow, 0 0 0 0.1rem var(--theme-color));
+    --border-color: var(--script-nui-components-field-border-color, #505050);
+    --focus-shadow: var(--script-nui-components-field-focus-shadow, var(--hover-shadow));
+
+    border-radius: var(--border-radius);
+    border-color: var(--border-color);
+    border-style: solid;
+    border-width: 1px;
+    background-color: var(--background-color);
+    color: var(--color);
+    font: var(--font);
+    font-size: var(--font-size);
+    text-wrap-mode: nowrap;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    display: inline-block;
+    text-overflow: ellipsis;
+    min-width: 3em;
+    font-style: normal;
+    outline-style: none;
+    line-height: normal;
+    transition: box-shadow 200ms ease-in-out;
+    padding: 0.5em 0.5em;
+    border-bottom: 1px solid color-mix(in srgb, var(--border-color) 50%, white);
+
+    &:disabled {
+        color: color-mix(in hsl, var(--color) 50%, transparent);
+    }
+
+    &:hover {
+        box-shadow: var(--hover-shadow);
+    }
+
+    &:focus {
+        box-shadow: var(--focus-shadow);
+    }
+}
