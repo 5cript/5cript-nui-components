@@ -1,0 +1,49 @@
+{
+    "version": "2.0.0",
+    "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+            "MSYSTEM": "CLANG64",
+            "CHERE_INVOKING": "1"
+        },
+        "shell": {
+            "executable": "C:\\msys64\\usr\\bin\\bash.exe",
+            "args": [
+                "--login", "-i", "-c"
+            ]
+        }
+    },
+    "tasks": [
+        {
+            "label": "configure_debug",
+            "command": "cmake",
+            "args": [
+                "-D",
+                "CMAKE_BUILD_TYPE=Debug",
+                "-D",
+                "CMAKE_COLOR_DIAGNOSTICS=ON",
+                "-G",
+                "\"MSYS Makefiles\"",
+                "-B",
+                "build/clang_debug",
+                "-S",
+                "."
+            ],
+            "type": "shell",
+        },
+        {
+            "label": "build_debug",
+            "command": "cmake",
+            "dependsOn": "configure_debug",
+            "type": "shell",
+            "args": [
+                "--build",
+                "build/clang_debug"
+            ],
+            "presentation": {
+                "reveal": "always"
+            },
+            "group": "build"
+        }
+    ]
+}

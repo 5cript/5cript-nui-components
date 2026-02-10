@@ -1,0 +1,10 @@
+build
+_build
+.vscode
+.vs
+.idea
+out
+CMakeSettings.json
+node_modules
+dependencies
+.clangd

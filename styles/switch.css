@@ -1,0 +1,52 @@
+.script-nui-switch {
+    --size-factor: var(--script-nui-components-switch-size-factor, 1);
+    --color-active: var(--script-nui-components-switch-color-active, #008000);
+    --color-inactive: var(--script-nui-components-switch-color-inactive, #374151);
+    --thumb-color: var(--script-nui-components-switch-thumb-color, #dddddd);
+
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    width: calc(32px * var(--size-factor));
+    height: calc(18px * var(--size-factor));
+    border-radius: 9999px;
+    border: 1px solid transparent;
+    transition: background-color 150ms ease, box-shadow 150ms ease;
+    outline: none;
+    cursor: pointer;
+
+    &[data-is-checked] {
+        background-color: var(--color-active);
+
+        &>span {
+            left: calc(calc(15px * var(--size-factor)) - 1px);
+        }
+    }
+
+    &:not([data-is-checked]) {
+        background-color: var(--color-inactive);
+
+        &>span {
+            left: calc(1px * var(--size-factor));
+        }
+    }
+
+    &[disabled] {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    &>span {
+        position: absolute;
+        width: calc(16px * var(--size-factor));
+        height: calc(16px * var(--size-factor));
+        border-radius: 9999px;
+        background-color: var(--thumb-color);
+        transition: left 150ms ease, background-color 150ms ease;
+        pointer-events: none;
+    }
+
+    &:focus-visible {
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+    }
+}

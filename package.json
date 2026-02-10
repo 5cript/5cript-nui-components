@@ -1,0 +1,9 @@
+{
+    "description": "",
+    "name": "component-testbed",
+    "version": "1.0.0",
+    "devDependencies": {
+        "parcel": "^2.16.4",
+        "parcel-reporter-static-files-copy": "^1.5.0"
+    }
+}

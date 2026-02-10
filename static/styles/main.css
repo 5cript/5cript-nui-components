@@ -1,0 +1,19 @@
+@import "./switch.css";
+
+:root {
+    --script-nui-components-switch-size-factor: 1;
+    --script-nui-components-switch-color-active: #008000;
+    --script-nui-components-switch-color-inactive: #1f2228;
+    --script-nui-components-switch-thumb-color: #dddddd;
+}
+
+*,
+*:before,
+*:after {
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #303030;
+    color: #cccccc;
+}
