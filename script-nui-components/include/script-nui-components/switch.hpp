@@ -2,8 +2,14 @@
 
 #include "impl/attribute_traits.hpp"
 
-#include <nui/frontend/elements.hpp>
-#include <nui/frontend/attributes.hpp>
+#include <nui/frontend/elements/button.hpp>
+#include <nui/frontend/elements/span.hpp>
+
+#include <nui/frontend/attributes/disabled.hpp>
+#include <nui/frontend/attributes/on_click.hpp>
+#include <nui/frontend/attributes/class.hpp>
+#include <nui/frontend/attributes/style.hpp>
+
 #include <nui/frontend/api/mouse_event.hpp>
 #include <nui/frontend/element_renderer.hpp>
 #include <nui/event_system/observed_value.hpp>
@@ -44,7 +50,6 @@ namespace ScriptNuiComponents
         {
             using namespace Nui::Elements;
             using namespace Nui::Attributes;
-            using Nui::Elements::div;
             using Nui::Elements::span;
             using namespace std::string_literals;
 
