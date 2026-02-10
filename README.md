@@ -25,6 +25,8 @@ target_link_libraries(your_target PRIVATE script-nui-components)
 
 ### Switch
 
+#### C++
+
 ```cpp
 #include <script-nui-components/switch.hpp>
 
@@ -50,3 +52,19 @@ Nui::ElementRenderer MainPage::render()
     );
 }
 ```
+
+#### Css Variables
+
+:root {
+    /* Size factor for the switch, where 1 is the default size. This scales the entire switch, including the thumb. */
+    --script-nui-components-switch-size-factor: 1;
+
+    /* Colors for the switch. The active color is used when the switch is on, and the inactive color is used when the switch is off. The thumb color is used for the circular thumb of the switch. */
+    --script-nui-components-switch-color-active: #008000;
+    --script-nui-components-switch-color-inactive: #1f2228;
+    --script-nui-components-switch-thumb-color: #dddddd;
+}
+
+## Styling
+
+The components use CSS variables for styling, which can be set on the component itself or globally.
