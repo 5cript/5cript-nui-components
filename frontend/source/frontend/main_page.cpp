@@ -2,10 +2,11 @@
 
 #include <script-nui-components/switch.hpp>
 #include <script-nui-components/text_input.hpp>
+#include <script-nui-components/select.hpp>
 
 #include <nui/frontend/elements.hpp>
+#include <nui/frontend/attributes.hpp>
 
-#include <vector>
 #include <numeric>
 
 using namespace std::string_literals;
@@ -48,7 +49,13 @@ Nui::ElementRenderer MainPage::render()
                     massInputs.resize(1000);
                     std::iota(massInputs.begin(), massInputs.end(), 0);
                 }
-            }("Create 1000 inputs")                
+            }("Create 1000 inputs"),
+            button{
+                onClick = [this](auto const&) {
+                    massSelects.resize(1000);
+                    std::iota(massSelects.begin(), massSelects.end(), 0);
+                }
+            }("Create 1000 selects")
         ),
         div{class_ = "content"}(
             div{}(
@@ -61,6 +68,12 @@ Nui::ElementRenderer MainPage::render()
                 range(massInputs),
                 [this](long long, auto) {
                     return textInput();
+                }
+            ),
+            div{}(
+                range(massSelects),
+                [this](long long, auto) {
+                    return this->select();
                 }
             )
         )
@@ -83,5 +96,23 @@ Nui::ElementRenderer MainPage::textInput()
 
     return TextInput{}(TextInput::Options<decltype(textInputValue_)>{
         .value = textInputValue_,
+    });
+}
+
+Nui::ElementRenderer MainPage::select()
+{
+    using namespace ScriptNuiComponents;
+
+    return Select{}(Select::Options<decltype(selectValue_), decltype(selectOptions_)>{
+        .activeOption = selectValue_,
+        .options = selectOptions_,
+        .attributes =
+            {
+                Nui::Attributes::disabled = true,
+            },
+        .onChange = [](std::string const& newValue, auto const&)
+        {
+            Nui::WebApi::Console::log("Selected option: "s + newValue);
+        }
     });
 }

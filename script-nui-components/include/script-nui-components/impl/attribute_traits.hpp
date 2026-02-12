@@ -1,6 +1,7 @@
 #pragma once
 
 #include <nui/event_system/observed_value.hpp>
+#include <nui/event_system/range.hpp>
 
 namespace ScriptNuiComponents::Detail
 {
@@ -20,6 +21,18 @@ namespace ScriptNuiComponents::Detail
         {
             attribute = std::forward<U>(value);
         }
+        static auto range(Actual const& actual)
+        {
+            return Nui::range(actual);
+        }
+        static Type const& unwrap(Actual const& actual)
+        {
+            return actual;
+        }
+        static Type& unwrap(Actual& actual)
+        {
+            return actual;
+        }
     };
 
     template <typename T>
@@ -37,6 +50,18 @@ namespace ScriptNuiComponents::Detail
         static void assignValue(Actual observed, U&& value)
         {
             observed.get() = std::forward<U>(value);
+        }
+        static auto range(Actual observed)
+        {
+            return Nui::range(observed.get());
+        }
+        static Type const& unwrap(Actual const& observed)
+        {
+            return observed.get().value();
+        }
+        static Type& unwrap(Actual& observed)
+        {
+            return observed.get().value();
         }
     };
 
@@ -58,6 +83,24 @@ namespace ScriptNuiComponents::Detail
         {
             if (auto shared = observed.lock(); shared)
                 *shared = std::forward<U>(value);
+        }
+        static auto range(Actual observed)
+        {
+            if (auto shared = observed.lock(); shared)
+                return Nui::range(*shared);
+            return Nui::range(std::vector<typename Type::value_type>{});
+        }
+        static Type const& unwrap(Actual const& observed)
+        {
+            if (const auto shared = observed.lock(); shared)
+                return shared->value();
+            return Type{};
+        }
+        static Type& unwrap(Actual& observed)
+        {
+            if (auto shared = observed.lock(); shared)
+                return shared->value();
+            throw std::runtime_error("Observed value is not available");
         }
     };
 

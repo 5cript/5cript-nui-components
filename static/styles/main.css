@@ -1,5 +1,6 @@
 @import "./switch.css";
 @import "./text_input.css";
+@import "./select.css";
 
 :root {
     /* Non Dark/Light Dependent */
@@ -34,6 +35,10 @@
     --script-nui-components-switch-color-active: #008000;
     --script-nui-components-switch-color-inactive: #b9b9b9;
     --script-nui-components-switch-thumb-color: #383838;
+
+    --script-nui-components-field-color: var(--color-fields);
+    --script-nui-components-field-background-color: var(--background-color-fields);
+    --script-nui-components-field-border-color: color-mix(in srgb, var(--color-fields) 50%, white);
 }
 
 *,

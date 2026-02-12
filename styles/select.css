@@ -1,4 +1,4 @@
-.script-nui-text-input {
+.script-nui-select {
     --border-radius: var(--script-nui-components-field-border-radius, 0px);
     --color: var(--script-nui-components-field-color, #dddddd);
     --background-color: var(--script-nui-components-field-background-color, #202020);
@@ -17,28 +17,68 @@
     color: var(--color);
     font: var(--font);
     font-size: var(--font-size);
-    text-wrap-mode: nowrap;
-    overflow-x: hidden;
-    overflow-y: hidden;
-    display: inline-block;
-    text-overflow: ellipsis;
     min-width: 3em;
     font-style: normal;
     outline-style: none;
     line-height: normal;
     transition: box-shadow 200ms ease-in-out;
-    padding: 0.5em 0.5em;
     border-bottom: 1px solid color-mix(in srgb, var(--border-color) 50%, white);
+    align-items: center;
+
+    display: flex;
+    cursor: pointer;
 
     &:disabled {
         color: color-mix(in hsl, var(--color) 50%, transparent);
+        background-color: color-mix(in hsl, var(--background-color) 50%, white);
+        cursor: not-allowed;
     }
 
-    &:hover {
+    &:hover:not(:disabled) {
         box-shadow: var(--hover-shadow);
     }
 
-    &:focus {
-        box-shadow: var(--focus-shadow);
+    &>span:first-child {
+        height: 1lh;
+        flex-grow: 1;
+        margin: 0.5em 0.5em;
+        text-wrap-mode: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        text-align: left;
+    }
+
+    &>svg {
+        width: 2em;
+        height: 2em;
+        fill: var(--color);
+        margin-left: auto;
+    }
+
+    &>.script-nui-select-popover {
+        position: absolute;
+        background-color: var(--background-color);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        color: var(--color);
+        font: var(--font);
+        font-size: var(--font-size);
+        margin-top: 0.25em;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+        background-clip: padding-box;
+
+        /* left edges aligned */
+        margin: 0 -1px 0 0;
+
+        &>div {
+            padding: 0.5em;
+            cursor: pointer;
+            text-align: left;
+
+            &:hover {
+                background-color: var(--theme-color);
+                color: var(--background-color);
+            }
+        }
     }
 }

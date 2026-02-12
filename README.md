@@ -21,6 +21,10 @@ FetchContent_MakeAvailable(script-nui-components)
 target_link_libraries(your_target PRIVATE script-nui-components)
 ```
 
+## Styling
+
+The components use CSS variables for styling, which can be set on the component itself or globally.
+
 ## Components
 
 ### Switch
@@ -100,7 +104,7 @@ Nui::ElementRenderer MainPage::render()
 #### Css Variables
 
 :root {
-    --script-nui-components-text-input-border-radius: 0px;
+    --script-nui-components-field-border-radius: 0px;
     --script-nui-components-field-color: #dddddd;
     --script-nui-components-field-background-color: #202020;
     --script-nui-components-field-font: inherit;
@@ -111,6 +115,63 @@ Nui::ElementRenderer MainPage::render()
     --script-nui-components-field-focus-shadow: var(--script-nui-components-field-hover-shadow);
 }
 
-## Styling
+### Select
 
-The components use CSS variables for styling, which can be set on the component itself or globally.
+#### C++
+
+```cpp
+#include <script-nui-components/select.hpp>
+
+Nui::ElementRenderer MainPage::render()
+{
+    using namespace ScriptNuiComponents;
+
+    // MainPage members:
+    //
+    // Nui::Observed<std::string> selectValue_{};
+    // Nui::Observed<std::vector<std::string>> selectOptions_{
+    //     std::vector<std::string>{"Option 1", "Option 2", "Option 3"},
+    // };
+
+    return body{}(
+        Select{}(Select::Options<decltype(selectValue_), decltype(selectOptions_)>{
+            .activeOption = selectValue_,
+            .options = selectOptions_,
+            .attributes = {
+                // and others...
+                .disabled = false
+            },
+            .onChange = [this](std::string const& newValue, auto const&)
+            {
+                Nui::WebApi::Console::log("Selected option: "s + newValue);
+            },
+            // Creates ui elements active element, can be used to show icons or images in addition to text.
+            // Default is a span.
+            .activeRenderer = [](Nui::Observed<std::string> const& option) -> Nui::ElementRenderer
+            {
+                return span{}(option);
+            },
+            // Creates ui elements from vector elements, can be used to show icons or images in addition to text.
+            // Default is a span.
+            .elementRenderer = [](std::string const& option) -> Nui::ElementRenderer
+            {
+                return span{}(option);
+            }
+        })
+    );
+}
+```
+
+#### Css Variables
+
+:root {
+    --script-nui-components-field-border-radius: 0px;
+    --script-nui-components-field-color: #dddddd;
+    --script-nui-components-field-background-color: #202020;
+    --script-nui-components-field-font: inherit;
+    --script-nui-components-field-font-size: 0.8rem;
+    --script-nui-components-field-theme-color: #5fbcff;
+    --script-nui-components-field-hover-shadow: 0 0 0 0.1rem var(--script-nui-components-field-theme-color);
+    --script-nui-components-field-border-color: #505050;
+    --script-nui-components-field-focus-shadow: var(--script-nui-components-field-hover-shadow);
+}
