@@ -2,6 +2,7 @@
 
 #include <nui/frontend/api/console.hpp>
 #include <nui/frontend/element_renderer.hpp>
+#include <script-nui-components/resizeable_table.hpp>
 
 class MainPage
 {
@@ -37,4 +38,6 @@ class MainPage
         "Option 2",
         "Option 3",
     }};
+
+    ScriptNuiComponents::ResizableTable table_;
 };

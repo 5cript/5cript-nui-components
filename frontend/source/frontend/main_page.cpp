@@ -5,6 +5,7 @@
 #include <script-nui-components/select.hpp>
 #include <script-nui-components/button.hpp>
 #include <script-nui-components/color_picker.hpp>
+#include <script-nui-components/resizeable_table.hpp>
 
 #include <nui/frontend/elements.hpp>
 #include <nui/frontend/attributes.hpp>
@@ -12,9 +13,65 @@
 #include <numeric>
 
 using namespace std::string_literals;
+using namespace ScriptNuiComponents;
 
 MainPage::MainPage()
     : massSwitches()
+    , table_{
+          ResizableTable::HeaderRow{
+              ResizableTable::HeaderTableCell{"Header 1"s},
+              ResizableTable::HeaderTableCell{"Header 2"s},
+              ResizableTable::HeaderTableCell{
+                  .content = "",
+                  .initialWidth = 40,
+                  .resizeable = false,
+              }
+          },
+          ResizableTable::FooterFeature{{"Footer 1"s}, {"Footer 2"s}, {""s}},
+          /*std::nullopt,*/
+          ResizableTable::AddFeature{
+              .onAdd =
+                  [](auto& table)
+              {
+                  const auto rowCount = table.rowCount();
+                  table.addRow({
+                      fmt::format("Row {}, Col 1", rowCount),
+                      fmt::format("Row {}, Col 2", rowCount),
+                      [](std::unique_ptr<ResizableTable::ISelfController> controller) -> Nui::ElementRenderer
+                      {
+                          // std::function must be copiable
+                          std::shared_ptr<ResizableTable::ISelfController> sharedController = std::move(controller);
+
+                          return Button{}(Button::Options{
+                              .icon =
+                                  Nui::Elements::Svg::svg{
+                                      Nui::Attributes::Svg::viewBox = "0 0 512 512",
+                                  }(Nui::Elements::Svg::path{
+                                      Nui::Attributes::Svg::d =
+                                          "M454 109q11 0 18.5 7t7.5 18-7.5 18.5T454 160h-19v294q0 24-17 41t-41 "
+                                          "17H135q-24 0-41-17t-17-41V160H58q-11 0-18.5-7.5T32 134t7.5-18 "
+                                          "18.5-7h70V58q0-24 17-41t41-17h140q24 0 41 17t17 41v51h70zm-275 "
+                                          "0h154V58q0-7-7-7H186q-7 0-7 7v51zm205 51H128v294q0 7 7 7h242q7 0 "
+                                          "7-7V160zm-186 64q11 0 18.5 7.5T224 250v140q0 11-7.5 18.5T198 "
+                                          "416t-18-7.5-7-18.5V250q0-11 7-18.5t18-7.5zm116 0q11 0 18 7.5t7 18.5v140q0 "
+                                          "11-7 18.5t-18 7.5-18.5-7.5T288 390V250q0-11 7.5-18.5T314 224z",
+                                  }()),
+                              .attributes = {
+                                  Nui::Attributes::onClick = [controller = std::move(sharedController)](auto const&)
+                                  {
+                                      Nui::WebApi::Console::log(
+                                          "Button in row "s + std::to_string(controller->row()) + " clicked!"
+                                      );
+                                      controller->remove();
+                                  }
+                              }
+                          });
+                      },
+                  });
+              },
+              .addNewEntryText = "Add new row",
+          }
+      }
 {}
 
 Nui::ElementRenderer MainPage::render()
@@ -22,7 +79,6 @@ Nui::ElementRenderer MainPage::render()
     using namespace Nui;
     using namespace Nui::Elements;
     using namespace Nui::Attributes;
-    using namespace ScriptNuiComponents;
     using Nui::Elements::div; // because of the global div.
 
     // clang-format off
@@ -117,6 +173,11 @@ Nui::ElementRenderer MainPage::render()
                     return colorPicker();
                 }
             )
+        ),
+        div{style = "margin-top: 20px; width: 100%; display: flex"}(
+            table_({
+                style = "max-height: 400px"
+            })
         )
     );
     // clang-format on
