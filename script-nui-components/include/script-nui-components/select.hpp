@@ -36,18 +36,6 @@ namespace ScriptNuiComponents
     class Select
     {
       public:
-        struct State
-        {
-            std::weak_ptr<Nui::Dom::BasicElement> buttonElement;
-            struct Positioning
-            {
-                double width;
-                double top;
-                double left;
-            };
-            Nui::Observed<Positioning> positioning{{0.0, 0.0, 0.0}};
-        };
-
         template <class... T>
         struct always_false : std::false_type
         {};
@@ -74,6 +62,25 @@ namespace ScriptNuiComponents
             };
         };
 
+        struct Positioning
+        {
+            double width;
+            double top;
+            double left;
+        };
+
+        template <typename ActiveOptionType, typename OptionsValueType>
+        struct State
+        {
+            State(Options<ActiveOptionType, OptionsValueType>&& opts)
+                : options{std::move(opts)}
+            {}
+
+            Options<ActiveOptionType, OptionsValueType> options;
+            std::weak_ptr<Nui::Dom::BasicElement> buttonElement{};
+            Nui::Observed<Positioning> positioning{{0.0, 0.0, 0.0}};
+        };
+
         template <typename ActiveOptionType, typename OptionsValueType>
         Nui::ElementRenderer operator()(Options<ActiveOptionType, OptionsValueType> options) const
         {
@@ -88,7 +95,7 @@ namespace ScriptNuiComponents
             namespace svge = Nui::Elements::Svg;
             namespace svga = Nui::Attributes::Svg;
 
-            auto state = std::make_shared<State>();
+            auto state = std::make_shared<State<ActiveOptionType, OptionsValueType>>(std::move(options));
 
             // clang-format off
             return Nui::Elements::button{
@@ -98,10 +105,10 @@ namespace ScriptNuiComponents
                         onClick = [state](Nui::WebApi::MouseEvent mouseEvent) {
                             if (auto btn = state->buttonElement.lock(); btn)
                             {
-                                auto rect = Nui::WebApi::DomRectReadOnly{btn->val().call<Nui::val>("getBoundingClientRect")};
+                                auto rect = Nui::WebApi::DomRectReadOnly{btn->val().template call<Nui::val>("getBoundingClientRect")};
                                 const auto relativeLeft = btn->val()["offsetLeft"].template as<double>();
                                 const auto relativeTop = btn->val()["offsetTop"].template as<double>() + rect.height();
-                                state->positioning = State::Positioning{
+                                state->positioning = Positioning{
                                     .width = rect.width(),
                                     .top = relativeTop,
                                     .left = relativeLeft,
@@ -114,10 +121,10 @@ namespace ScriptNuiComponents
                             state->buttonElement = std::move(element);
                         },
                     },
-                    std::move(options.attributes)
+                    std::move(state->options.attributes)
                 )
             }(
-                options.activeRenderer(options.activeOption),
+                state->options.activeRenderer(state->options.activeOption),
                 Nui::Elements::Svg::svg{
                     svga::viewBox = "0 0 24 24"s,
                 }(
@@ -132,7 +139,7 @@ namespace ScriptNuiComponents
                     style = Nui::observe(state->positioning).generate([state]() {
                         return fmt::format("top: {}px; left: {}px; width: {}px;", state->positioning.value().top, state->positioning.value().left, state->positioning.value().width);
                     }),
-                    onClick = [state, onChange = std::move(options.onChange), active = options.activeOption, opts = options.options](Nui::WebApi::MouseEvent event) mutable {
+                    onClick = [state, onChange = std::move(state->options.onChange), active = state->options.activeOption, opts = state->options.options](Nui::WebApi::MouseEvent event) mutable {
                         event.val()["currentTarget"].call<void>("hidePopover");
                         event.stopPropagation();
                         auto target = event.target();
@@ -150,8 +157,8 @@ namespace ScriptNuiComponents
                             onChange(Detail::AttributeTraits<OptionsValueType>::unwrap(opts)[dataIndex], event);
                     },
                 }(
-                    Detail::AttributeTraits<OptionsValueType>::range(options.options),
-                    [elementRenderer = std::move(options.elementRenderer)](long long index, auto const& item) -> Nui::ElementRenderer {
+                    Detail::AttributeTraits<OptionsValueType>::range(state->options.options),
+                    [elementRenderer = std::move(state->options.elementRenderer)](long long index, auto const& item) -> Nui::ElementRenderer {
                         return div{
                             "data-index"_attr = static_cast<int>(index),
                         }(

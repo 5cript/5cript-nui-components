@@ -33,7 +33,12 @@ class MainPage
     Nui::Observed<std::string> colorValue_{};
 
     Nui::Observed<std::string> selectValue_{};
-    Nui::Observed<std::vector<std::string>> selectOptions_{std::vector<std::string>{
+    // Nui::Observed<std::vector<std::string>> selectOptions_{std::vector<std::string>{
+    //     "Option 1",
+    //     "Option 2",
+    //     "Option 3",
+    // }};
+    std::vector<std::string> selectOptions_{std::vector<std::string>{
         "Option 1",
         "Option 2",
         "Option 3",

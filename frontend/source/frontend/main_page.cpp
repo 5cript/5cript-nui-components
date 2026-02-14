@@ -210,7 +210,7 @@ Nui::ElementRenderer MainPage::select()
         .options = selectOptions_,
         .attributes =
             {
-                Nui::Attributes::disabled = true,
+                Nui::Attributes::disabled = false,
             },
         .onChange = [](std::string const& newValue, auto const&)
         {
