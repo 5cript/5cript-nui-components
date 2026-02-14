@@ -1,9 +1,16 @@
 #pragma once
 
 #include "impl/attribute_traits.hpp"
+#include "impl/merge_attributes.hpp"
 
-#include <nui/frontend/elements.hpp>
-#include <nui/frontend/attributes.hpp>
+#include <nui/frontend/elements/button.hpp>
+#include <nui/frontend/elements/span.hpp>
+
+#include <nui/frontend/attributes/disabled.hpp>
+#include <nui/frontend/attributes/on_click.hpp>
+#include <nui/frontend/attributes/class.hpp>
+#include <nui/frontend/attributes/style.hpp>
+
 #include <nui/frontend/api/mouse_event.hpp>
 #include <nui/frontend/element_renderer.hpp>
 #include <nui/event_system/observed_value.hpp>
@@ -26,11 +33,11 @@ namespace ScriptNuiComponents
     class Switch
     {
       public:
-        template <typename CheckedType, typename DisabledType>
+        template <typename CheckedType>
         struct Options
         {
             typename Detail::AttributeTraits<CheckedType>::Actual isChecked = false;
-            typename Detail::AttributeTraits<DisabledType>::Actual isDisabled = false;
+            std::vector<Nui::Attribute> attributes = {};
 
             std::optional<double> sizeFactor = std::nullopt;
             std::optional<std::string> colorActive = std::nullopt;
@@ -39,43 +46,45 @@ namespace ScriptNuiComponents
             std::function<void(bool, Nui::WebApi::MouseEvent const&)> onChange = {};
         };
 
-        template <typename CheckedType = bool, typename DisabledType = bool>
-        Nui::ElementRenderer operator()(Options<CheckedType, DisabledType> options) const
+        template <typename CheckedType = bool>
+        Nui::ElementRenderer operator()(Options<CheckedType> options) const
         {
             using namespace Nui::Elements;
             using namespace Nui::Attributes;
-            using Nui::Elements::div;
             using Nui::Elements::span;
             using namespace std::string_literals;
 
-            return button{
-                class_ = "script-nui-switch",
-                "data-is-checked"_attr = options.isChecked,
-                disabled = options.isDisabled,
-                style =
-                    Style{
-                        "--size-factor"_style = options.sizeFactor,
-                        "--color-active"_style = options.colorActive,
-                        "--color-inactive"_style = options.colorInactive,
-                        "--thumb-color"_style = options.thumbColor,
-                    },
-                onClick = [isChecked = options.isChecked,
-                              onChange = std::move(options.onChange)](Nui::WebApi::MouseEvent event) mutable
+            return button{mergeAttributes(
                 {
-                    event.stopPropagation();
+                    class_ = "script-nui-switch",
+                    "data-is-checked"_attr = options.isChecked,
+                    style =
+                        Style{
+                            "--size-factor"_style = options.sizeFactor,
+                            "--color-active"_style = options.colorActive,
+                            "--color-inactive"_style = options.colorInactive,
+                            "--thumb-color"_style = options.thumbColor,
+                        },
+                    onClick =
+                        [isChecked = options.isChecked,
+                            onChange = std::move(options.onChange)](Nui::WebApi::MouseEvent event) mutable
+                    {
+                        event.stopPropagation();
 
-                    Detail::AttributeTraits<CheckedType>::assignValue(
-                        isChecked, !Detail::AttributeTraits<CheckedType>::getValue(isChecked)
-                    );
+                        Detail::AttributeTraits<CheckedType>::assignValue(
+                            isChecked, !Detail::AttributeTraits<CheckedType>::getValue(isChecked)
+                        );
 
-                    // Not updated via the observed variable, so toggle the attribute manually.
-                    if constexpr (std::is_same_v<std::decay_t<CheckedType>, bool>)
-                        event.target().call<void>("toggleAttribute", "data-is-checked"s);
+                        // Not updated via the observed variable, so toggle the attribute manually.
+                        if constexpr (std::is_same_v<std::decay_t<CheckedType>, bool>)
+                            event.target().call<void>("toggleAttribute", "data-is-checked"s);
 
-                    if (onChange)
-                        onChange(Detail::AttributeTraits<CheckedType>::getValue(isChecked), event);
+                        if (onChange)
+                            onChange(Detail::AttributeTraits<CheckedType>::getValue(isChecked), event);
+                    },
                 },
-            }(span{}());
+                std::move(options.attributes)
+            )}(span{}());
         }
     };
 } // namespace ScriptNuiComponents

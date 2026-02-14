@@ -1,0 +1,75 @@
+.script-nui-button {
+    --color-primary: var(--script-nui-components-button-color-primary, #2563eb);
+    --color-warning: var(--script-nui-components-button-color-warning, #f59e0b);
+    --color-danger: var(--script-nui-components-button-color-danger, #dc2626);
+    --color-regular: var(--script-nui-components-button-color-regular, #202020);
+    --color-disabled: var(--script-nui-components-button-color-disabled, color-mix(in srgb, var(--color-regular) 50%, white));
+    --border-color: var(--script-nui-components-button-border-color, #505050);
+    --color: var(--script-nui-components-button-color, #dddddd);
+    --font: var(--script-nui-components-button-font, inherit);
+    --font-size: var(--script-nui-components-button-font-size, 0.8rem);
+    --border-radius: var(--script-nui-components-button-border-radius, 0.25rem);
+
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    outline: none;
+    font-size: var(--font-size);
+    padding: 0.5em 0.5em;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    color: var(--color);
+    font-family: var(--font);
+    cursor: pointer;
+    background-color: var(--color-regular);
+    gap: 0.5em;
+
+    /* Remove default button styles */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+
+    /* For icon variants */
+    &>svg {
+        width: 1.5em;
+        height: 1.5em;
+        fill: currentColor;
+    }
+
+    &[data-variant="primary"] {
+        background-color: var(--color-primary);
+    }
+
+    &[data-variant="warning"] {
+        background-color: var(--color-warning);
+    }
+
+    &[data-variant="danger"] {
+        background-color: var(--color-danger);
+    }
+
+    &[data-variant="transparent"] {
+        background-color: transparent;
+        border-color: transparent;
+    }
+
+    /* Disabled state */
+    &:disabled {
+        background-color: var(--color-disabled);
+        color: color-mix(in hsl, var(--color) 50%, transparent);
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    /* Hover state */
+    &:not(:disabled):hover {
+        filter: brightness(0.9);
+        border-color: var(--border-color);
+    }
+
+    /* Active state */
+    &:not(:disabled):active {
+        filter: brightness(0.8);
+        border-color: var(--border-color);
+    }
+}

@@ -18,4 +18,5 @@ nui_add_emscripten_target(
     CMAKE_OPTIONS
         # I recommend to work with a release build by default because debug builds get big fast.
         -DCMAKE_BUILD_TYPE=Debug
+        # -DCMAKE_BUILD_TYPE=Release
 )

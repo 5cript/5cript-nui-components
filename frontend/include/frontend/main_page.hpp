@@ -2,18 +2,42 @@
 
 #include <nui/frontend/api/console.hpp>
 #include <nui/frontend/element_renderer.hpp>
+#include <script-nui-components/resizeable_table.hpp>
 
 class MainPage
 {
   public:
-    Nui::ElementRenderer render();
+    MainPage();
+
     ~MainPage()
     {
         Nui::WebApi::Console::log("MainPage destroyed");
     }
 
+    Nui::ElementRenderer render();
+    Nui::ElementRenderer switch_();
+    Nui::ElementRenderer textInput();
+    Nui::ElementRenderer select();
+    Nui::ElementRenderer iconButton();
+    Nui::ElementRenderer colorPicker();
+
   private:
-    // std::shared_ptr<Nui::Observed<bool>> isChecked_{std::make_shared<Nui::Observed<bool>>(false)};
-    // Nui::Observed<bool> isChecked_{false};
-    bool isChecked_ = false;
+    Nui::Observed<std::vector<int>> massSwitches;
+    Nui::Observed<std::vector<int>> massInputs;
+    Nui::Observed<std::vector<int>> massSelects;
+    Nui::Observed<std::vector<int>> massIconButtons;
+    Nui::Observed<std::vector<int>> massColorPickers;
+
+    Nui::Observed<bool> isChecked_{false};
+    Nui::Observed<std::string> textInputValue_{};
+    Nui::Observed<std::string> colorValue_{};
+
+    Nui::Observed<std::string> selectValue_{};
+    Nui::Observed<std::vector<std::string>> selectOptions_{std::vector<std::string>{
+        "Option 1",
+        "Option 2",
+        "Option 3",
+    }};
+
+    ScriptNuiComponents::ResizableTable table_;
 };
