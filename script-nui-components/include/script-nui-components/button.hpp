@@ -36,7 +36,7 @@ namespace ScriptNuiComponents
       public:
         struct Options
         {
-            std::string text;
+            std::string text{};
             std::optional<Nui::ElementRenderer> icon = std::nullopt;
             std::vector<Nui::Attribute> attributes = {};
             StyleVariant styleVariant = StyleVariant::Regular;

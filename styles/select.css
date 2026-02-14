@@ -32,6 +32,7 @@
         color: color-mix(in hsl, var(--color) 50%, transparent);
         background-color: color-mix(in hsl, var(--background-color) 50%, white);
         cursor: not-allowed;
+        pointer-events: none;
     }
 
     &:hover:not(:disabled) {

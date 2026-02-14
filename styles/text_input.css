@@ -33,6 +33,9 @@
 
     &:disabled {
         color: color-mix(in hsl, var(--color) 50%, transparent);
+        opacity: 0.5;
+        pointer-events: none;
+        cursor: not-allowed;
     }
 
     &:hover {

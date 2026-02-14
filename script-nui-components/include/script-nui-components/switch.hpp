@@ -19,6 +19,10 @@
 
 #include <string>
 #include <type_traits>
+#include <optional>
+#include <string>
+#include <vector>
+#include <functional>
 
 #if defined(NUI_INLINE) && !defined(SCRIPT_NUI_COMPONENTS_NO_INLINE)
 // clang-format off
@@ -54,7 +58,7 @@ namespace ScriptNuiComponents
             using Nui::Elements::span;
             using namespace std::string_literals;
 
-            return button{mergeAttributes(
+            return Nui::Elements::button{mergeAttributes(
                 {
                     class_ = "script-nui-switch",
                     "data-is-checked"_attr = options.isChecked,

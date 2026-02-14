@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.21)
 project(script-nui-components VERSION 0.1.0)
 
 if (EMSCRIPTEN)
-    add_subdirectory(${CMAKE_SOURCE_DIR}/script-nui-components/source/script-nui-components)
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/script-nui-components/source/script-nui-components)
 endif()
 
 if (PROJECT_IS_TOP_LEVEL)
@@ -15,12 +15,12 @@ if (PROJECT_IS_TOP_LEVEL)
     add_executable(${PROJECT_NAME}-test)
     target_link_libraries(${PROJECT_NAME}-test PUBLIC core-target)
 
-    set(PREJS_FILE ${CMAKE_SOURCE_DIR}/frontend/source/frontend/js/module.js)
+    set(PREJS_FILE ${CMAKE_CURRENT_SOURCE_DIR}/frontend/source/frontend/js/module.js)
 
     if (EMSCRIPTEN)
-        add_subdirectory(${CMAKE_SOURCE_DIR}/frontend/source/frontend)
+        add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/frontend/source/frontend)
     else()
-        add_subdirectory(${CMAKE_SOURCE_DIR}/backend/source/backend)
+        add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/backend/source/backend)
 
         # If msys2, copy dynamic libraries to executable directory, visual studio does this automatically.
         # And there is no need on linux.

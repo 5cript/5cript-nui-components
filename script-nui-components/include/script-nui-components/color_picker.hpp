@@ -43,9 +43,11 @@ namespace ScriptNuiComponents
         struct Options
         {
             typename Detail::AttributeTraits<ValueType>::Actual value;
+            std::vector<Nui::Attribute> attributes = {};
             std::string pickButtonText = "Pick";
             std::optional<Nui::ElementRenderer> pickButtonIcon = std::nullopt;
             StyleVariant buttonStyleVariant = StyleVariant::Regular;
+            std::function<void(std::string const& newColor)> onChange = {};
         };
 
         template <typename ValueType>
@@ -59,7 +61,9 @@ namespace ScriptNuiComponents
 
             // clang-format off
             return div{
-                class_ = "script-nui-color-picker",
+                mergeAttributes(std::move(options.attributes), {
+                    class_ = "script-nui-color-picker",
+                })
             }(
                 // Color Preview box:
                 div{}(
@@ -101,8 +105,14 @@ namespace ScriptNuiComponents
                         [options](Nui::WebApi::Event event)
                     {
                         auto target = event.target();
+                        std::string value;
                         if (!target.isUndefined())
-                            Detail::AttributeTraits<ValueType>::assignValue(options.value, target["value"].template as<std::string>());
+                        {
+                            value = target["value"].template as<std::string>();
+                            Detail::AttributeTraits<ValueType>::assignValue(options.value, value);
+                        }
+                        if (options.onChange)
+                            options.onChange(value);
                     }
                 }()
             );

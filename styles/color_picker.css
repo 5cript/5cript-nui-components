@@ -5,6 +5,20 @@
     align-items: center;
     gap: 0.5em;
 
+    &::disabled {
+        &>:nth-child(2) {
+            opacity: 0.5;
+            pointer-events: none;
+            cursor: not-allowed;
+        }
+
+        &>:nth-child(4) {
+            opacity: 0.5;
+            pointer-events: none;
+            cursor: not-allowed;
+        }
+    }
+
     &>:nth-child(1) {
         width: 2em;
         height: 2em;
