@@ -33,6 +33,10 @@ namespace ScriptNuiComponents::Detail
         {
             return actual;
         }
+        static auto observe(Actual const& actual, auto&& fn)
+        {
+            return fn(actual);
+        }
     };
 
     template <typename T>
@@ -62,6 +66,10 @@ namespace ScriptNuiComponents::Detail
         static Type& unwrap(Actual& observed)
         {
             return observed.get().value();
+        }
+        static auto observe(Actual const& actual, auto&& fn)
+        {
+            return Nui::observe(actual.get()).generate(std::forward<decltype(fn)>(fn));
         }
     };
 
@@ -101,6 +109,12 @@ namespace ScriptNuiComponents::Detail
             if (auto shared = observed.lock(); shared)
                 return shared->value();
             throw std::runtime_error("Observed value is not available");
+        }
+        static auto observe(Actual const& actual, auto&& fn)
+        {
+            if (auto shared = actual.lock(); shared)
+                return Nui::observe(*shared).generate(std::forward<decltype(fn)>(fn));
+            return fn(Type{});
         }
     };
 

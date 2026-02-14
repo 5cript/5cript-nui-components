@@ -62,6 +62,7 @@ Nui::ElementRenderer MainPage::render()
 
 #### Css Variables
 
+```css
 :root {
     /* Size factor for the switch, where 1 is the default size. This scales the entire switch, including the thumb. */
     --script-nui-components-switch-size-factor: 1;
@@ -71,6 +72,55 @@ Nui::ElementRenderer MainPage::render()
     --script-nui-components-switch-color-inactive: #1f2228;
     --script-nui-components-switch-thumb-color: #dddddd;
 }
+```
+
+### Button
+
+#### C++
+
+```cpp
+#include <script-nui-components/button.hpp>
+
+Nui::ElementRenderer MainPage::render()
+{
+    using namespace ScriptNuiComponents;
+
+    return body{}(
+        return Button{}(Button::Options{
+            .text = "Icon Button",
+            .icon =
+                Nui::Elements::Svg::svg{
+                    Nui::Attributes::Svg::viewBox = "0 0 24 24"s,
+                }(Nui::Elements::Svg::path{
+                    Nui::Attributes::Svg::d = "m6 9 6 6 6-6"s,
+                }()),
+            .attributes = {
+                Nui::Attributes::onClick = [](auto const&)
+                {
+                    Nui::WebApi::Console::log("Icon button clicked!");
+                }
+            }
+        });
+    );
+}
+```
+
+#### Css Variables
+
+```css
+:root {
+    --script-nui-components-button-color-primary: #5fbcff;
+    --script-nui-components-button-color-warning: #fbbf24;
+    --script-nui-components-button-color-danger: #dc2626;
+    --script-nui-components-button-color-regular: #202020;
+    --script-nui-components-button-color-disabled: #505050;
+    --script-nui-components-button-border-color: #505050;
+    --script-nui-components-button-color: #dddddd;
+    --script-nui-components-button-font: inherit;
+    --script-nui-components-button-font-size: 0.8rem;
+    --script-nui-components-button-border-radius: 0px;
+}
+```
 
 ### Text Input
 
@@ -103,6 +153,7 @@ Nui::ElementRenderer MainPage::render()
 
 #### Css Variables
 
+```css
 :root {
     --script-nui-components-field-border-radius: 0px;
     --script-nui-components-field-color: #dddddd;
@@ -113,7 +164,10 @@ Nui::ElementRenderer MainPage::render()
     --script-nui-components-field-hover-shadow: 0 0 0 0.1rem var(--script-nui-components-field-theme-color);
     --script-nui-components-field-border-color: #505050;
     --script-nui-components-field-focus-shadow: var(--script-nui-components-field-hover-shadow);
+    /* Used for invalid state of the input, e.g. when pattern attribute is not matched. */
+    --script-nui-components-field-color-invalid: #dc2626;
 }
+```
 
 ### Select
 
@@ -164,6 +218,7 @@ Nui::ElementRenderer MainPage::render()
 
 #### Css Variables
 
+```css
 :root {
     --script-nui-components-field-border-radius: 0px;
     --script-nui-components-field-color: #dddddd;
@@ -175,3 +230,38 @@ Nui::ElementRenderer MainPage::render()
     --script-nui-components-field-border-color: #505050;
     --script-nui-components-field-focus-shadow: var(--script-nui-components-field-hover-shadow);
 }
+```
+
+### Color Picker
+
+#### C++
+
+```cpp
+#include <script-nui-components/color_picker.hpp>
+
+Nui::ElementRenderer MainPage::render()
+{
+    using namespace ScriptNuiComponents;
+
+    // MainPage members:
+    //
+    // Nui::Observed<std::string> colorValue_{};
+
+    return body{}(
+        return ColorPicker{}(ColorPicker::Options<decltype(colorValue_)>{
+            .value = colorValue_,
+            .pickButtonText = "",
+            .pickButtonIcon = Nui::Elements::Svg::svg{
+                Nui::Attributes::Svg::viewBox = "0 0 24 24",
+            }(Nui::Elements::Svg::path{
+                Nui::Attributes::Svg::d = "" /* something meaningful */,
+            }()),
+            .buttonStyleVariant = StyleVariant::Transparent
+        });
+    );
+}
+```
+
+#### Css Variables
+
+Styling is determined by button and text field styles.

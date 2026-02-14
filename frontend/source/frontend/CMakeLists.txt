@@ -49,4 +49,6 @@ nui_prepare_emscripten_target(
         "${CMAKE_SOURCE_DIR}/styles/switch.css"
         "${CMAKE_SOURCE_DIR}/styles/text_input.css"
         "${CMAKE_SOURCE_DIR}/styles/select.css"
+        "${CMAKE_SOURCE_DIR}/styles/button.css"
+        "${CMAKE_SOURCE_DIR}/styles/color_picker.css"
 )

@@ -17,14 +17,19 @@ class MainPage
     Nui::ElementRenderer switch_();
     Nui::ElementRenderer textInput();
     Nui::ElementRenderer select();
+    Nui::ElementRenderer iconButton();
+    Nui::ElementRenderer colorPicker();
 
   private:
     Nui::Observed<std::vector<int>> massSwitches;
     Nui::Observed<std::vector<int>> massInputs;
     Nui::Observed<std::vector<int>> massSelects;
+    Nui::Observed<std::vector<int>> massIconButtons;
+    Nui::Observed<std::vector<int>> massColorPickers;
 
     Nui::Observed<bool> isChecked_{false};
     Nui::Observed<std::string> textInputValue_{};
+    Nui::Observed<std::string> colorValue_{};
 
     Nui::Observed<std::string> selectValue_{};
     Nui::Observed<std::vector<std::string>> selectOptions_{std::vector<std::string>{

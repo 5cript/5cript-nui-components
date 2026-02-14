@@ -1,6 +1,7 @@
 .script-nui-text-input {
     --border-radius: var(--script-nui-components-field-border-radius, 0px);
     --color: var(--script-nui-components-field-color, #dddddd);
+    --color-invalid: var(--script-nui-components-field-color-invalid, #dc2626);
     --background-color: var(--script-nui-components-field-background-color, #202020);
     --font: var(--script-nui-components-field-font, inherit);
     --font-size: var(--script-nui-components-field-font-size, 0.8rem);
@@ -40,5 +41,9 @@
 
     &:focus {
         box-shadow: var(--focus-shadow);
+    }
+
+    &:invalid {
+        box-shadow: 0 0 0 0.1rem var(--color-invalid, #dc2626);
     }
 }
