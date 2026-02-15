@@ -60,6 +60,11 @@ namespace ScriptNuiComponents
             {
                 return Nui::Elements::span{}(each);
             };
+            std::function<std::string()> makeId = []()
+            {
+                return Nui::val::global("crypto").call<std::string>("randomUUID");
+            };
+            bool dontUpdateValue = false;
         };
 
         struct Positioning
@@ -79,14 +84,12 @@ namespace ScriptNuiComponents
             Options<ActiveOptionType, OptionsValueType> options;
             std::weak_ptr<Nui::Dom::BasicElement> buttonElement{};
             Nui::Observed<Positioning> positioning{{0.0, 0.0, 0.0}};
+            std::string id = options.makeId();
         };
 
         template <typename ActiveOptionType, typename OptionsValueType>
         Nui::ElementRenderer operator()(Options<ActiveOptionType, OptionsValueType> options) const
         {
-            static int idCounter = 0;
-            ++idCounter;
-
             using namespace Nui::Elements;
             using namespace Nui::Attributes;
             using namespace std::string_literals;
@@ -106,17 +109,19 @@ namespace ScriptNuiComponents
                             if (auto btn = state->buttonElement.lock(); btn)
                             {
                                 auto rect = Nui::WebApi::DomRectReadOnly{btn->val().template call<Nui::val>("getBoundingClientRect")};
-                                const auto relativeLeft = btn->val()["offsetLeft"].template as<double>();
-                                const auto relativeTop = btn->val()["offsetTop"].template as<double>() + rect.height();
+                                // const auto relativeLeft = btn->val()["offsetLeft"].template as<double>();
+                                // const auto relativeTop = btn->val()["offsetTop"].template as<double>() + rect.height();
                                 state->positioning = Positioning{
                                     .width = rect.width(),
-                                    .top = relativeTop,
-                                    .left = relativeLeft,
+                                    // .top = relativeTop,
+                                    // .left = relativeLeft,
+                                    .top = rect.top() + rect.height(),
+                                    .left = rect.left()
                                 };
                             }
                             mouseEvent.stopPropagation();
                         },
-                        "popovertarget"_attr = fmt::format("select-options-{}", idCounter),
+                        "popovertarget"_attr = fmt::format("select-options-{}", state->id),
                         reference = [state](std::weak_ptr<Nui::Dom::BasicElement> element) {
                             state->buttonElement = std::move(element);
                         },
@@ -135,26 +140,31 @@ namespace ScriptNuiComponents
                 div{
                     "popover"_attr = "auto",
                     class_ = "script-nui-select-popover",
-                    id = fmt::format("select-options-{}", idCounter),
+                    id = fmt::format("select-options-{}", state->id),
                     style = Nui::observe(state->positioning).generate([state]() {
                         return fmt::format("top: {}px; left: {}px; width: {}px;", state->positioning.value().top, state->positioning.value().left, state->positioning.value().width);
                     }),
-                    onClick = [state, onChange = std::move(state->options.onChange), active = state->options.activeOption, opts = state->options.options](Nui::WebApi::MouseEvent event) mutable {
+                    onClick = [state, onChange = std::move(state->options.onChange)](Nui::WebApi::MouseEvent event) mutable {
                         event.val()["currentTarget"].call<void>("hidePopover");
                         event.stopPropagation();
                         auto target = event.target();
+                        int max = 10; // paranoid
                         // while target is not div with data-index, keep looking up the parents:
-                        while (!target.isNull() && !target.isUndefined() && !target.call<bool>("hasAttribute", "data-index"s) && !target.call<bool>("hasAttribute", "popover"s))
+                        while (!target.isNull() && !target.isUndefined() && !target.call<bool>("hasAttribute", "data-index"s) && !target.call<bool>("hasAttribute", "popover"s) && max-- > 0)
                         {
                             target = target["parentElement"];
                         }
                         if (target.isNull() || target.isUndefined() || target.call<bool>("hasAttribute", "popover"s))
+                        {
+                            Nui::WebApi::Console::error("Could not find option element for select click event!");
                             return; // dont know how.
+                        }
 
                         const auto dataIndex = std::stol(target.call<std::string>("getAttribute", "data-index"s));
-                        Detail::AttributeTraits<ActiveOptionType>::assignValue(active, Detail::AttributeTraits<OptionsValueType>::unwrap(opts)[dataIndex]);
+                        if (!state->options.dontUpdateValue)
+                            Detail::AttributeTraits<ActiveOptionType>::assignValue(state->options.activeOption, Detail::AttributeTraits<OptionsValueType>::unwrap(state->options.options)[dataIndex]);
                         if (onChange)
-                            onChange(Detail::AttributeTraits<OptionsValueType>::unwrap(opts)[dataIndex], event);
+                            onChange(Detail::AttributeTraits<OptionsValueType>::unwrap(state->options.options)[dataIndex], event);
                     },
                 }(
                     Detail::AttributeTraits<OptionsValueType>::range(state->options.options),
