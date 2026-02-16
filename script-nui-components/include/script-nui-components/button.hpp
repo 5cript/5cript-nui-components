@@ -31,33 +31,29 @@
 
 namespace ScriptNuiComponents
 {
-    class Button
+    struct ButtonOptions
     {
-      public:
-        struct Options
-        {
-            std::string text{};
-            std::optional<Nui::ElementRenderer> icon = std::nullopt;
-            std::vector<Nui::Attribute> attributes = {};
-            StyleVariant styleVariant = StyleVariant::Regular;
-        };
-
-        Nui::ElementRenderer operator()(Options options) const
-        {
-            using namespace Nui::Elements;
-            using namespace Nui::Attributes;
-
-            auto button = Nui::Elements::button{mergeAttributes(
-                std::vector<Nui::Attribute>{
-                    class_ = "script-nui-button",
-                    "data-variant"_attr = toString(options.styleVariant),
-                },
-                std::move(options.attributes)
-            )};
-
-            if (options.icon)
-                return std::move(button)(*options.icon, Nui::Elements::text{std::move(options.text)}());
-            return std::move(button)(std::move(options.text));
-        }
+        std::string text{};
+        std::optional<Nui::ElementRenderer> icon = std::nullopt;
+        std::vector<Nui::Attribute> attributes = {};
+        StyleVariant styleVariant = StyleVariant::Regular;
     };
+
+    inline Nui::ElementRenderer button(ButtonOptions options)
+    {
+        using namespace Nui::Elements;
+        using namespace Nui::Attributes;
+
+        auto button = Nui::Elements::button{mergeAttributes(
+            std::vector<Nui::Attribute>{
+                class_ = "script-nui-button",
+                "data-variant"_attr = toString(options.styleVariant),
+            },
+            std::move(options.attributes)
+        )};
+
+        if (options.icon)
+            return std::move(button)(*options.icon, Nui::Elements::text{std::move(options.text)}());
+        return std::move(button)(std::move(options.text));
+    }
 } // namespace ScriptNuiComponents

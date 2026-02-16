@@ -36,87 +36,85 @@
 
 namespace ScriptNuiComponents
 {
-    class ColorPicker
+    template <typename ValueType>
+    struct ColorPickerOptions
     {
-      public:
-        template <typename ValueType>
-        struct Options
-        {
-            typename Detail::AttributeTraits<ValueType>::Actual value;
-            std::vector<Nui::Attribute> attributes = {};
-            std::string pickButtonText = "Pick";
-            std::optional<Nui::ElementRenderer> pickButtonIcon = std::nullopt;
-            StyleVariant buttonStyleVariant = StyleVariant::Regular;
-            std::function<void(std::string const& newColor)> onChange = {};
-        };
-
-        template <typename ValueType>
-        Nui::ElementRenderer operator()(Options<ValueType> options) const
-        {
-            using namespace Nui::Elements;
-            using namespace Nui::Attributes;
-            using Nui::Elements::div;
-
-            auto labelElement = std::make_shared<std::weak_ptr<Nui::Dom::BasicElement>>();
-
-            // clang-format off
-            return div{
-                mergeAttributes(std::move(options.attributes), {
-                    class_ = "script-nui-color-picker",
-                })
-            }(
-                // Color Preview box:
-                div{}(
-                    div{
-                        style = Detail::AttributeTraits<ValueType>::observe(options.value, [this](auto const& color) {
-                            return fmt::format("background-color: {};", color);
-                        })
-                    }()
-                ),
-                TextInput{}(
-                    TextInput::Options<ValueType>{
-                        .value = options.value,
-                        .attributes = {
-                            pattern = "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$",
-                        },
-                    }
-                ),
-                Button{}(
-                    Button::Options{
-                        .text = std::move(options.pickButtonText),
-                        .icon = std::move(options.pickButtonIcon),
-                        .styleVariant = options.buttonStyleVariant,
-                        .attributes = {
-                            Nui::Attributes::onClick = [labelElement](Nui::val event)
-                            {
-                                if (auto lbl = labelElement->lock(); lbl)
-                                    lbl->val().call<void>("click", event);
-                            }
-                        }
-                    }
-                ),
-                input{
-                    type = "color",
-                    reference = [labelElement](std::weak_ptr<Nui::Dom::BasicElement> element) {
-                        *labelElement = std::move(element);
-                    },
-                    style = "visibility: hidden",
-                    onChange =
-                        [options](Nui::WebApi::Event event)
-                    {
-                        auto target = event.target();
-                        std::string value;
-                        if (!target.isUndefined())
-                        {
-                            value = target["value"].template as<std::string>();
-                            Detail::AttributeTraits<ValueType>::assignValue(options.value, value);
-                        }
-                        if (options.onChange)
-                            options.onChange(value);
-                    }
-                }()
-            );
-            // clang-format on
-        }
+        typename Detail::AttributeTraits<ValueType>::Actual value;
+        std::vector<Nui::Attribute> attributes = {};
+        std::string pickButtonText = "Pick";
+        std::optional<Nui::ElementRenderer> pickButtonIcon = std::nullopt;
+        StyleVariant buttonStyleVariant = StyleVariant::Regular;
+        std::function<void(std::string const& newColor)> onChange = {};
+        bool dontUpdateValue = false;
     };
+
+    template <typename ValueType>
+    Nui::ElementRenderer colorPicker(ColorPickerOptions<ValueType> options)
+    {
+        using namespace Nui::Elements;
+        using namespace Nui::Attributes;
+        using Nui::Elements::div;
+
+        auto labelElement = std::make_shared<std::weak_ptr<Nui::Dom::BasicElement>>();
+
+        // clang-format off
+        return div{
+            mergeAttributes(std::move(options.attributes), {
+                class_ = "script-nui-color-picker",
+            })
+        }(
+            // Color Preview box:
+            div{}(
+                div{
+                    style = Detail::AttributeTraits<ValueType>::observe(options.value, [](auto const& color) {
+                        return fmt::format("background-color: {};", color);
+                    })
+                }()
+            ),
+            textInput(
+                TextInputOptions<ValueType>{
+                    .value = options.value,
+                    .attributes = {
+                        pattern = "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$",
+                    },
+                }
+            ),
+            button(
+                ButtonOptions{
+                    .text = std::move(options.pickButtonText),
+                    .icon = std::move(options.pickButtonIcon),
+                    .attributes = {
+                        Nui::Attributes::onClick = [labelElement](Nui::val event)
+                        {
+                            if (auto lbl = labelElement->lock(); lbl)
+                                lbl->val().call<void>("click", event);
+                        }
+                    },
+                    .styleVariant = options.buttonStyleVariant,
+                }
+            ),
+            input{
+                type = "color",
+                reference = [labelElement](std::weak_ptr<Nui::Dom::BasicElement> element) {
+                    *labelElement = std::move(element);
+                },
+                style = "visibility: hidden",
+                onChange =
+                    [options](Nui::WebApi::Event event)
+                {
+                    auto target = event.target();
+                    std::string value;
+                    if (!target.isUndefined())
+                    {
+                        value = target["value"].template as<std::string>();
+                        if (!options.dontUpdateValue)
+                            Detail::AttributeTraits<ValueType>::assignValue(options.value, value);
+                    }
+                    if (options.onChange)
+                        options.onChange(value);
+                }
+            }()
+        );
+        // clang-format on
+    }
 } // namespace ScriptNuiComponents

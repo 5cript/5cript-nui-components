@@ -120,4 +120,12 @@ namespace ScriptNuiComponents::Detail
 
     template <typename T>
     using AttributeTraits = AttributeTraitsImpl<std::decay_t<T>>;
+
+    template <typename Lhs, typename Rhs, typename = void>
+    struct CanAssign : std::false_type
+    {};
+
+    template <typename Lhs, typename Rhs>
+    struct CanAssign<Lhs, Rhs, std::void_t<decltype(std::declval<Lhs>() = std::declval<Rhs>())>> : std::true_type
+    {};
 }

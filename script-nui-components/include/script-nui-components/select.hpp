@@ -33,74 +33,68 @@
 
 namespace ScriptNuiComponents
 {
-    class Select
+    namespace Detail
     {
-      public:
-        template <class... T>
-        struct always_false : std::false_type
-        {};
-
-        template <typename ActiveOptionType, typename OptionsValueType>
-        struct Options
-        {
-            using ActiveType = Detail::AttributeTraits<ActiveOptionType>::Type;
-            Detail::AttributeTraits<ActiveOptionType>::Actual activeOption = {};
-            Detail::AttributeTraits<OptionsValueType>::Actual options = {};
-            std::vector<Nui::Attribute> attributes = {};
-
-            std::function<void(ActiveType const& newValue, Nui::WebApi::MouseEvent const&)> onChange = {};
-            std::function<Nui::ElementRenderer(ActiveOptionType const&)> activeRenderer =
-                [](ActiveOptionType const& actual)
-            {
-                return Nui::Elements::span{}(actual);
-            };
-            std::function<
-                Nui::ElementRenderer(typename Detail::AttributeTraits<OptionsValueType>::Type::value_type const&)>
-                elementRenderer = [](typename Detail::AttributeTraits<OptionsValueType>::Type::value_type const& each)
-            {
-                return Nui::Elements::span{}(each);
-            };
-            std::function<std::string()> makeId = []()
-            {
-                return Nui::val::global("crypto").call<std::string>("randomUUID");
-            };
-            bool dontUpdateValue = false;
-        };
-
         struct Positioning
         {
             double width;
             double top;
             double left;
         };
+    }
 
-        template <typename ActiveOptionType, typename OptionsValueType>
-        struct State
+    template <typename ActiveOptionType, typename OptionsValueType>
+    struct SelectOptions
+    {
+        using ActiveType = Detail::AttributeTraits<ActiveOptionType>::Type;
+        Detail::AttributeTraits<ActiveOptionType>::Actual activeOption = {};
+        Detail::AttributeTraits<OptionsValueType>::Actual options = {};
+        std::vector<Nui::Attribute> attributes = {};
+
+        std::function<void(ActiveType const& newValue, Nui::WebApi::MouseEvent const&)> onChange = {};
+        std::function<Nui::ElementRenderer(ActiveOptionType const&)> activeRenderer = [](ActiveOptionType const& actual)
         {
-            State(Options<ActiveOptionType, OptionsValueType>&& opts)
-                : options{std::move(opts)}
-            {}
-
-            Options<ActiveOptionType, OptionsValueType> options;
-            std::weak_ptr<Nui::Dom::BasicElement> buttonElement{};
-            Nui::Observed<Positioning> positioning{{0.0, 0.0, 0.0}};
-            std::string id = options.makeId();
+            return Nui::Elements::span{}(actual);
         };
-
-        template <typename ActiveOptionType, typename OptionsValueType>
-        Nui::ElementRenderer operator()(Options<ActiveOptionType, OptionsValueType> options) const
+        std::function<Nui::ElementRenderer(typename Detail::AttributeTraits<OptionsValueType>::Type::value_type const&)>
+            elementRenderer = [](typename Detail::AttributeTraits<OptionsValueType>::Type::value_type const& each)
         {
-            using namespace Nui::Elements;
-            using namespace Nui::Attributes;
-            using namespace std::string_literals;
-            using Nui::Elements::span;
-            using Nui::Elements::div;
-            namespace svge = Nui::Elements::Svg;
-            namespace svga = Nui::Attributes::Svg;
+            return Nui::Elements::span{}(each);
+        };
+        std::function<std::string()> makeId = []()
+        {
+            return Nui::val::global("crypto").call<std::string>("randomUUID");
+        };
+        bool dontUpdateValue = false;
+    };
 
-            auto state = std::make_shared<State<ActiveOptionType, OptionsValueType>>(std::move(options));
+    template <typename ActiveOptionType, typename OptionsValueType>
+    struct SelectState
+    {
+        SelectState(SelectOptions<ActiveOptionType, OptionsValueType>&& opts)
+            : options{std::move(opts)}
+        {}
 
-            // clang-format off
+        SelectOptions<ActiveOptionType, OptionsValueType> options;
+        std::weak_ptr<Nui::Dom::BasicElement> buttonElement{};
+        Nui::Observed<Detail::Positioning> positioning{{0.0, 0.0, 0.0}};
+        std::string id = options.makeId();
+    };
+
+    template <typename ActiveOptionType, typename OptionsValueType>
+    Nui::ElementRenderer select(SelectOptions<ActiveOptionType, OptionsValueType> options)
+    {
+        using namespace Nui::Elements;
+        using namespace Nui::Attributes;
+        using namespace std::string_literals;
+        using Nui::Elements::span;
+        using Nui::Elements::div;
+        namespace svge = Nui::Elements::Svg;
+        namespace svga = Nui::Attributes::Svg;
+
+        auto state = std::make_shared<SelectState<ActiveOptionType, OptionsValueType>>(std::move(options));
+
+        // clang-format off
             return Nui::Elements::button{
                 mergeAttributes(
                     std::vector<Nui::Attribute>{
@@ -111,7 +105,7 @@ namespace ScriptNuiComponents
                                 auto rect = Nui::WebApi::DomRectReadOnly{btn->val().template call<Nui::val>("getBoundingClientRect")};
                                 // const auto relativeLeft = btn->val()["offsetLeft"].template as<double>();
                                 // const auto relativeTop = btn->val()["offsetTop"].template as<double>() + rect.height();
-                                state->positioning = Positioning{
+                                state->positioning = Detail::Positioning{
                                     .width = rect.width(),
                                     // .top = relativeTop,
                                     // .left = relativeLeft,
@@ -177,7 +171,6 @@ namespace ScriptNuiComponents
                     }
                 )
             );
-            // clang-format on
-        }
-    };
+        // clang-format on
+    }
 } // namespace ScriptNuiComponents
