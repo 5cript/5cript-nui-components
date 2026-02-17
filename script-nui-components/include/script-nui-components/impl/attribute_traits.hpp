@@ -3,14 +3,32 @@
 #include <nui/event_system/observed_value.hpp>
 #include <nui/event_system/range.hpp>
 
+#include <map>
+#include <unordered_map>
+
 namespace ScriptNuiComponents::Detail
 {
+    template <typename T>
+    struct IsMapImpl : std::false_type
+    {};
+
+    template <typename... TArgs>
+    struct IsMapImpl<std::map<TArgs...>> : std::true_type
+    {};
+    template <typename... TArgs>
+    struct IsMapImpl<std::unordered_map<TArgs...>> : std::true_type
+    {};
+
+    template <typename T>
+    inline constexpr bool IsMap = IsMapImpl<std::decay_t<T>>::value;
+
     template <typename T>
     struct AttributeTraitsImpl
     {
         using Type = T;
         using Actual = T;
         constexpr static bool isObserved = false;
+        constexpr static bool isMap = IsMap<T>;
 
         static Type getValue(T const& value)
         {
@@ -45,6 +63,7 @@ namespace ScriptNuiComponents::Detail
         using Type = T;
         using Actual = std::reference_wrapper<Nui::Observed<T>>;
         constexpr static bool isObserved = true;
+        constexpr static bool isMap = IsMap<T>;
 
         static Type getValue(Actual observed)
         {
@@ -79,6 +98,7 @@ namespace ScriptNuiComponents::Detail
         using Type = T;
         using Actual = std::weak_ptr<Nui::Observed<T>>;
         constexpr static bool isObserved = true;
+        constexpr static bool isMap = IsMap<T>;
 
         static Type getValue(Actual const& observed)
         {
@@ -120,4 +140,12 @@ namespace ScriptNuiComponents::Detail
 
     template <typename T>
     using AttributeTraits = AttributeTraitsImpl<std::decay_t<T>>;
+
+    template <typename Lhs, typename Rhs, typename = void>
+    struct CanAssign : std::false_type
+    {};
+
+    template <typename Lhs, typename Rhs>
+    struct CanAssign<Lhs, Rhs, std::void_t<decltype(std::declval<Lhs>() = std::declval<Rhs>())>> : std::true_type
+    {};
 }

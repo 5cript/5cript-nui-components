@@ -41,7 +41,7 @@ Nui::ElementRenderer MainPage::render()
     // isChecked_ is Nui::Observed<bool>, std::shared_ptr<Nui::Observed<bool>>, or bool.
 
     return body{}(
-        Switch{}(Switch::Options<decltype(isChecked_)>{
+        switch_(SwitchOptions<decltype(isChecked_)>{
             .isChecked = isChecked_,
             .sizeFactor = 1,
             .colorActive = "#008000",
@@ -86,7 +86,7 @@ Nui::ElementRenderer MainPage::render()
     using namespace ScriptNuiComponents;
 
     return body{}(
-        return Button{}(Button::Options{
+        return button(ButtonOptions{
             .text = "Icon Button",
             .icon =
                 Nui::Elements::Svg::svg{
@@ -136,7 +136,7 @@ Nui::ElementRenderer MainPage::render()
     // value is Nui::Observed<std::string>, std::shared_ptr<Nui::Observed<std::string>>, or std::string.
 
     return body{}(
-        TextInput{}(TextInput::Options<decltype(value_)>{
+        textInput(TextInputOptions<decltype(value_)>{
             .value = value_,
             .onChange = [this](std::string const& newValue, Nui::WebApi::InputEvent const&)
             {
@@ -188,7 +188,7 @@ Nui::ElementRenderer MainPage::render()
     // };
 
     return body{}(
-        Select{}(Select::Options<decltype(selectValue_), decltype(selectOptions_)>{
+        select(SelectOptions<decltype(selectValue_), decltype(selectOptions_)>{
             .activeOption = selectValue_,
             .options = selectOptions_,
             .attributes = {
@@ -248,7 +248,7 @@ Nui::ElementRenderer MainPage::render()
     // Nui::Observed<std::string> colorValue_{};
 
     return body{}(
-        return ColorPicker{}(ColorPicker::Options<decltype(colorValue_)>{
+        return colorPicker(ColorPickerOptions<decltype(colorValue_)>{
             .value = colorValue_,
             .pickButtonText = "",
             .pickButtonIcon = Nui::Elements::Svg::svg{
@@ -304,7 +304,7 @@ MainPage::MainPage()
                           // std::function must be copiable
                           std::shared_ptr<ResizableTable::ISelfController> sharedController = std::move(controller);
 
-                          return Button{}(Button::Options{
+                          return button(ButtonOptions{
                               .icon =
                                   Nui::Elements::Svg::svg{
                                       Nui::Attributes::Svg::viewBox = "0 0 512 512",

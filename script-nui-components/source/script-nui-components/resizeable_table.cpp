@@ -189,13 +189,15 @@ namespace ScriptNuiComponents
             }
             void remove() override
             {
-                if (auto parent = parent_)
-                    parent->remove(static_cast<std::size_t>(row_));
+                parent_->remove(static_cast<std::size_t>(row_));
             }
-
             void row(int newRow)
             {
                 row_ = newRow;
+            }
+            virtual ResizableTable::TableRow const& rowData() const override
+            {
+                return parent_->row(static_cast<std::size_t>(row_));
             }
 
           private:
@@ -399,5 +401,9 @@ namespace ScriptNuiComponents
     int ResizableTable::columnCount() const
     {
         return impl_->header.size();
+    }
+    ResizableTable::TableRow const& ResizableTable::row(std::size_t index) const
+    {
+        return (*impl_->rows)[index].row;
     }
 }

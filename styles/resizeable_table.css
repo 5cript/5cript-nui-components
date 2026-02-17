@@ -24,7 +24,6 @@
     font-size: var(--table-font-size);
     color: var(--table-text-color);
 
-    padding: 0 0.4em;
     overflow: auto;
 
     & table {
@@ -32,6 +31,11 @@
         scrollbar-gutter: stable;
         /* width: 100% removed to allow C++ / columnWidths to drive the width */
         border-spacing: 0;
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        pointer-events: none;
     }
 
     & thead th {
