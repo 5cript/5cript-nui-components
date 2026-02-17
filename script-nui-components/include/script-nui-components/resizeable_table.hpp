@@ -15,16 +15,9 @@ namespace ScriptNuiComponents
     class ResizableTable
     {
       public:
+        struct ISelfController;
+        struct HeaderTableCell;
         using AddCallback = std::function<void(ResizableTable&)>;
-
-        struct ISelfController
-        {
-            virtual ~ISelfController() = default;
-            virtual void remove() = 0;
-            virtual int row() const = 0;
-            virtual int column() const = 0;
-        };
-
         using TableCell =
             std::variant<std::string, std::function<Nui::ElementRenderer(std::unique_ptr<ISelfController> controller)>>;
 
@@ -40,6 +33,15 @@ namespace ScriptNuiComponents
 
         using TableRow = std::vector<TableCell>;
         using HeaderRow = std::vector<HeaderTableCell>;
+
+        struct ISelfController
+        {
+            virtual ~ISelfController() = default;
+            virtual void remove() = 0;
+            virtual int row() const = 0;
+            virtual int column() const = 0;
+            virtual TableRow const& rowData() const = 0;
+        };
 
         struct AddFeature
         {
@@ -68,6 +70,7 @@ namespace ScriptNuiComponents
         void clear();
         int rowCount() const;
         int columnCount() const;
+        TableRow const& row(std::size_t index) const;
 
       private:
         struct Implementation;
