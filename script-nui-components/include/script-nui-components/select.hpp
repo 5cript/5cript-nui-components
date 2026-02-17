@@ -22,6 +22,7 @@
 
 #include <string>
 #include <type_traits>
+#include <optional>
 
 #if defined(NUI_INLINE) && !defined(SCRIPT_NUI_COMPONENTS_NO_INLINE)
 // clang-format off
@@ -59,7 +60,12 @@ namespace ScriptNuiComponents
         std::function<Nui::ElementRenderer(typename Detail::AttributeTraits<OptionsValueType>::Type::value_type const&)>
             elementRenderer = [](typename Detail::AttributeTraits<OptionsValueType>::Type::value_type const& each)
         {
-            return Nui::Elements::span{}(each);
+            if constexpr (Detail::AttributeTraits<OptionsValueType>::isMap)
+            {
+                return Nui::Elements::span{}(each.first);
+            }
+            else
+                return Nui::Elements::span{}(each);
         };
         std::function<std::string()> makeId = []()
         {
@@ -154,17 +160,46 @@ namespace ScriptNuiComponents
                             return; // dont know how.
                         }
 
-                        const auto dataIndex = std::stol(target.call<std::string>("getAttribute", "data-index"s));
-                        if (!state->options.dontUpdateValue)
-                            Detail::AttributeTraits<ActiveOptionType>::assignValue(state->options.activeOption, Detail::AttributeTraits<OptionsValueType>::unwrap(state->options.options)[dataIndex]);
-                        if (onChange)
-                            onChange(Detail::AttributeTraits<OptionsValueType>::unwrap(state->options.options)[dataIndex], event);
+                        if constexpr (Detail::AttributeTraits<OptionsValueType>::isMap)
+                        {
+                            auto key = target.call<std::string>("getAttribute", "data-key"s);
+                            auto& optionsMap = Detail::AttributeTraits<OptionsValueType>::unwrap(state->options.options);
+                            auto iter = optionsMap.find(key);
+                            if (iter == optionsMap.end())
+                            {
+                                Nui::WebApi::Console::error("Could not find option for select with key: {}", key);
+                                return;
+                            }
+                            if (!state->options.dontUpdateValue)
+                                Detail::AttributeTraits<ActiveOptionType>::assignValue(state->options.activeOption, iter->second);
+                            if (onChange)
+                                onChange(iter->second, event);
+                        }
+                        else
+                        {
+                            const auto dataIndex = std::stol(target.call<std::string>("getAttribute", "data-index"s));
+                            if (!state->options.dontUpdateValue)
+                                Detail::AttributeTraits<ActiveOptionType>::assignValue(state->options.activeOption, Detail::AttributeTraits<OptionsValueType>::unwrap(state->options.options)[dataIndex]);
+                            if (onChange)
+                                onChange(Detail::AttributeTraits<OptionsValueType>::unwrap(state->options.options)[dataIndex], event);
+                        }
                     },
                 }(
                     Detail::AttributeTraits<OptionsValueType>::range(state->options.options),
                     [elementRenderer = std::move(state->options.elementRenderer)](long long index, auto const& item) -> Nui::ElementRenderer {
                         return div{
                             "data-index"_attr = static_cast<int>(index),
+                            "data-key"_attr = [&item]() -> std::optional<std::string> {
+                                if constexpr (Detail::AttributeTraits<OptionsValueType>::isMap)
+                                {
+                                    return std::make_optional<std::string>(item.first);
+                                }
+                                else
+                                {
+                                    (void)item;
+                                    return std::nullopt;
+                                }
+                            }()
                         }(
                             elementRenderer(item)
                         );
