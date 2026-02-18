@@ -5,7 +5,7 @@
     align-items: center;
     gap: 0.5em;
 
-    &::disabled {
+    &:disabled {
         &>:nth-child(2) {
             opacity: 0.5;
             pointer-events: none;
