@@ -33,7 +33,7 @@
         border-spacing: 0;
     }
 
-    &:disabled {
+    &[disabled] {
         opacity: 0.6;
         pointer-events: none;
     }
