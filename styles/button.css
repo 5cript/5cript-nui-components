@@ -72,4 +72,9 @@
         filter: brightness(0.8);
         border-color: var(--border-color);
     }
+
+    /* Focus */
+    &:not(:disabled):focus {
+        box-shadow: 0 0 0 2px color-mix(in srgb, var(--color) 50%, transparent);
+    }
 }
