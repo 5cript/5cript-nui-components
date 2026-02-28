@@ -9,6 +9,8 @@
 #include <nui/frontend/api/mouse_event.hpp>
 #include <nui/frontend/dom/basic_element.hpp>
 
+#include <fmt/format.h>
+
 using namespace Nui;
 using namespace Nui::Elements;
 using namespace Nui::Attributes;
