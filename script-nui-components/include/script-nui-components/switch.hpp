@@ -60,13 +60,41 @@ namespace ScriptNuiComponents
             {
                 class_ = "script-nui-switch",
                 "data-is-checked"_attr = options.isChecked,
-                style =
-                    Style{
-                        "--size-factor"_style = options.sizeFactor,
-                        "--color-active"_style = options.colorActive,
-                        "--color-inactive"_style = options.colorInactive,
-                        "--thumb-color"_style = options.thumbColor,
-                    },
+                style = fmt::format(
+                    "{}{}{}{}",
+                    options.sizeFactor
+                        .transform(
+                            [](auto const& sizeFactor)
+                            {
+                                return fmt::format("--size-factor: {};", sizeFactor);
+                            }
+                        )
+                        .value_or(""),
+                    options.colorActive
+                        .transform(
+                            [](auto const& colorActive)
+                            {
+                                return fmt::format("--color-active: {};", colorActive);
+                            }
+                        )
+                        .value_or(""),
+                    options.colorInactive
+                        .transform(
+                            [](auto const& colorInactive)
+                            {
+                                return fmt::format("--color-inactive: {};", colorInactive);
+                            }
+                        )
+                        .value_or(""),
+                    options.thumbColor
+                        .transform(
+                            [](auto const& thumbColor)
+                            {
+                                return fmt::format("--thumb-color: {};", thumbColor);
+                            }
+                        )
+                        .value_or("")
+                ),
                 onClick =
                     [isChecked = options.isChecked,
                         onChange = std::move(options.onChange),
