@@ -1,4 +1,4 @@
-.resizable-table {
+.script-nui-resizable-table {
     /* --- CSS Variables --- */
     --table-border-radius: var(--script-nui-table-border-radius, 10px);
     --table-font-size: var(--script-nui-table-font-size, 0.85rem);

@@ -3,6 +3,7 @@
 #include <nui/frontend/api/console.hpp>
 #include <nui/frontend/element_renderer.hpp>
 #include <script-nui-components/resizeable_table.hpp>
+#include <script-nui-components/dialog.hpp>
 
 class MainPage
 {
@@ -45,4 +46,5 @@ class MainPage
     }};
 
     ScriptNuiComponents::ResizableTable table_;
+    ScriptNuiComponents::Dialog dialog_;
 };

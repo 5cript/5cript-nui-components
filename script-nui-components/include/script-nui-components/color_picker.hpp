@@ -80,7 +80,7 @@ namespace ScriptNuiComponents
                 }
             ),
             button(
-                ButtonOptions{
+                {
                     .text = std::move(options.pickButtonText),
                     .icon = std::move(options.pickButtonIcon),
                     .attributes = {

@@ -43,7 +43,7 @@ MainPage::MainPage()
                           std::shared_ptr<ResizableTable::ISelfController> sharedController = std::move(controller);
 
                           return button(
-                              ButtonOptions{
+                              {
                                   .icon =
                                       Nui::Elements::Svg::svg{
                                           Nui::Attributes::Svg::viewBox = "0 0 512 512",
@@ -75,6 +75,17 @@ MainPage::MainPage()
               .addNewEntryText = "Add new row",
           }
       }
+    , dialog_{
+        "MyDialog",
+        Nui::Elements::div{}(
+            Nui::Elements::label{}("Text Input:"),
+            Nui::Elements::input{
+                Nui::Attributes::id = "text-input-1"s,
+                Nui::Attributes::type = "text"s,
+                Nui::Attributes::value = textInputValue_,
+            }()
+        )
+    }
 {}
 
 Nui::ElementRenderer MainPage::render()
@@ -83,12 +94,14 @@ Nui::ElementRenderer MainPage::render()
     using namespace Nui::Elements;
     using namespace Nui::Attributes;
     using Nui::Elements::div; // because of the global div.
+    using ScriptNuiComponents::button;
 
     // clang-format off
     return body{}(
+        dialog_(),
         // Top bar
         div{class_ = "top-bar"}(
-            Switch_(SwitchOptions<bool>{
+            ScriptNuiComponents::switch_(SwitchOptions<bool>{
                 .isChecked = true,
                 .onChange =
                     [](bool isChecked, Nui::WebApi::MouseEvent const&)
@@ -100,7 +113,7 @@ Nui::ElementRenderer MainPage::render()
                 },
             }),
 
-            button(ButtonOptions{
+            button({
                 .text = "Create 1000 switches",
                 .attributes = {
                     onClick = [this](auto const&) {
@@ -108,7 +121,7 @@ Nui::ElementRenderer MainPage::render()
                     }
                 }
             }),
-            button(ButtonOptions{
+            button({
                 .text = "Create 1000 inputs",
                 .attributes = {
                     onClick = [this](auto const&) {
@@ -117,7 +130,7 @@ Nui::ElementRenderer MainPage::render()
                 },
                 .styleVariant = StyleVariant::Primary,
             }),
-            button(ButtonOptions{
+            button({
                 .text = "Create 1000 selects",
                 .attributes = {
                     onClick = [this](auto const&) {
@@ -126,7 +139,7 @@ Nui::ElementRenderer MainPage::render()
                 },
                 .styleVariant = StyleVariant::Warning,
             }),
-            button(ButtonOptions{
+            button({
                 .text = "Create 1000 iconButtons",
                 .attributes = {
                     onClick = [this](auto const&) {
@@ -135,7 +148,7 @@ Nui::ElementRenderer MainPage::render()
                 },
                 .styleVariant = StyleVariant::Danger,
             }),
-            button(ButtonOptions{
+            button({
                 .text = "Create 1000 colorPickers",
                 .attributes = {
                     onClick = [this](auto const&) {
@@ -143,6 +156,27 @@ Nui::ElementRenderer MainPage::render()
                     }
                 },
                 .styleVariant = StyleVariant::Primary,
+            }),
+            button({
+                .text = "Open Dialog",
+                .attributes = {
+                    onClick = [this](auto const&) {
+                        dialog_.open(Dialog::OpenOptions{
+                            .styleVariant = StyleVariant::Primary,
+                            .headerText = "Dialog Header",
+                            .buttons = Dialog::Button::Ok | Dialog::Button::Cancel | Dialog::Button::Yes | Dialog::Button::No,
+                            .initialFocus = Dialog::Button::Cancel,
+                            .onClose = [](std::optional<Dialog::Button> buttonPressed)
+                            {
+                                if (buttonPressed)
+                                    Nui::WebApi::Console::log("Dialog closed with button: "s + std::to_string(static_cast<unsigned>(*buttonPressed)));
+                                else
+                                    Nui::WebApi::Console::log("Dialog closed without pressing a button");
+                            },
+                            .modal = true,
+                        });
+                    }
+                },
             })
         ),
         div{class_ = "content"}(
@@ -188,9 +222,7 @@ Nui::ElementRenderer MainPage::render()
 
 Nui::ElementRenderer MainPage::switch_()
 {
-    using namespace ScriptNuiComponents;
-
-    return switch_(
+    return ScriptNuiComponents::switch_(
         SwitchOptions<decltype(isChecked_)>{
             .isChecked = isChecked_,
         }
@@ -199,10 +231,8 @@ Nui::ElementRenderer MainPage::switch_()
 
 Nui::ElementRenderer MainPage::textInput()
 {
-    using namespace ScriptNuiComponents;
-
-    return textInput(
-        TextInputOptions<decltype(textInputValue_)>{
+    return ScriptNuiComponents::textInput(
+        ScriptNuiComponents::TextInputOptions<decltype(textInputValue_)>{
             .value = textInputValue_,
         }
     );
@@ -210,9 +240,7 @@ Nui::ElementRenderer MainPage::textInput()
 
 Nui::ElementRenderer MainPage::select()
 {
-    using namespace ScriptNuiComponents;
-
-    return select(
+    return ScriptNuiComponents::select(
         SelectOptions<decltype(selectValue_), decltype(selectOptions_)>{
             .activeOption = selectValue_,
             .options = selectOptions_,
@@ -230,11 +258,8 @@ Nui::ElementRenderer MainPage::select()
 
 Nui::ElementRenderer MainPage::iconButton()
 {
-    using namespace ScriptNuiComponents;
-
-    return button(
-        ButtonOptions{
-            .text = "Icon Button",
+    return ScriptNuiComponents::button(
+        {.text = "Icon Button",
             .icon =
                 Nui::Elements::Svg::svg{
                     Nui::Attributes::Svg::viewBox = "0 0 24 24"s,
@@ -246,16 +271,13 @@ Nui::ElementRenderer MainPage::iconButton()
                 {
                     Nui::WebApi::Console::log("Icon button clicked!");
                 }
-            }
-        }
+            }}
     );
 }
 
 Nui::ElementRenderer MainPage::colorPicker()
 {
-    using namespace ScriptNuiComponents;
-
-    return colorPicker(
+    return ScriptNuiComponents::colorPicker(
         ColorPickerOptions<decltype(colorValue_)>{
             .value = colorValue_,
             .pickButtonText = "",

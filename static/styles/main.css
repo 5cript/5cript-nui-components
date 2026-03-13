@@ -4,6 +4,7 @@
 @import "./button.css";
 @import "./color_picker.css";
 @import "./resizeable_table.css";
+@import "./dialog.css";
 
 :root {
     /* Non Dark/Light Dependent */
