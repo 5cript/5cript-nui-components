@@ -86,7 +86,32 @@ MainPage::MainPage()
             }()
         )
     }
-{}
+{
+    tabs_.onSelect(
+        [](std::size_t id)
+        {
+            Nui::WebApi::Console::log("Selected tab with id: ", id);
+            return true; // allow selection
+        }
+    );
+
+    tabs_.onClose(
+        [](std::size_t id)
+        {
+            Nui::WebApi::Console::log("Closed tab with id: ", id);
+
+            // do Remove!
+            return true;
+        }
+    );
+
+    tabs_.onReorder(
+        [](std::size_t from, std::size_t to)
+        {
+            Nui::WebApi::Console::log("Moved tab from index ", from, " to index ", to);
+        }
+    );
+}
 
 Nui::ElementRenderer MainPage::render()
 {
@@ -178,6 +203,20 @@ Nui::ElementRenderer MainPage::render()
                     }
                 },
             })
+        ),
+        div{
+            style = "width: 100%"
+        }(
+            button({
+                .text = "Add Tab",
+                .attributes = {
+                    onClick = [this](auto const&) {
+                        static int tabCount = 0;
+                        tabs_.add("Tab "s + std::to_string(tabCount++), true);
+                    }
+                },
+            }),
+            tabs_()
         ),
         div{class_ = "content"}(
             div{}(

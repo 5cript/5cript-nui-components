@@ -56,45 +56,19 @@ namespace ScriptNuiComponents
         using Nui::Elements::span;
         using namespace std::string_literals;
 
+        const auto styleVars = fmt::format(
+            "{}{}{}{}",
+            options.sizeFactor ? fmt::format("--size-factor: {};", *options.sizeFactor) : "",
+            options.colorActive ? fmt::format("--color-active: {};", *options.colorActive) : "",
+            options.colorInactive ? fmt::format("--color-inactive: {};", *options.colorInactive) : "",
+            options.thumbColor ? fmt::format("--thumb-color: {};", *options.thumbColor) : ""
+        );
+
         return Nui::Elements::button{mergeAttributes(
             {
                 class_ = "script-nui-switch",
                 "data-is-checked"_attr = options.isChecked,
-                style = fmt::format(
-                    "{}{}{}{}",
-                    options.sizeFactor
-                        .transform(
-                            [](auto const& sizeFactor)
-                            {
-                                return fmt::format("--size-factor: {};", sizeFactor);
-                            }
-                        )
-                        .value_or(""),
-                    options.colorActive
-                        .transform(
-                            [](auto const& colorActive)
-                            {
-                                return fmt::format("--color-active: {};", colorActive);
-                            }
-                        )
-                        .value_or(""),
-                    options.colorInactive
-                        .transform(
-                            [](auto const& colorInactive)
-                            {
-                                return fmt::format("--color-inactive: {};", colorInactive);
-                            }
-                        )
-                        .value_or(""),
-                    options.thumbColor
-                        .transform(
-                            [](auto const& thumbColor)
-                            {
-                                return fmt::format("--thumb-color: {};", thumbColor);
-                            }
-                        )
-                        .value_or("")
-                ),
+                style = styleVars,
                 onClick =
                     [isChecked = options.isChecked,
                         onChange = std::move(options.onChange),
