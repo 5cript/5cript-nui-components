@@ -5,6 +5,7 @@
 #include <script-nui-components/resizeable_table.hpp>
 #include <script-nui-components/dialog.hpp>
 #include <script-nui-components/tabs.hpp>
+#include <script-nui-components/popup_menu.hpp>
 
 class MainPage
 {
@@ -49,4 +50,5 @@ class MainPage
     ScriptNuiComponents::ResizableTable table_;
     ScriptNuiComponents::Dialog dialog_;
     ScriptNuiComponents::Tabs tabs_;
+    ScriptNuiComponents::PopupMenu popupMenu_;
 };

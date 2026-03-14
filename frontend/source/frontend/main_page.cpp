@@ -111,6 +111,46 @@ MainPage::MainPage()
             Nui::WebApi::Console::log("Moved tab from index ", from, " to index ", to);
         }
     );
+
+    popupMenu_.setItems({
+        PopupMenu::item(
+            "Action 1",
+            {},
+            []()
+            {
+                Nui::WebApi::Console::log("Action 1 triggered");
+            }
+        ),
+        PopupMenu::item(
+            "Action 2 with shortcut",
+            {},
+            []()
+            {
+                Nui::WebApi::Console::log("Action 2 triggered");
+            },
+            false,
+            "Ctrl+S"
+        ),
+        PopupMenu::separator(),
+        PopupMenu::sectionHeader("Section 1"),
+        PopupMenu::item(
+            "Disabled Action",
+            {},
+            []()
+            {
+                Nui::WebApi::Console::log("This should not trigger");
+            },
+            true
+        ),
+        PopupMenu::item(
+            "Action 3",
+            {},
+            []()
+            {
+                Nui::WebApi::Console::log("Action 3 triggered");
+            }
+        ),
+    });
 }
 
 Nui::ElementRenderer MainPage::render()
@@ -124,6 +164,7 @@ Nui::ElementRenderer MainPage::render()
     // clang-format off
     return body{}(
         dialog_(),
+        popupMenu_(),
         // Top bar
         div{class_ = "top-bar"}(
             ScriptNuiComponents::switch_(SwitchOptions<bool>{
@@ -217,6 +258,17 @@ Nui::ElementRenderer MainPage::render()
                 },
             }),
             tabs_()
+        ),
+        div{}(
+            button({
+                .text = "Open Popup Here",
+                .attributes = {
+                    id      = "my-menu-btn",
+                    onClick = [this](Nui::WebApi::MouseEvent event) {
+                        popupMenu_.openNextTo("my-menu-btn");
+                    }
+                },
+            })
         ),
         div{class_ = "content"}(
             div{}(

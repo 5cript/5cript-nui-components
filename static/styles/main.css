@@ -6,6 +6,7 @@
 @import "./resizeable_table.css";
 @import "./dialog.css";
 @import "./tabs.css";
+@import "./popup_menu.css";
 
 :root {
     /* Non Dark/Light Dependent */
