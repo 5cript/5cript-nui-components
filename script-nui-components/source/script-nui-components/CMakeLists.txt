@@ -2,6 +2,9 @@ add_library(
     script-nui-components
     STATIC
         "resizeable_table.cpp"
+        "dialog.cpp"
+        "tabs.cpp"
+        "popup_menu.cpp"
 )
 
 target_include_directories(script-nui-components PUBLIC "${CMAKE_CURRENT_LIST_DIR}/../../include")

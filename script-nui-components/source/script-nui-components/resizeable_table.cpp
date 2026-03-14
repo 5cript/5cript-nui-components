@@ -309,7 +309,7 @@ namespace ScriptNuiComponents
         // clang-format off
         return div{
             mergeAttributes({
-                class_ = "resizable-table",
+                class_ = "script-nui-resizable-table",
                 reference = impl_->reference
             }, std::move(attributes))
         }(

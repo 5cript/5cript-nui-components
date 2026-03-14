@@ -1,0 +1,182 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   PopupMenu Component Styles
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.script-nui-popup-menu {
+    /* ── public tokens (consumers override these) ──────────────────────── */
+    --primary-color: var(--script-nui-popup-menu-primary-color, #34ca20);
+    --primary-hover-color: var(--script-nui-popup-menu-primary-hover-color, #2db31b);
+    --bg-color: var(--script-nui-popup-menu-bg-color, #202020);
+    --surface-color: var(--script-nui-popup-menu-surface-color, #292929);
+    --border-color: var(--script-nui-popup-menu-border-color, #3f3f3f);
+    --text-color: var(--script-nui-popup-menu-text-color, #e4e4f0);
+    --text-muted-color: var(--script-nui-popup-menu-text-muted-color, #838391);
+    --disabled-color: var(--script-nui-popup-menu-disabled-color, #626262);
+    --shadow-color: var(--script-nui-popup-menu-shadow-color, rgba(0, 0, 0, 0.55));
+    --separator-color: var(--script-nui-popup-menu-separator-color, #484848);
+    --icon-column-width: var(--script-nui-popup-menu-icon-column-width, 1.5rem);
+    --item-padding-v: var(--script-nui-popup-menu-item-padding-v, 0.45rem);
+    --item-padding-h: var(--script-nui-popup-menu-item-padding-h, 0.85rem);
+    --font-size: var(--script-nui-popup-menu-font-size, 0.875rem);
+    --border-radius: var(--script-nui-popup-menu-border-radius, 8px);
+    --item-border-radius: var(--script-nui-popup-menu-item-border-radius, 5px);
+    --min-width: var(--script-nui-popup-menu-min-width, 200px);
+    --max-width: var(--script-nui-popup-menu-max-width, 320px);
+    --animation-duration: var(--script-nui-popup-menu-animation-duration, 140ms);
+
+    /* ── component layout ──────────────────────────────────────────────── */
+    position: fixed;
+    z-index: 9999;
+    min-width: var(--min-width);
+    max-width: var(--max-width);
+    padding: 0.35rem;
+    background: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    box-shadow:
+        0 4px 6px -1px var(--shadow-color),
+        0 10px 30px -4px var(--shadow-color),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    outline: none;
+
+    /* entrance animation */
+    transform-origin: top left;
+    animation: nui-popup-menu-in var(--animation-duration) cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.script-nui-popup-menu.script-nui-popup-menu--closing {
+    animation: nui-popup-menu-out var(--animation-duration) cubic-bezier(0.55, 0, 1, 0.45) forwards;
+}
+
+@keyframes nui-popup-menu-in {
+    from {
+        opacity: 0;
+        transform: scale(0.93) translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes nui-popup-menu-out {
+    from {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: scale(0.93) translateY(-4px);
+    }
+}
+
+/* ── Measuring pass (off-screen, invisible, used by openNextTo) ────────── */
+
+.script-nui-popup-menu--measuring {
+    visibility: hidden;
+    /* Place far off-screen so no scrollbar flash occurs */
+    left: -9999px !important;
+    top: -9999px !important;
+    /* Must NOT be display:none — the element needs a layout box to measure */
+    /* Suppress the entrance animation during the measurement phase */
+    animation: none !important;
+    pointer-events: none;
+}
+
+/* ── Menu Item ─────────────────────────────────────────────────────────── */
+
+.script-nui-popup-menu__item {
+    display: grid;
+    /* icon col | label col */
+    grid-template-columns: var(--icon-column-width) 1fr;
+    align-items: center;
+    column-gap: 0.55rem;
+    padding: var(--item-padding-v) var(--item-padding-h);
+    border-radius: var(--item-border-radius);
+    font-size: var(--font-size);
+    color: var(--text-color);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+    transition:
+        background-color 80ms ease,
+        color 80ms ease;
+}
+
+.script-nui-popup-menu__item:hover:not(.script-nui-popup-menu__item--disabled) {
+    background-color: var(--surface-color);
+    color: var(--primary-color);
+}
+
+.script-nui-popup-menu__item:active:not(.script-nui-popup-menu__item--disabled) {
+    background-color: color-mix(in srgb, var(--primary-color) 14%, transparent);
+}
+
+.script-nui-popup-menu__item--disabled {
+    color: var(--disabled-color);
+    cursor: default;
+}
+
+/* ── Icon cell ─────────────────────────────────────────────────────────── */
+
+.script-nui-popup-menu__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--icon-column-width);
+    font-size: 1em;
+    /* inherits color from item hover */
+    color: var(--text-muted-color);
+    transition: color 80ms ease;
+    flex-shrink: 0;
+}
+
+.script-nui-popup-menu__item:hover:not(.script-nui-popup-menu__item--disabled) .script-nui-popup-menu__icon {
+    color: var(--primary-hover-color);
+}
+
+/* empty placeholder keeps grid alignment when no icon is provided */
+.script-nui-popup-menu__icon--empty {
+    pointer-events: none;
+}
+
+/* ── Label cell ────────────────────────────────────────────────────────── */
+
+.script-nui-popup-menu__label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ── Shortcut hint (optional, right-aligned inside label cell) ─────────── */
+
+.script-nui-popup-menu__shortcut {
+    margin-left: auto;
+    padding-left: 1.5rem;
+    font-size: 0.78em;
+    color: var(--text-muted-color);
+    opacity: 0.75;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── Separator ─────────────────────────────────────────────────────────── */
+
+.script-nui-popup-menu__separator {
+    height: 1px;
+    margin: 0.3rem 0.5rem;
+    background: var(--separator-color);
+    flex-shrink: 0;
+}
+
+/* ── Section header (optional grouping label) ──────────────────────────── */
+
+.script-nui-popup-menu__section-header {
+    padding: 0.5rem var(--item-padding-h) 0.2rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted-color);
+    user-select: none;
+}

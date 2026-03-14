@@ -1,0 +1,154 @@
+.script-nui-tab-bar {
+    /* ── public tokens (consumers override these) ─────────────────────── */
+    --primary-color: var(--script-nui-components-tabs-primary-color, #34ca20);
+    --background-color: var(--script-nui-components-tabs-background-color, #202020);
+    --background-color-tab: var(--script-nui-components-tabs-background-color-tab, #303030);
+    --background-color-tab-hover: var(--script-nui-components-tabs-background-color-tab-hover, #3a3a3a);
+    --background-color-tab-selected: var(--script-nui-components-tabs-background-color-tab-selected, #2a2a2a);
+    --color: var(--script-nui-components-tabs-color-tab, #7a8390);
+    --color-tab-selected: var(--script-nui-components-tabs-color-tab-selected, #e8eaed);
+    --color-tab-hover: var(--script-nui-components-tabs-color-tab-hover, #b0b8c4);
+    --border-color: var(--script-nui-components-tabs-border-color-tab, transparent);
+    --border-color-hover: var(--script-nui-components-tabs-border-color-tab-hover, #444);
+    --border-color-selected: var(--script-nui-components-tabs-border-color-tab-selected, var(--primary-color));
+    --border-radius: var(--script-nui-components-tabs-border-radius-tab, 6px);
+    --font: var(--script-nui-components-tabs-font, system-ui, Arial, sans-serif);
+    --font-size: var(--script-nui-components-tabs-font-size, 13px);
+
+    --_bar-border: var(--script-nui-components-tabs-bar-border-color, #2e2e2e);
+    --_tab-border-selected: var(--script-nui-components-tabs-tab-border-color-selected, #383838);
+    --_close-color: var(--script-nui-components-tabs-close-button-color, #555);
+    --_close-color-hover: var(--script-nui-components-tabs-close-button-color-hover, #aaa);
+    --_close-bg-hover: var(--script-nui-components-tabs-close-button-bg-hover, rgba(255, 255, 255, 0.10));
+    --_close-color-sel: var(--script-nui-components-tabs-close-button-color-selected, #666);
+    --_close-color-sel-hover: var(--script-nui-components-tabs-close-button-color-selected-hover, #bbb);
+    --_close-bg-sel-hover: var(--script-nui-components-tabs-close-button-bg-selected-hover, rgba(255, 255, 255, 0.08));
+
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0;
+    -webkit-user-select: none;
+    user-select: none;
+    background-color: var(--background-color);
+    padding: 4px 0px;
+    border-bottom: 1px solid var(--_bar-border);
+    font: var(--font-size) var(--font);
+    color: var(--color);
+
+    /* ── individual tab ───────────────────────────────────────────────── */
+    &>div>.script-nui-tab {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 0;
+        padding: 5px 4px 5px 10px;
+        border-radius: var(--border-radius);
+        background-color: transparent;
+        color: var(--color);
+        cursor: pointer;
+        border: 1px solid transparent;
+        transition:
+            background-color 100ms ease,
+            color 100ms ease,
+            border-color 100ms ease;
+
+        /* animated underline */
+        &::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            border-radius: 99px;
+            background-color: var(--border-color-selected);
+            opacity: 0;
+            transform: scaleX(0.3);
+            transition:
+                opacity 150ms ease,
+                transform 150ms ease;
+        }
+
+        &>span {
+            font-size: var(--font-size);
+            letter-spacing: 0.01em;
+            white-space: nowrap;
+        }
+
+        /* ── close button ─────────────────────────────────────────────── */
+        &>button {
+            all: unset;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 6px;
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            font-size: 14px;
+            line-height: 1;
+            color: var(--_close-color);
+            cursor: pointer;
+            transition:
+                background-color 100ms ease,
+                color 100ms ease;
+
+            &:hover {
+                background-color: var(--_close-bg-hover);
+                color: var(--_close-color-hover);
+            }
+        }
+
+        /* ── selected ─────────────────────────────────────────────────── */
+        &.selected {
+            background-color: var(--background-color-tab-selected);
+            color: var(--color-tab-selected);
+            border-color: var(--_tab-border-selected);
+            font-weight: 500;
+
+            &::after {
+                opacity: 1;
+                transform: scaleX(1);
+            }
+
+            &>button {
+                color: var(--_close-color-sel);
+
+                &:hover {
+                    background-color: var(--_close-bg-sel-hover);
+                    color: var(--_close-color-sel-hover);
+                }
+            }
+        }
+
+        /* ── hover (unselected) ───────────────────────────────────────── */
+        &:not(.selected):hover {
+            background-color: var(--background-color-tab-hover);
+            color: var(--color-tab-hover);
+            border-color: var(--border-color-hover);
+        }
+    }
+}
+
+.script-nui-tab-drop-marker {
+    --primary-color: var(--script-nui-components-tabs-primary-color, #34ca20);
+
+    flex-shrink: 0;
+    width: 3px;
+    margin: 0 3px;
+    height: 1.5em;
+    border-radius: 99px;
+    background-color: var(--primary-color);
+    pointer-events: none;
+    opacity: 0;
+    transform: scaleY(0.4);
+    transition:
+        opacity 110ms ease,
+        transform 110ms ease;
+
+    &.script-nui-tab-drop-marker--active {
+        opacity: 1;
+        transform: scaleY(1);
+    }
+}

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "impl/merge_attributes.hpp"
+#include "impl/attribute_traits.hpp"
 
 #include <script-nui-components/style_variant.hpp>
 
@@ -31,15 +32,17 @@
 
 namespace ScriptNuiComponents
 {
+    template <typename TextType>
     struct ButtonOptions
     {
-        std::string text{};
+        typename Detail::AttributeTraits<TextType>::Actual text{};
         std::optional<Nui::ElementRenderer> icon = std::nullopt;
         std::vector<Nui::Attribute> attributes = {};
         StyleVariant styleVariant = StyleVariant::Regular;
     };
 
-    inline Nui::ElementRenderer button(ButtonOptions options)
+    template <typename TextType>
+    inline Nui::ElementRenderer button(ButtonOptions<TextType> options)
     {
         using namespace Nui::Elements;
         using namespace Nui::Attributes;
@@ -55,5 +58,10 @@ namespace ScriptNuiComponents
         if (options.icon)
             return std::move(button)(*options.icon, Nui::Elements::text{std::move(options.text)}());
         return std::move(button)(std::move(options.text));
+    }
+
+    inline Nui::ElementRenderer button(ButtonOptions<std::string> options)
+    {
+        return button<std::string>(std::move(options));
     }
 } // namespace ScriptNuiComponents
