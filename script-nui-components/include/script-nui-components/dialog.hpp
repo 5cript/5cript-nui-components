@@ -30,6 +30,10 @@ namespace ScriptNuiComponents
         {
             return static_cast<Button>(static_cast<unsigned>(lhs) | static_cast<unsigned>(rhs));
         }
+        friend auto operator&(Button lhs, Button rhs)
+        {
+            return static_cast<Button>(static_cast<unsigned>(lhs) & static_cast<unsigned>(rhs));
+        }
 
         Dialog(std::string id, Nui::ElementRenderer body);
 
