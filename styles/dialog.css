@@ -53,14 +53,15 @@
         color: var(--dialog-footer-color);
         padding: 1em;
         border-top: 1px solid var(--dialog-border-color);
-        flex: 0 0 auto;
-        display: inline-grid;
+        display: flex;
+        justify-content: flex-end;
+        flex-direction: row;
         width: 100%;
-        grid-auto-columns: 1fr;
         gap: 10px;
 
         &>button {
-            max-width: 10em;
+            max-width: 12em;
+            min-width: 6em;
         }
     }
 

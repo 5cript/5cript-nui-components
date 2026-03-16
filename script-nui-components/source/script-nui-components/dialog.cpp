@@ -216,7 +216,7 @@ namespace ScriptNuiComponents
                                           {
                                               closeByButton(Button::Ok);
                                           },
-                                          style = "grid-row: 1"},
+                                          /*style = "grid-row: 1"*/},
                                   .styleVariant = StyleVariant::Regular
                               }
                           );
@@ -240,7 +240,7 @@ namespace ScriptNuiComponents
                                             {
                                                 closeByButton(Button::Yes);
                                             },
-                                            style = "grid-row: 1"},
+                                            /*style = "grid-row: 1"*/},
                                     .styleVariant = StyleVariant::Regular
                                 }
                             );
@@ -264,7 +264,7 @@ namespace ScriptNuiComponents
                                             {
                                                 closeByButton(Button::No);
                                             },
-                                            style = "grid-row: 1"},
+                                            /*style = "grid-row: 1"*/},
                                     .styleVariant = StyleVariant::Regular
                                 }
                             );
@@ -288,7 +288,7 @@ namespace ScriptNuiComponents
                                             {
                                                 closeByButton(Button::All);
                                             },
-                                            style = "grid-row: 1"},
+                                            /*style = "grid-row: 1"*/},
                                     .styleVariant = StyleVariant::Danger
                                 }
                             );
@@ -312,7 +312,7 @@ namespace ScriptNuiComponents
                                             {
                                                 closeByButton(Button::None);
                                             },
-                                            style = "grid-row: 1"},
+                                            /*style = "grid-row: 1"*/},
                                     .styleVariant = StyleVariant::Regular
                                 }
                             );
@@ -337,7 +337,7 @@ namespace ScriptNuiComponents
                                             {
                                                 closeByButton(Button::Cancel);
                                             },
-                                            style = "grid-row: 1",
+                                            /*style = "grid-row: 1"*/
                                         },
                                     .styleVariant = StyleVariant::Regular
                                 }
