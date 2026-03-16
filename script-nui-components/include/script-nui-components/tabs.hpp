@@ -6,13 +6,23 @@
 #include <functional>
 #include <memory>
 #include <string>
-#include <vector>
+#include <optional>
+#include <any>
 
 namespace ScriptNuiComponents
 {
     class Tabs
     {
       public:
+        struct Tab
+        {
+            int id; // stable forever
+            std::string title;
+            bool closable = false;
+            // User provided info attached to the tab:
+            std::optional<std::any> metadata{std::nullopt};
+        };
+
         using OnSelect = std::function<bool /* really do select? */ (int id)>;
         using OnClose = std::function<bool /* remove it? */ (int id)>;
         using OnReorder = std::function<void(int from, int to)>;
@@ -29,13 +39,21 @@ namespace ScriptNuiComponents
         // external control
         void select(int id);
         void remove(int id);
-        int add(std::string title, bool closable);
+        int add(std::string title, bool closable, std::optional<std::any> metadata = std::nullopt);
 
         void onSelect(OnSelect cb);
         void onClose(OnClose cb);
         void onReorder(OnReorder cb);
 
-        Nui::ElementRenderer operator()();
+        Tab* getById(int id);
+        Tab* getSelected();
+        int selectedId() const;
+        int firstTabId() const;
+
+        void modifyTabById(int id, std::function<void(Tab*)> modifyFn);
+
+        Nui::ElementRenderer
+        operator()(std::vector<Nui::Attribute> extraAttributes = {}, std::vector<std::string> const& extraClasses = {});
 
         int makeId() const;
 

@@ -6,22 +6,15 @@
 #include <nui/frontend/api/drag_event.hpp>
 #include <nui/frontend/api/mouse_event.hpp>
 
+#include <fmt/format.h>
+#include <fmt/ranges.h>
+
 using namespace Nui;
 using namespace Nui::Elements;
 using namespace Nui::Attributes;
 
 namespace ScriptNuiComponents
 {
-    namespace
-    {
-        struct Tab
-        {
-            int id; // stable forever
-            std::string title;
-            bool closable = false;
-        };
-    }
-
     struct Tabs::Implementation
     {
         Observed<std::vector<Tab>> tabs{};
@@ -65,7 +58,14 @@ namespace ScriptNuiComponents
         return ++impl_->idCounter;
     }
 
-    int Tabs::add(std::string title, bool closable)
+    int Tabs::firstTabId() const
+    {
+        if (impl_->tabs.value().empty())
+            return -1;
+        return impl_->tabs.value().front().id;
+    }
+
+    int Tabs::add(std::string title, bool closable, std::optional<std::any> metadata)
     {
         const int newTabId = makeId();
         impl_->tabs.push_back(
@@ -73,6 +73,7 @@ namespace ScriptNuiComponents
                 .id = newTabId,
                 .title = std::move(title),
                 .closable = closable,
+                .metadata = std::move(metadata),
             }
         );
         Nui::WebApi::Console::log("Added tab with id: ", newTabId);
@@ -110,6 +111,29 @@ namespace ScriptNuiComponents
     {
         impl_->onReorder = std::move(cb);
     }
+    Tabs::Tab* Tabs::getById(int id)
+    {
+        auto& v = impl_->tabs.value();
+        auto it = std::find_if(
+            v.begin(),
+            v.end(),
+            [&](auto const& t)
+            {
+                return t.id == id;
+            }
+        );
+        if (it != v.end())
+            return &(*it);
+        return nullptr;
+    }
+    Tabs::Tab* Tabs::getSelected()
+    {
+        return getById(impl_->selectedId.value());
+    }
+    int Tabs::selectedId() const
+    {
+        return impl_->selectedId.value();
+    }
 
     // Helper: perform the reorder. `insertAt` is the slot index in the
     // *original* array (before any removal). Called from multiple drop sites.
@@ -128,7 +152,16 @@ namespace ScriptNuiComponents
             impl_->onReorder(from, adjustedTo);
     }
 
-    Nui::ElementRenderer Tabs::operator()()
+    void Tabs::modifyTabById(int id, std::function<void(Tab*)> modifyFn)
+    {
+        auto* tab = getById(id);
+        modifyFn(tab);
+        if (tab)
+            impl_->tabs.modify();
+    }
+
+    Nui::ElementRenderer
+    Tabs::operator()(std::vector<Nui::Attribute> extraAttributes, std::vector<std::string> const& extraClasses)
     {
         using Nui::Elements::div;
         using Nui::Elements::button;
@@ -151,10 +184,9 @@ namespace ScriptNuiComponents
             }();
         };
 
-        return div{
-            class_ = "script-nui-tab-bar",
+        extraAttributes.push_back(class_ = fmt::format("script-nui-tab-bar {}", fmt::join(extraClasses, " ")));
 
-            // Hide marker when pointer leaves the bar entirely.
+        extraAttributes.push_back(
             "dragleave"_event =
                 [this](WebApi::DragEvent e)
             {
@@ -164,15 +196,19 @@ namespace ScriptNuiComponents
                     impl_->dropInsertIndex = -1;
                     Nui::globalEventContext.executeActiveEventsImmediately();
                 }
-            },
+            }
+        );
 
+        extraAttributes.push_back(
             "dragover"_event =
                 [](WebApi::DragEvent e)
             {
                 e.preventDefault();
-            },
+            }
+        );
 
-            // Bar-level drop fallback (cursor in padding/gap area).
+        // Bar-level drop fallback (cursor in padding/gap area).
+        extraAttributes.push_back(
             "drop"_event =
                 [this](WebApi::DragEvent)
             {
@@ -191,7 +227,9 @@ namespace ScriptNuiComponents
                 impl_->dropInsertIndex = -1;
                 impl_->dragSource.reset();
             }
-        }(
+        );
+
+        return div{std::move(extraAttributes)}(
             // Each range item is a display:contents wrapper so both the
             // leading marker and the tab div are direct flex children of the bar.
             Nui::range(impl_->tabs)
@@ -215,9 +253,6 @@ namespace ScriptNuiComponents
             [this, makeMarker](long long visualIndex, Tab const& tab) -> ElementRenderer
             {
                 return div{
-                    // display:contents: this wrapper is invisible to layout;
-                    // its children become direct flex children of the bar.
-                    style = "display: contents;"
                 }(
                     // ── marker BEFORE this tab (slot == visualIndex) ──────
                     makeMarker(visualIndex),
