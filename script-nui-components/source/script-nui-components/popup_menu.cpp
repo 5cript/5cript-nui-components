@@ -329,7 +329,13 @@ namespace ScriptNuiComponents
             if (auto* mi = std::get_if<MenuItem>(&impl_->items[i]); mi != nullptr && mi->label == label)
             {
                 modifier(mi);
-                impl_->rebuildIndices();
+                if (i <= impl_->indices.size())
+                {
+                    impl_->indices[i] = i;
+                    impl_->indices.eventContext().sync();
+                }
+                else
+                    impl_->rebuildIndices();
                 return;
             }
         }
