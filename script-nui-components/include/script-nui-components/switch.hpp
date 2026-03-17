@@ -77,7 +77,7 @@ namespace ScriptNuiComponents
                     event.stopPropagation();
 
                     Detail::AttributeTraits<CheckedType>::assignValue(
-                        isChecked, !Detail::AttributeTraits<CheckedType>::getValue(isChecked)
+                        isChecked, !Detail::AttributeTraits<CheckedType>::unwrap(isChecked)
                     );
 
                     // Not updated via the observed variable, so toggle the attribute manually.
@@ -92,7 +92,7 @@ namespace ScriptNuiComponents
                     }
 
                     if (onChange)
-                        onChange(Detail::AttributeTraits<CheckedType>::getValue(isChecked), event);
+                        onChange(Detail::AttributeTraits<CheckedType>::unwrap(isChecked), event);
                 },
             },
             std::move(options.attributes)

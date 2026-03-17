@@ -34,6 +34,13 @@ namespace ScriptNuiComponents
         bool dontUpdateValue = false;
     };
 
+    // Deduction guide for TextInputOptions ObservedValueCombinator
+    template <typename RendererType, typename ObservedValues>
+    TextInputOptions(
+        Nui::ObservedValueCombinatorWithGenerator<RendererType, ObservedValues>&&,
+        std::vector<Nui::Attribute>
+    ) -> TextInputOptions<std::decay_t<Nui::ObservedValueCombinatorWithGenerator<RendererType, ObservedValues>>>;
+
     template <typename ValueType>
     Nui::ElementRenderer textInput(TextInputOptions<ValueType> options)
     {
@@ -52,7 +59,10 @@ namespace ScriptNuiComponents
                         auto newValue = event.target()["value"].as<std::string>();
                         if (!dontUpdateValue)
                         {
-                            if constexpr (Detail::CanAssign<typename Detail::AttributeTraits<ValueType>::Type, std::string>::value)
+                            if constexpr (
+                                !Detail::AttributeTraits<ValueType>::isReadOnly &&
+                                Detail::CanAssign<typename Detail::AttributeTraits<ValueType>::Type, std::string>::value
+                            )
                             {
                                 Detail::AttributeTraits<ValueType>::assignValue(value, std::move(newValue));
                             }
