@@ -145,15 +145,11 @@ namespace ScriptNuiComponents
 
     void Dialog::closeByButton(Button button)
     {
-        if (impl_->onClose)
-        {
-            impl_->onClose(button);
-        }
         auto dialog = impl_->dialog.lock();
         if (dialog)
-        {
             dialog->val().call<void>("close");
-        }
+        if (impl_->onClose)
+            impl_->onClose(button);
     }
 
     Nui::ElementRenderer Dialog::operator()()
@@ -386,5 +382,14 @@ namespace ScriptNuiComponents
 
             next.call<void>("focus");
         }
+    }
+
+    void Dialog::close()
+    {
+        auto dialog = impl_->dialog.lock();
+        if (dialog)
+            dialog->val().call<void>("close");
+        if (impl_->onClose)
+            impl_->onClose(std::nullopt);
     }
 }
