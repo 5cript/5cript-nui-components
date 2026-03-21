@@ -1,13 +1,13 @@
 #pragma once
 
-#include "impl/attribute_traits.hpp"
-#include "impl/merge_attributes.hpp"
+#include <script-nui-components/impl/merge_attributes.hpp>
 
 #include <nui/frontend/elements.hpp>
 #include <nui/frontend/attributes.hpp>
 #include <nui/frontend/api/mouse_event.hpp>
 #include <nui/frontend/element_renderer.hpp>
 #include <nui/event_system/observed_value.hpp>
+#include <nui/frontend/state_transformer.hpp>
 
 #include <fmt/format.h>
 
@@ -24,29 +24,36 @@
 
 namespace ScriptNuiComponents
 {
-    template <typename ValueType>
+    namespace TextInputDetail
+    {
+        struct ValueReify
+        {
+            using type = Nui::Attribute;
+
+            static type reify(Nui::StateTransformerBase const&, auto& statefulObject)
+            {
+                using namespace Nui::Attributes::Literals;
+                return "value"_prop = statefulObject;
+            }
+        };
+    }
+
     struct TextInputOptions
     {
-        Detail::AttributeTraits<ValueType>::Actual value = {};
+        Nui::StateTransformer<TextInputDetail::ValueReify> value;
         std::vector<Nui::Attribute> attributes = {};
 
         std::function<void(std::string const& newValue, Nui::WebApi::Event const&)> onChange = {};
         bool dontUpdateValue = false;
     };
 
-    // Deduction guide for TextInputOptions ObservedValueCombinator
-    template <typename RendererType, typename ObservedValues>
-    TextInputOptions(
-        Nui::ObservedValueCombinatorWithGenerator<RendererType, ObservedValues>&&,
-        std::vector<Nui::Attribute>
-    ) -> TextInputOptions<std::decay_t<Nui::ObservedValueCombinatorWithGenerator<RendererType, ObservedValues>>>;
-
-    template <typename ValueType>
-    Nui::ElementRenderer textInput(TextInputOptions<ValueType> options)
+    Nui::ElementRenderer textInput(TextInputOptions options)
     {
         using namespace Nui::Elements;
         using namespace Nui::Attributes;
         using namespace std::string_literals;
+
+        const auto [valueProp] = options.value.reify();
 
         // clang-format off
         return input{
@@ -54,27 +61,12 @@ namespace ScriptNuiComponents
                 std::vector<Nui::Attribute>{
                     class_ = "script-nui-text-input",
                     type = "text",
-                    "value"_prop = options.value,
+                    valueProp,
                     onChange = [value = options.value, onChange = std::move(options.onChange), dontUpdateValue = options.dontUpdateValue](Nui::WebApi::Event event) mutable {
-                        auto newValue = event.target()["value"].as<std::string>();
+                        const auto newValue = event.target()["value"].as<std::string>();
                         if (!dontUpdateValue)
-                        {
-                            if constexpr (
-                                !Detail::AttributeTraits<ValueType>::isReadOnly &&
-                                Detail::CanAssign<typename Detail::AttributeTraits<ValueType>::Type, std::string>::value
-                            )
-                            {
-                                Detail::AttributeTraits<ValueType>::assignValue(value, std::move(newValue));
-                            }
-                            else
-                            {
-                                (void)value;
-                                Nui::WebApi::Console::warn(
-                                    "ScriptNuiComponents::TextInput: Cannot assign std::string to ValueType."
-                                    "pass 'dontUpdateValue = true' to options and handle it in the onChange function."
-                                );
-                            }
-                        }
+                            value.assign(newValue, Nui::ChangePolicy::Tracked);
+
                         if (onChange)
                             onChange(newValue, event);
                     },

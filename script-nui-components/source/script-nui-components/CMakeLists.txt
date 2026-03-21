@@ -13,4 +13,5 @@ target_link_libraries(
     script-nui-components
     PUBLIC
         nui-frontend
+        ui5-sap-icons
 )

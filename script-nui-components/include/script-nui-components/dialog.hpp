@@ -2,6 +2,7 @@
 
 #include <script-nui-components/style_variant.hpp>
 
+#include <nui/frontend/state_transformer.hpp>
 #include <nui/event_system/observed_value.hpp>
 #include <nui/frontend/elements.hpp>
 #include <nui/frontend/attributes.hpp>

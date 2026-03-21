@@ -207,7 +207,7 @@ namespace ScriptNuiComponents
                       if (static_cast<unsigned>(impl_->buttons.value()) & static_cast<unsigned>(Button::Ok))
                       {
                           return button(
-                              ButtonOptions<decltype(impl_->okButtonLabel)>{
+                              ButtonOptions{
                                   .text = impl_->okButtonLabel,
                                   .attributes =
                                       {id = impl_->id + "_ok",
@@ -231,8 +231,7 @@ namespace ScriptNuiComponents
                         if (static_cast<unsigned>(impl_->buttons.value()) & static_cast<unsigned>(Button::Yes))
                         {
                             return button(
-                                ButtonOptions<decltype(impl_->yesButtonLabel)>{
-                                    .text = impl_->yesButtonLabel,
+                                {.text = impl_->yesButtonLabel,
                                     .attributes =
                                         {id = impl_->id + "_yes",
                                             "click"_event =
@@ -241,8 +240,7 @@ namespace ScriptNuiComponents
                                                 closeByButton(Button::Yes);
                                             },
                                             /*style = "grid-row: 1"*/},
-                                    .styleVariant = StyleVariant::Regular
-                                }
+                                    .styleVariant = StyleVariant::Regular}
                             );
                         }
                         return Nui::nil();
@@ -255,8 +253,7 @@ namespace ScriptNuiComponents
                         if (static_cast<unsigned>(impl_->buttons.value()) & static_cast<unsigned>(Button::No))
                         {
                             return button(
-                                ButtonOptions<decltype(impl_->noButtonLabel)>{
-                                    .text = impl_->noButtonLabel,
+                                {.text = impl_->noButtonLabel,
                                     .attributes =
                                         {id = impl_->id + "_no",
                                             "click"_event =
@@ -265,8 +262,7 @@ namespace ScriptNuiComponents
                                                 closeByButton(Button::No);
                                             },
                                             /*style = "grid-row: 1"*/},
-                                    .styleVariant = StyleVariant::Regular
-                                }
+                                    .styleVariant = StyleVariant::Regular}
                             );
                         }
                         return Nui::nil();
@@ -279,8 +275,7 @@ namespace ScriptNuiComponents
                         if (static_cast<unsigned>(impl_->buttons.value()) & static_cast<unsigned>(Button::All))
                         {
                             return button(
-                                ButtonOptions<decltype(impl_->allButtonLabel)>{
-                                    .text = impl_->allButtonLabel,
+                                {.text = impl_->allButtonLabel,
                                     .attributes =
                                         {id = impl_->id + "_all",
                                             "click"_event =
@@ -289,8 +284,7 @@ namespace ScriptNuiComponents
                                                 closeByButton(Button::All);
                                             },
                                             /*style = "grid-row: 1"*/},
-                                    .styleVariant = StyleVariant::Danger
-                                }
+                                    .styleVariant = StyleVariant::Danger}
                             );
                         }
                         return Nui::nil();
@@ -303,8 +297,7 @@ namespace ScriptNuiComponents
                         if (static_cast<unsigned>(impl_->buttons.value()) & static_cast<unsigned>(Button::None))
                         {
                             return button(
-                                ButtonOptions<decltype(impl_->noneButtonLabel)>{
-                                    .text = impl_->noneButtonLabel,
+                                {.text = impl_->noneButtonLabel,
                                     .attributes =
                                         {id = impl_->id + "_none",
                                             "click"_event =
@@ -313,8 +306,7 @@ namespace ScriptNuiComponents
                                                 closeByButton(Button::None);
                                             },
                                             /*style = "grid-row: 1"*/},
-                                    .styleVariant = StyleVariant::Regular
-                                }
+                                    .styleVariant = StyleVariant::Regular}
                             );
                         }
                         return Nui::nil();
@@ -327,8 +319,7 @@ namespace ScriptNuiComponents
                         if (static_cast<unsigned>(impl_->buttons.value()) & static_cast<unsigned>(Button::Cancel))
                         {
                             return button(
-                                ButtonOptions<decltype(impl_->cancelButtonLabel)>{
-                                    .text = impl_->cancelButtonLabel,
+                                {.text = impl_->cancelButtonLabel,
                                     .attributes =
                                         {
                                             id = impl_->id + "_cancel",
@@ -339,8 +330,7 @@ namespace ScriptNuiComponents
                                             },
                                             /*style = "grid-row: 1"*/
                                         },
-                                    .styleVariant = StyleVariant::Regular
-                                }
+                                    .styleVariant = StyleVariant::Regular}
                             );
                         }
                         return Nui::nil();

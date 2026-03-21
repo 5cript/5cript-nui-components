@@ -1,7 +1,7 @@
 #pragma once
 
-#include "impl/merge_attributes.hpp"
-#include "impl/attribute_traits.hpp"
+#include <script-nui-components/impl/merge_attributes.hpp>
+#include <script-nui-components/state_transformers/text_node.hpp>
 
 #include <script-nui-components/style_variant.hpp>
 
@@ -32,17 +32,15 @@
 
 namespace ScriptNuiComponents
 {
-    template <typename TextType>
     struct ButtonOptions
     {
-        typename Detail::AttributeTraits<TextType>::Actual text{};
+        Nui::StateTransformer<StateTransformers::TextNode> text = "";
         std::optional<Nui::ElementRenderer> icon = std::nullopt;
         std::vector<Nui::Attribute> attributes = {};
         StyleVariant styleVariant = StyleVariant::Regular;
     };
 
-    template <typename TextType>
-    inline Nui::ElementRenderer button(ButtonOptions<TextType> options)
+    inline Nui::ElementRenderer button(ButtonOptions options)
     {
         using namespace Nui::Elements;
         using namespace Nui::Attributes;
@@ -55,13 +53,10 @@ namespace ScriptNuiComponents
             std::move(options.attributes)
         )};
 
-        if (options.icon)
-            return std::move(button)(*options.icon, Nui::Elements::text{std::move(options.text)}());
-        return std::move(button)(std::move(options.text));
-    }
+        auto [text] = options.text.reify();
 
-    inline Nui::ElementRenderer button(ButtonOptions<std::string> options)
-    {
-        return button<std::string>(std::move(options));
+        if (options.icon)
+            return std::move(button)(*options.icon, std::move(text));
+        return std::move(button)(std::move(text));
     }
 } // namespace ScriptNuiComponents

@@ -167,7 +167,7 @@ Nui::ElementRenderer MainPage::render()
         popupMenu_(),
         // Top bar
         div{class_ = "top-bar"}(
-            ScriptNuiComponents::switch_(SwitchOptions<bool>{
+            ScriptNuiComponents::switch_({
                 .isChecked = true,
                 .onChange =
                     [](bool isChecked, Nui::WebApi::MouseEvent const&)
@@ -264,40 +264,54 @@ Nui::ElementRenderer MainPage::render()
                 .text = "Open Popup Here",
                 .attributes = {
                     id      = "my-menu-btn",
-                    onClick = [this](Nui::WebApi::MouseEvent event) {
+                    onClick = [this](Nui::WebApi::MouseEvent) {
                         popupMenu_.openNextTo("my-menu-btn");
                     }
                 },
+            }),
+            button({
+                .text = observe(buttonTextSwitcher_).generate(std::function{[this]() {
+                    return fmt::format("{}_suffix", buttonTextSwitcher_.value());
+                }}),
+                .attributes = {
+                    onClick = [this]() {
+                        if (buttonTextSwitcher_.value() == "A") {
+                            buttonTextSwitcher_ = "B";
+                            return;
+                        }
+                        buttonTextSwitcher_ = "A";
+                    }
+                }
             })
         ),
         div{class_ = "content"}(
             div{}(
                 range(massSwitches),
-                [this](long long, auto) {
+                [this](long long, auto const&) {
                     return switch_();
                 }
             ),
             div{}(
                 range(massInputs),
-                [this](long long, auto) {
+                [this](long long, auto const&) {
                     return textInput();
                 }
             ),
             div{}(
                 range(massSelects),
-                [this](long long, auto) {
+                [this](long long, auto const&) {
                     return this->select();
                 }
             ),
             div{}(
                 range(massIconButtons),
-                [this](long long, auto) {
+                [this](long long, auto const&) {
                     return iconButton();
                 }
             ),
             div{}(
                 range(massColorPickers),
-                [this](long long, auto) {
+                [this](long long, auto const&) {
                     return colorPicker();
                 }
             )
@@ -313,20 +327,16 @@ Nui::ElementRenderer MainPage::render()
 
 Nui::ElementRenderer MainPage::switch_()
 {
-    return ScriptNuiComponents::switch_(
-        SwitchOptions<decltype(isChecked_)>{
-            .isChecked = isChecked_,
-        }
-    );
+    return ScriptNuiComponents::switch_({
+        .isChecked = isChecked_,
+    });
 }
 
 Nui::ElementRenderer MainPage::textInput()
 {
-    return ScriptNuiComponents::textInput(
-        ScriptNuiComponents::TextInputOptions<decltype(textInputValue_)>{
-            .value = textInputValue_,
-        }
-    );
+    return ScriptNuiComponents::textInput({
+        .value = textInputValue_,
+    });
 }
 
 Nui::ElementRenderer MainPage::select()
@@ -369,7 +379,7 @@ Nui::ElementRenderer MainPage::iconButton()
 Nui::ElementRenderer MainPage::colorPicker()
 {
     return ScriptNuiComponents::colorPicker(
-        ColorPickerOptions<decltype(colorValue_)>{
+        ColorPickerOptions{
             .value = colorValue_,
             .pickButtonText = "",
             .pickButtonIcon =

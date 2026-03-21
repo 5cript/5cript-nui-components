@@ -34,6 +34,7 @@ class MainPage
     Nui::Observed<bool> isChecked_{false};
     Nui::Observed<std::string> textInputValue_{};
     Nui::Observed<std::string> colorValue_{};
+    Nui::Observed<std::string> buttonTextSwitcher_{"A"};
 
     Nui::Observed<std::string> selectValue_{};
     // Nui::Observed<std::vector<std::string>> selectOptions_{std::vector<std::string>{

@@ -1,7 +1,6 @@
 #pragma once
 
-#include "impl/attribute_traits.hpp"
-#include "impl/merge_attributes.hpp"
+#include <script-nui-components/impl/merge_attributes.hpp>
 
 #include <nui/frontend/elements/button.hpp>
 #include <nui/frontend/elements/span.hpp>
@@ -14,11 +13,11 @@
 #include <nui/frontend/api/mouse_event.hpp>
 #include <nui/frontend/element_renderer.hpp>
 #include <nui/event_system/observed_value.hpp>
+#include <nui/frontend/state_transformer.hpp>
 
 #include <fmt/format.h>
 
 #include <string>
-#include <type_traits>
 #include <optional>
 #include <string>
 #include <vector>
@@ -34,10 +33,23 @@
 
 namespace ScriptNuiComponents
 {
-    template <typename CheckedType>
+    namespace SwitchDetail
+    {
+        struct IsCheckedReify
+        {
+            using type = Nui::Attribute;
+
+            static type reify(Nui::StateTransformerBase const&, auto& statefulObject)
+            {
+                using namespace Nui::Attributes::Literals;
+                return "data-is-checked"_attr = statefulObject;
+            }
+        };
+    }
+
     struct SwitchOptions
     {
-        typename Detail::AttributeTraits<CheckedType>::Actual isChecked = false;
+        Nui::StateTransformer<SwitchDetail::IsCheckedReify> isChecked = false;
         std::vector<Nui::Attribute> attributes = {};
 
         std::optional<double> sizeFactor = std::nullopt;
@@ -48,8 +60,7 @@ namespace ScriptNuiComponents
         bool dontUpdateValue = false;
     };
 
-    template <typename CheckedType = bool>
-    Nui::ElementRenderer switch_(SwitchOptions<CheckedType> options)
+    Nui::ElementRenderer switch_(SwitchOptions options)
     {
         using namespace Nui::Elements;
         using namespace Nui::Attributes;
@@ -64,10 +75,12 @@ namespace ScriptNuiComponents
             options.thumbColor ? fmt::format("--thumb-color: {};", *options.thumbColor) : ""
         );
 
+        const auto [isChecked] = options.isChecked.reify();
+
         return Nui::Elements::button{mergeAttributes(
             {
                 class_ = "script-nui-switch",
-                "data-is-checked"_attr = options.isChecked,
+                isChecked,
                 style = styleVars,
                 onClick =
                     [isChecked = options.isChecked,
@@ -76,23 +89,17 @@ namespace ScriptNuiComponents
                 {
                     event.stopPropagation();
 
-                    Detail::AttributeTraits<CheckedType>::assignValue(
-                        isChecked, !Detail::AttributeTraits<CheckedType>::unwrap(isChecked)
-                    );
+                    const auto previousValue = isChecked.template value<bool>();
 
-                    // Not updated via the observed variable, so toggle the attribute manually.
-                    if constexpr (std::is_same_v<std::decay_t<CheckedType>, bool>)
+                    Nui::WebApi::Console::log(fmt::format("Switch toggled, new value: {}", !previousValue));
+                    if (!dontUpdateValue)
                     {
-                        if (!dontUpdateValue)
-                            event.target().call<void>("toggleAttribute", "data-is-checked"s);
-                    }
-                    else
-                    {
-                        (void)dontUpdateValue;
+                        isChecked.assign(!previousValue, Nui::ChangePolicy::Tracked);
+                        event.target().call<void>("toggleAttribute", "data-is-checked"s);
                     }
 
                     if (onChange)
-                        onChange(Detail::AttributeTraits<CheckedType>::unwrap(isChecked), event);
+                        onChange(!previousValue, event);
                 },
             },
             std::move(options.attributes)
