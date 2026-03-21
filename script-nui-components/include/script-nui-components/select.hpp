@@ -21,6 +21,7 @@
 
 #include <fmt/format.h>
 
+#include <algorithm>
 #include <string>
 #include <type_traits>
 #include <optional>
@@ -42,6 +43,8 @@ namespace ScriptNuiComponents
             double width;
             double top;
             double left;
+            double maxHeight;
+            bool flipUp; // true when opening upward (more space above than below)
         };
     }
 
@@ -84,6 +87,13 @@ namespace ScriptNuiComponents
             return crypto.call<std::string>("randomUUID");
         };
         bool dontUpdateValue = false;
+
+        // Upper bound on the popover height in pixels. The actual height will be
+        // clamped to the available viewport space as well, so this is a maximum,
+        // not a fixed value. Can also be overridden via the CSS variable
+        // --script-nui-components-select-max-height. Set to 0 to disable the
+        // option-based cap (viewport clamping still applies).
+        double maxHeight = 300.0;
     };
 
     template <typename ActiveOptionType, typename OptionsValueType>
@@ -95,7 +105,7 @@ namespace ScriptNuiComponents
 
         SelectOptions<ActiveOptionType, OptionsValueType> options;
         std::weak_ptr<Nui::Dom::BasicElement> buttonElement{};
-        Nui::Observed<SelectDetail::Positioning> positioning{{0.0, 0.0, 0.0}};
+        Nui::Observed<SelectDetail::Positioning> positioning{{0.0, 0.0, 0.0, 300.0, false}};
         std::string id = options.makeId();
     };
 
@@ -121,14 +131,22 @@ namespace ScriptNuiComponents
                         if (auto btn = state->buttonElement.lock(); btn)
                         {
                             auto rect = Nui::WebApi::DomRectReadOnly{btn->val().template call<Nui::val>("getBoundingClientRect")};
-                            // const auto relativeLeft = btn->val()["offsetLeft"].template as<double>();
-                            // const auto relativeTop = btn->val()["offsetTop"].template as<double>() + rect.height();
-                        state->positioning = SelectDetail::Positioning{
+                            const double viewportHeight = Nui::val::global("window")["innerHeight"].template as<double>();
+                            const double spaceBelow = viewportHeight - rect.top() - rect.height();
+                            const double spaceAbove = rect.top();
+                            const bool flipUp = spaceBelow < state->options.maxHeight && spaceAbove > spaceBelow;
+                            const double availableSpace = flipUp ? spaceAbove : spaceBelow;
+                            const double cssMax = state->options.maxHeight > 0.0 ? state->options.maxHeight : availableSpace;
+                            const double computedMaxHeight = std::min(availableSpace, cssMax) - 8.0; // 8px breathing room
+                            const double top = flipUp
+                                ? rect.top() - computedMaxHeight
+                                : rect.top() + rect.height();
+                            state->positioning = SelectDetail::Positioning{
                                 .width = rect.width(),
-                                // .top = relativeTop,
-                                // .left = relativeLeft,
-                                .top = rect.top() + rect.height(),
-                                .left = rect.left()
+                                .top = top,
+                                .left = rect.left(),
+                                .maxHeight = computedMaxHeight,
+                                .flipUp = flipUp,
                             };
                         }
                         mouseEvent.stopPropagation();
@@ -154,7 +172,13 @@ namespace ScriptNuiComponents
                 class_ = "script-nui-select-popover",
                 id = fmt::format("select-options-{}", state->id),
                 style = Nui::observe(state->positioning).generate([state]() {
-                    return fmt::format("top: {}px; left: {}px; width: {}px;", state->positioning.value().top, state->positioning.value().left, state->positioning.value().width);
+                    const auto& p = state->positioning.value();
+                    return fmt::format(
+                        "top: {}px; left: {}px; width: {}px; max-height: {}px; overflow-y: auto;"
+                        "transform-origin: {};",
+                        p.top, p.left, p.width, p.maxHeight,
+                        p.flipUp ? "bottom center" : "top center"
+                    );
                 }),
                 onClick = [state, onChange = std::move(state->options.onChange)](Nui::WebApi::MouseEvent event) mutable {
                     event.val()["currentTarget"].call<void>("hidePopover");
