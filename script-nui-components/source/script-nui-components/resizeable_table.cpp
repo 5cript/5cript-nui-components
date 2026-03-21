@@ -1,5 +1,4 @@
 #include <script-nui-components/resizeable_table.hpp>
-#include <script-nui-components/impl/merge_attributes.hpp>
 
 #include <nui/frontend/elements.hpp>
 #include <nui/event_system/event_context.hpp>
@@ -8,6 +7,7 @@
 #include <nui/frontend/api/abort_controller.hpp>
 #include <nui/frontend/api/mouse_event.hpp>
 #include <nui/frontend/dom/basic_element.hpp>
+#include <nui/frontend/utility/merge_attributes.hpp>
 
 #include <fmt/format.h>
 

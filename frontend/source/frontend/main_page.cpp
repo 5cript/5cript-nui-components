@@ -6,18 +6,16 @@
 #include <script-nui-components/button.hpp>
 #include <script-nui-components/color_picker.hpp>
 #include <script-nui-components/resizeable_table.hpp>
+#include <script-nui-components/message_strip.hpp>
 
 #include <nui/frontend/elements.hpp>
 #include <nui/frontend/attributes.hpp>
-
-#include <numeric>
 
 using namespace std::string_literals;
 using namespace ScriptNuiComponents;
 
 MainPage::MainPage()
-    : massSwitches()
-    , table_{
+    : table_{
           ResizableTable::HeaderRow{
               ResizableTable::HeaderTableCell{"Header 1"s},
               ResizableTable::HeaderTableCell{"Header 2"s},
@@ -28,7 +26,6 @@ MainPage::MainPage()
               }
           },
           ResizableTable::FooterFeature{{"Footer 1"s}, {"Footer 2"s}, {""s}},
-          /*std::nullopt,*/
           ResizableTable::AddFeature{
               .onAdd =
                   [](auto& table)
@@ -39,12 +36,9 @@ MainPage::MainPage()
                       fmt::format("Row {}, Col 2", rowCount),
                       [](std::unique_ptr<ResizableTable::ISelfController> controller) -> Nui::ElementRenderer
                       {
-                          // std::function must be copiable
                           std::shared_ptr<ResizableTable::ISelfController> sharedController = std::move(controller);
-
                           return button(
-                              {
-                                  .icon =
+                              {.icon =
                                       Nui::Elements::Svg::svg{
                                           Nui::Attributes::Svg::viewBox = "0 0 512 512",
                                       }(Nui::Elements::Svg::path{
@@ -66,8 +60,7 @@ MainPage::MainPage()
                                           );
                                           controller->remove();
                                       }
-                                  }
-                              }
+                                  }}
                           );
                       },
                   });
@@ -76,22 +69,22 @@ MainPage::MainPage()
           }
       }
     , dialog_{
-        "MyDialog",
-        Nui::Elements::div{}(
-            Nui::Elements::label{}("Text Input:"),
-            Nui::Elements::input{
-                Nui::Attributes::id = "text-input-1"s,
-                Nui::Attributes::type = "text"s,
-                Nui::Attributes::value = textInputValue_,
-            }()
-        )
-    }
+          "MyDialog",
+          Nui::Elements::div{}(
+              Nui::Elements::label{}("Text Input:"),
+              Nui::Elements::input{
+                  Nui::Attributes::id = "text-input-1"s,
+                  Nui::Attributes::type = "text"s,
+                  Nui::Attributes::value = textInputValue_,
+              }()
+          )
+      }
 {
     tabs_.onSelect(
         [](std::size_t id)
         {
             Nui::WebApi::Console::log("Selected tab with id: ", id);
-            return true; // allow selection
+            return true;
         }
     );
 
@@ -99,8 +92,6 @@ MainPage::MainPage()
         [](std::size_t id)
         {
             Nui::WebApi::Console::log("Closed tab with id: ", id);
-
-            // do Remove!
             return true;
         }
     );
@@ -153,173 +144,171 @@ MainPage::MainPage()
     });
 }
 
+// Renders a titled section with an underlined heading
+Nui::ElementRenderer MainPage::section(std::string const& title, Nui::ElementRenderer content)
+{
+    using namespace Nui::Elements;
+    using namespace Nui::Attributes;
+    using Nui::Elements::div;
+
+    return div{
+        style = "margin-bottom: 24px;"
+    }(div{style = "font-size: 1.1em; font-weight: 600; border-bottom: 1px solid currentColor; padding-bottom: 4px; "
+                  "margin-bottom: 12px;"}(text{title}()),
+        std::move(content));
+}
+
 Nui::ElementRenderer MainPage::render()
 {
     using namespace Nui;
     using namespace Nui::Elements;
     using namespace Nui::Attributes;
-    using Nui::Elements::div; // because of the global div.
+    using Nui::Elements::div;
+    using Nui::Elements::span;
     using ScriptNuiComponents::button;
 
     // clang-format off
     return body{}(
         dialog_(),
         popupMenu_(),
-        // Top bar
-        div{class_ = "top-bar"}(
-            ScriptNuiComponents::switch_({
-                .isChecked = true,
-                .onChange =
-                    [](bool isChecked, Nui::WebApi::MouseEvent const&)
-                {
-                    if (isChecked)
-                        Nui::val::global("document")["documentElement"].call<void>("setAttribute", "data-theme"s, "dark"s);
-                    else
-                        Nui::val::global("document")["documentElement"].call<void>("setAttribute", "data-theme"s, "light"s);
-                },
-            }),
 
-            button({
-                .text = "Create 1000 switches",
-                .attributes = {
-                    onClick = [this](auto const&) {
-                        massSwitches.resize(1000);
-                    }
-                }
-            }),
-            button({
-                .text = "Create 1000 inputs",
-                .attributes = {
-                    onClick = [this](auto const&) {
-                        massInputs.resize(1000);
-                    }
-                },
-                .styleVariant = StyleVariant::Primary,
-            }),
-            button({
-                .text = "Create 1000 selects",
-                .attributes = {
-                    onClick = [this](auto const&) {
-                        massSelects.resize(1000);
-                    }
-                },
-                .styleVariant = StyleVariant::Warning,
-            }),
-            button({
-                .text = "Create 1000 iconButtons",
-                .attributes = {
-                    onClick = [this](auto const&) {
-                        massIconButtons.resize(1000);
-                    }
-                },
-                .styleVariant = StyleVariant::Danger,
-            }),
-            button({
-                .text = "Create 1000 colorPickers",
-                .attributes = {
-                    onClick = [this](auto const&) {
-                        massColorPickers.resize(1000);
-                    }
-                },
-                .styleVariant = StyleVariant::Primary,
-            }),
-            button({
-                .text = "Open Dialog",
-                .attributes = {
-                    onClick = [this](auto const&) {
-                        dialog_.open(Dialog::OpenOptions{
-                            .styleVariant = StyleVariant::Primary,
-                            .headerText = "Dialog Header",
-                            .buttons = Dialog::Button::Ok | Dialog::Button::Cancel | Dialog::Button::Yes | Dialog::Button::No,
-                            .initialFocus = Dialog::Button::Cancel,
-                            .onClose = [](std::optional<Dialog::Button> buttonPressed)
-                            {
-                                if (buttonPressed)
-                                    Nui::WebApi::Console::log("Dialog closed with button: "s + std::to_string(static_cast<unsigned>(*buttonPressed)));
-                                else
-                                    Nui::WebApi::Console::log("Dialog closed without pressing a button");
-                            },
-                            .modal = true,
-                        });
-                    }
-                },
-            })
-        ),
-        div{
-            style = "width: 100%"
-        }(
-            button({
-                .text = "Add Tab",
-                .attributes = {
-                    onClick = [this](auto const&) {
-                        static int tabCount = 0;
-                        tabs_.add("Tab "s + std::to_string(tabCount++), true);
-                    }
-                },
-            }),
-            tabs_()
-        ),
-        div{}(
-            button({
-                .text = "Open Popup Here",
-                .attributes = {
-                    id      = "my-menu-btn",
-                    onClick = [this](Nui::WebApi::MouseEvent) {
-                        popupMenu_.openNextTo("my-menu-btn");
-                    }
-                },
-            }),
-            button({
-                .text = observe(buttonTextSwitcher_).generate(std::function{[this]() {
-                    return fmt::format("{}_suffix", buttonTextSwitcher_.value());
-                }}),
-                .attributes = {
-                    onClick = [this]() {
-                        if (buttonTextSwitcher_.value() == "A") {
-                            buttonTextSwitcher_ = "B";
-                            return;
-                        }
-                        buttonTextSwitcher_ = "A";
-                    }
-                }
-            })
-        ),
-        div{class_ = "content"}(
-            div{}(
-                range(massSwitches),
-                [this](long long, auto const&) {
-                    return switch_();
-                }
-            ),
-            div{}(
-                range(massInputs),
-                [this](long long, auto const&) {
-                    return textInput();
-                }
-            ),
-            div{}(
-                range(massSelects),
-                [this](long long, auto const&) {
-                    return this->select();
-                }
-            ),
-            div{}(
-                range(massIconButtons),
-                [this](long long, auto const&) {
-                    return iconButton();
-                }
-            ),
-            div{}(
-                range(massColorPickers),
-                [this](long long, auto const&) {
-                    return colorPicker();
-                }
+        div{class_ = "top-bar"}(
+            div{
+                style = "display: flex; align-items: center; gap: 8px;",
+            }(
+                ScriptNuiComponents::switch_({
+                    .isChecked = true,
+                    .onChange =
+                        [](bool isChecked, Nui::WebApi::MouseEvent const&)
+                    {
+                        if (isChecked)
+                            Nui::val::global("document")["documentElement"].call<void>("setAttribute", "data-theme"s, "dark"s);
+                        else
+                            Nui::val::global("document")["documentElement"].call<void>("setAttribute", "data-theme"s, "light"s);
+                    },
+                }),
+                span{}("Dark/Light Mode")
             )
         ),
-        div{style = "margin-top: 20px; width: 100%; display: flex"}(
-            table_({
-                style = "max-height: 400px"
-            })
+
+        div{class_ = "content"}(
+            div{}(
+                section("Switch", switch_()),
+                section("Text Input", textInput()),
+                section("Select", select()),
+                section("Icon Button", iconButton()),
+                section("Color Picker", colorPicker()),
+                section("Message Strips",
+                    div{}(
+                        messageStrip({.text = "Danger",      .styleVariant = StyleVariant::Danger}),
+                        messageStrip({.text = "Warning",     .styleVariant = StyleVariant::Warning}),
+                        messageStrip({.text = "Primary",     .styleVariant = StyleVariant::Primary}),
+                        messageStrip({.text = "Success",     .styleVariant = StyleVariant::Success}),
+                        messageStrip({.text = "Regular",     .styleVariant = StyleVariant::Regular}),
+                        messageStrip({.text = "Transparent", .styleVariant = StyleVariant::Transparent})
+                    )
+                ),
+                section("Buttons",
+                    div{
+                        style = "display: flex; gap: 5px;"
+                    }(
+                        button({
+                            .text = observe(buttonTextSwitcher_).generate(std::function{[this]() {
+                                return fmt::format("{}_suffix", buttonTextSwitcher_.value());
+                            }}),
+                            .attributes = {
+                                onClick = [this]() {
+                                    buttonTextSwitcher_ = (buttonTextSwitcher_.value() == "A") ? "B"s : "A"s;
+                                }
+                            },
+                            .styleVariant = StyleVariant::Primary
+                        }),
+                        button({
+                            .text = "Disabled Button",
+                            .attributes = {
+                                onClick = []() {
+                                    Nui::WebApi::Console::log("This should not trigger");
+                                },
+                                disabled = true,
+                            },
+                            .styleVariant = StyleVariant::Primary
+                        }),
+                        button({
+                            .text = "Regular",
+                            .styleVariant = StyleVariant::Regular
+                        }),
+                        button({
+                            .text = "Warning",
+                            .styleVariant = StyleVariant::Warning
+                        }),
+                        button({
+                            .text = "Danger",
+                            .styleVariant = StyleVariant::Danger
+                        }),
+                        button({
+                            .text = "Success",
+                            .styleVariant = StyleVariant::Success
+                        }),
+                        button({
+                            .text = "Transparent",
+                            .styleVariant = StyleVariant::Transparent
+                        })
+                    )
+                ),
+                section("Popup Menu",
+                    div{}(
+                        button({
+                            .text = "Open Popup Here",
+                            .attributes = {
+                                id      = "my-menu-btn-2"s,
+                                onClick = [this](Nui::WebApi::MouseEvent) {
+                                    popupMenu_.openNextTo("my-menu-btn-2");
+                                }
+                            },
+                        })
+                    )
+                ),
+                section("Dialog",
+                    button({
+                        .text = "Open Dialog",
+                        .attributes = {
+                            onClick = [this](auto const&) {
+                                dialog_.open(Dialog::OpenOptions{
+                                    .styleVariant = StyleVariant::Primary,
+                                    .headerText = "Dialog Header",
+                                    .buttons = Dialog::Button::Ok | Dialog::Button::Cancel | Dialog::Button::Yes | Dialog::Button::No,
+                                    .initialFocus = Dialog::Button::Cancel,
+                                    .onClose = [](std::optional<Dialog::Button> buttonPressed)
+                                    {
+                                        if (buttonPressed)
+                                            Nui::WebApi::Console::log("Dialog closed with button: "s + std::to_string(static_cast<unsigned>(*buttonPressed)));
+                                        else
+                                            Nui::WebApi::Console::log("Dialog closed without pressing a button");
+                                    },
+                                    .modal = true,
+                                });
+                            }
+                        },
+                    })
+                ),
+                section("Tabs",
+                    div{}(
+                        button({
+                            .text = "Add Tab",
+                            .attributes = {
+                                onClick = [this](auto const&) {
+                                    static int tabCount = 0;
+                                    tabs_.add("Tab "s + std::to_string(tabCount++), true);
+                                }
+                            },
+                        }),
+                        tabs_()
+                    )
+                ),
+                section("Table",
+                    table_({style = "max-height: 400px"})
+                )
+            )
         )
     );
     // clang-format on
@@ -348,6 +337,7 @@ Nui::ElementRenderer MainPage::select()
             .attributes =
                 {
                     Nui::Attributes::disabled = false,
+                    Nui::Attributes::style = "min-width: 200px",
                 },
             .onChange = [](std::string const& newValue, auto const&)
             {

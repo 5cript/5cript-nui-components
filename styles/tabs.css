@@ -5,9 +5,9 @@
     --background-color-tab: var(--script-nui-components-tabs-background-color-tab, #303030);
     --background-color-tab-hover: var(--script-nui-components-tabs-background-color-tab-hover, #3a3a3a);
     --background-color-tab-selected: var(--script-nui-components-tabs-background-color-tab-selected, #2a2a2a);
-    --color: var(--script-nui-components-tabs-color-tab, #7a8390);
-    --color-tab-selected: var(--script-nui-components-tabs-color-tab-selected, #e8eaed);
-    --color-tab-hover: var(--script-nui-components-tabs-color-tab-hover, #b0b8c4);
+    --color: var(--script-nui-components-tabs-color-tab, #cbcbcb);
+    --color-tab-selected: var(--script-nui-components-tabs-color-tab-selected, #ffffff);
+    --color-tab-hover: var(--script-nui-components-tabs-color-tab-hover, #979ca4);
     --border-color: var(--script-nui-components-tabs-border-color-tab, #333);
     --border-color-hover: var(--script-nui-components-tabs-border-color-tab-hover, #444);
     --border-color-selected: var(--script-nui-components-tabs-border-color-tab-selected, var(--primary-color));

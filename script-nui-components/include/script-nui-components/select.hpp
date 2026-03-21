@@ -1,7 +1,7 @@
 #pragma once
 
 #include <script-nui-components/impl/attribute_traits.hpp>
-#include <script-nui-components/impl/merge_attributes.hpp>
+#include <nui/frontend/utility/merge_attributes.hpp>
 
 #include <nui/frontend/api/dom_rect_readonly.hpp>
 #include <nui/frontend/dom/basic_element.hpp>

@@ -6,6 +6,8 @@
 #include <nui/frontend/api/event.hpp>
 #include <nui/frontend/api/keyboard_event.hpp>
 
+#include <fmt/format.h>
+
 using namespace Nui;
 using namespace Nui::Elements;
 using namespace Nui::Attributes;

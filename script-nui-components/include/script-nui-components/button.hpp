@@ -1,26 +1,14 @@
 #pragma once
 
-#include <script-nui-components/impl/merge_attributes.hpp>
 #include <script-nui-components/state_transformers/text_node.hpp>
-
 #include <script-nui-components/style_variant.hpp>
 
-#include <nui/frontend/elements/button.hpp>
-#include <nui/frontend/elements/span.hpp>
-#include <nui/frontend/elements/nil.hpp>
-#include <nui/frontend/elements/text.hpp>
-
-#include <nui/frontend/attributes/disabled.hpp>
-#include <nui/frontend/attributes/class.hpp>
-
-#include <nui/frontend/api/mouse_event.hpp>
+#include <nui/frontend/utility/merge_attributes.hpp>
+#include <nui/frontend/state_transformer.hpp>
 #include <nui/frontend/element_renderer.hpp>
-#include <nui/event_system/observed_value.hpp>
 
-#include <fmt/format.h>
-
-#include <string>
-#include <type_traits>
+#include <optional>
+#include <vector>
 
 #if defined(NUI_INLINE) && !defined(SCRIPT_NUI_COMPONENTS_NO_INLINE)
 // clang-format off
@@ -40,23 +28,6 @@ namespace ScriptNuiComponents
         StyleVariant styleVariant = StyleVariant::Regular;
     };
 
-    inline Nui::ElementRenderer button(ButtonOptions options)
-    {
-        using namespace Nui::Elements;
-        using namespace Nui::Attributes;
+    Nui::ElementRenderer button(ButtonOptions options);
 
-        auto button = Nui::Elements::button{mergeAttributes(
-            std::vector<Nui::Attribute>{
-                class_ = "script-nui-button",
-                "data-variant"_attr = toString(options.styleVariant),
-            },
-            std::move(options.attributes)
-        )};
-
-        auto [text] = options.text.reify();
-
-        if (options.icon)
-            return std::move(button)(*options.icon, std::move(text));
-        return std::move(button)(std::move(text));
-    }
 } // namespace ScriptNuiComponents

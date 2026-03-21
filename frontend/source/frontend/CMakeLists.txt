@@ -55,4 +55,5 @@ nui_prepare_emscripten_target(
         "${CMAKE_SOURCE_DIR}/styles/dialog.css"
         "${CMAKE_SOURCE_DIR}/styles/tabs.css"
         "${CMAKE_SOURCE_DIR}/styles/popup_menu.css"
+        "${CMAKE_SOURCE_DIR}/styles/message_strip.css"
 )
