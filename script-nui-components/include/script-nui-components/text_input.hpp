@@ -7,6 +7,7 @@
 #include <nui/frontend/attributes/impl/attribute_factory.hpp>
 
 #include <functional>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -20,6 +21,12 @@
 
 namespace ScriptNuiComponents
 {
+    enum class ValueState
+    {
+        Valid,
+        Invalid,
+    };
+
     namespace TextInputDetail
     {
         struct ValueReify
@@ -41,6 +48,15 @@ namespace ScriptNuiComponents
 
         std::function<void(std::string const& newValue, Nui::WebApi::Event const&)> onChange = {};
         bool dontUpdateValue = false;
+
+        // When provided and set to Invalid, setCustomValidity is called on the
+        // underlying <input> with validationMessage, triggering the CSS :invalid rule.
+        // The Observed must outlive the rendered element.
+        Nui::Observed<ValueState>* valueState = nullptr;
+
+        // The message passed to setCustomValidity when valueState == Invalid.
+        // Ignored when valueState is nullptr. The Observed must outlive the rendered element.
+        Nui::Observed<std::string>* validationMessage = nullptr;
     };
 
     Nui::ElementRenderer textInput(TextInputOptions options);
