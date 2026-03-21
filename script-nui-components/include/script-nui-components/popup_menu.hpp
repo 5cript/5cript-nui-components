@@ -8,6 +8,7 @@
 #include <string>
 #include <variant>
 #include <vector>
+#include <memory>
 
 namespace ScriptNuiComponents
 {
@@ -133,9 +134,11 @@ namespace ScriptNuiComponents
 
         bool isOpen() const;
 
+        void modifyItemByLabel(std::string const& label, std::function<void(MenuItem*)> modifier);
+
         // ── Render ───────────────────────────────────────────────────────────
 
-        Nui::ElementRenderer operator()();
+        Nui::ElementRenderer operator()(std::vector<Nui::Attribute> additionalAttributes = {});
 
       private:
         struct Implementation;

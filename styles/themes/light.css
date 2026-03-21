@@ -1,0 +1,108 @@
+:root[data-theme="light"] {
+    /* Switch */
+    --script-nui-components-switch-color-active: #008000;
+    --script-nui-components-switch-color-inactive: #b9b9b9;
+    --script-nui-components-switch-thumb-color: #383838;
+
+    --script-nui-components-field-color: var(--color-fields);
+    --script-nui-components-field-background-color: var(--background-color-fields);
+    --script-nui-components-field-border-color: color-mix(in srgb, var(--color-fields) 50%, white);
+
+    --script-nui-components-button-color-regular: #EFEFEF;
+    --script-nui-components-button-color: #111111;
+    --script-nui-components-button-color-primary: #E6F1FB;
+    --script-nui-components-button-color-warning: #FAEEDA;
+    --script-nui-components-button-color-danger: #FCEBEB;
+    --script-nui-components-button-color-success: #EAF3DE;
+
+
+    --script-nui-components-tabs-primary-color: #1a9e0a;
+    --script-nui-components-tabs-background-color: #f0f0f0;
+    --script-nui-components-tabs-background-color-tab: #e4e4e4;
+    --script-nui-components-tabs-background-color-tab-hover: #dcdcdc;
+    --script-nui-components-tabs-background-color-tab-selected: #f7f7f7;
+    --script-nui-components-tabs-color-tab: #000000;
+    --script-nui-components-tabs-color-tab-selected: #1a1a1a;
+    --script-nui-components-tabs-color-tab-hover: #3a3a3a;
+    --script-nui-components-tabs-border-color-tab: transparent;
+    --script-nui-components-tabs-border-color-tab-hover: #bbb;
+    --script-nui-components-tabs-border-color-tab-selected: #1a9e0a;
+    --script-nui-components-tabs-border-radius-tab: 6px;
+
+    /* internal-only hardcoded colours made themeable via private vars */
+    --script-nui-components-tabs-bar-border-color: #d4d4d4;
+    --script-nui-components-tabs-tab-border-color-selected: #d0d0d0;
+    --script-nui-components-tabs-close-button-color: #aaa;
+    --script-nui-components-tabs-close-button-color-hover: #555;
+    --script-nui-components-tabs-close-button-bg-hover: rgba(0, 0, 0, 0.07);
+    --script-nui-components-tabs-close-button-color-selected: #999;
+    --script-nui-components-tabs-close-button-color-selected-hover: #333;
+    --script-nui-components-tabs-close-button-bg-selected-hover: rgba(0, 0, 0, 0.06);
+
+    /* Table (light) */
+    --script-nui-table-color: #1a1a1a;
+    --script-nui-table-header-color: #111111;
+    --script-nui-table-footer-color: #555555;
+    --script-nui-table-cell-background: #f7f7f7;
+    --script-nui-table-header-background: linear-gradient(180deg, #e8e8e8, #d8d8d8);
+    --script-nui-table-footer-background: #ececec;
+    --script-nui-table-border-color: #cccccc;
+    --script-nui-table-row-hover: #ebebeb;
+    --script-nui-table-handle-color: #aaaaaa;
+    --script-nui-table-handle-active: #0078d4;
+
+    /* Dialog (light) */
+    --script-nui-components-dialog-background-color--primary: #E6F1FB;
+    --script-nui-components-dialog-background-color--warning: #FAEEDA;
+    --script-nui-components-dialog-background-color--danger: #FCEBEB;
+    --script-nui-components-dialog-background-color--regular: #F1EFE8;
+    --script-nui-dialog-color: #1a1a1a;
+    --script-nui-dialog-header-color: #111111;
+    --script-nui-dialog-footer-color: #555555;
+    --script-nui-dialog-cell-background: #f7f7f7;
+    --script-nui-dialog-border-color: #cccccc;
+    --script-nui-dialog-box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+
+    /* Message strip (light) */
+    --script-nui-message-strip-regular-bg: #F1EFE8;
+    --script-nui-message-strip-regular-border-color: #B4B2A9;
+    --script-nui-message-strip-regular-accent-color: #5F5E5A;
+    --script-nui-message-strip-regular-text-color: #2C2C2A;
+    --script-nui-message-strip-regular-icon-color: #5F5E5A;
+
+    --script-nui-message-strip-primary-bg: #E6F1FB;
+    --script-nui-message-strip-primary-border-color: #85B7EB;
+    --script-nui-message-strip-primary-accent-color: #185FA5;
+    --script-nui-message-strip-primary-text-color: #0C447C;
+    --script-nui-message-strip-primary-icon-color: #185FA5;
+
+    --script-nui-message-strip-warning-bg: #FAEEDA;
+    --script-nui-message-strip-warning-border-color: #EF9F27;
+    --script-nui-message-strip-warning-accent-color: #854F0B;
+    --script-nui-message-strip-warning-text-color: #633806;
+    --script-nui-message-strip-warning-icon-color: #854F0B;
+
+    --script-nui-message-strip-danger-bg: #FCEBEB;
+    --script-nui-message-strip-danger-border-color: #F09595;
+    --script-nui-message-strip-danger-accent-color: #A32D2D;
+    --script-nui-message-strip-danger-text-color: #791F1F;
+    --script-nui-message-strip-danger-icon-color: #A32D2D;
+
+    --script-nui-message-strip-success-bg: #EAF3DE;
+    --script-nui-message-strip-success-border-color: #97C459;
+    --script-nui-message-strip-success-accent-color: #3B6D11;
+    --script-nui-message-strip-success-text-color: #27500A;
+    --script-nui-message-strip-success-icon-color: #3B6D11;
+
+    /* Popup menu (light) */
+    --script-nui-popup-menu-primary-color: #3B6D11;
+    --script-nui-popup-menu-primary-hover-color: #2f5a0d;
+    --script-nui-popup-menu-bg-color: #f7f7f5;
+    --script-nui-popup-menu-surface-color: #ececea;
+    --script-nui-popup-menu-border-color: #cccbc7;
+    --script-nui-popup-menu-text-color: #1a1a18;
+    --script-nui-popup-menu-text-muted-color: #6b6b68;
+    --script-nui-popup-menu-disabled-color: #b0b0ad;
+    --script-nui-popup-menu-shadow-color: rgba(0, 0, 0, 0.12);
+    --script-nui-popup-menu-separator-color: #d8d7d3;
+}

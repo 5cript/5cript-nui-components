@@ -2,13 +2,13 @@
     "sources": [
         {
             "url": "https://github.com/5cript/work-dependency-cloner.git",
-            "rev": "3e5e3524c2bcd7747c2cf18e0eed561d79c912f4",
+            "rev": "5c8b8457fddf9e1df8544e2df70acea36fd23559",
             "branch": "main",
             "name": "work-dependency-cloner"
         },
         {
             "url": "https://github.com/NuiCpp/Nui.git",
-            "rev": "43420627513788942179a283d1138e6086200e4b",
+            "rev": "6761c1d848f7b42305492c471d02dc4ce79a45cf",
             "branch": "main",
             "name": "Nui"
         }

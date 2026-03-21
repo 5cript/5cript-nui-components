@@ -1,8 +1,7 @@
 #pragma once
 
-#include "impl/attribute_traits.hpp"
-#include "impl/merge_attributes.hpp"
-#include "nui/frontend/api/console.hpp"
+#include <script-nui-components/impl/attribute_traits.hpp>
+#include <nui/frontend/utility/merge_attributes.hpp>
 
 #include <nui/frontend/api/dom_rect_readonly.hpp>
 #include <nui/frontend/dom/basic_element.hpp>
@@ -11,15 +10,18 @@
 #include <nui/frontend/elements/button.hpp>
 #include <nui/frontend/elements/span.hpp>
 #include <nui/frontend/elements/svg/svg.hpp>
+#include <nui/frontend/elements/nil.hpp>
 #include <nui/frontend/svg_elements.hpp>
 #include <nui/frontend/svg_attributes.hpp>
 #include <nui/frontend/attributes.hpp>
 #include <nui/frontend/api/mouse_event.hpp>
 #include <nui/frontend/element_renderer.hpp>
 #include <nui/event_system/observed_value.hpp>
+#include <nui/frontend/api/console.hpp>
 
 #include <fmt/format.h>
 
+#include <algorithm>
 #include <string>
 #include <type_traits>
 #include <optional>
@@ -34,13 +36,15 @@
 
 namespace ScriptNuiComponents
 {
-    namespace Detail
+    namespace SelectDetail
     {
         struct Positioning
         {
             double width;
             double top;
             double left;
+            double maxHeight;
+            bool flipUp; // true when opening upward (more space above than below)
         };
     }
 
@@ -69,9 +73,27 @@ namespace ScriptNuiComponents
         };
         std::function<std::string()> makeId = []()
         {
-            return Nui::val::global("crypto").call<std::string>("randomUUID");
+            const auto crypto = Nui::val::global("crypto");
+            if (crypto.isUndefined() || crypto.isNull() || !crypto.hasOwnProperty("randomUUID"))
+            {
+                // fallback if crypto.randomUUID is not available for some reason:
+                Nui::WebApi::Console::warn(
+                    "crypto.randomUUID is not available, falling back to less robust id generation for select "
+                    "component. You should pass makeId to SelectOptions!"
+                );
+                static int counter = 0;
+                return fmt::format("select-{}", counter++);
+            }
+            return crypto.call<std::string>("randomUUID");
         };
         bool dontUpdateValue = false;
+
+        // Upper bound on the popover height in pixels. The actual height will be
+        // clamped to the available viewport space as well, so this is a maximum,
+        // not a fixed value. Can also be overridden via the CSS variable
+        // --script-nui-components-select-max-height. Set to 0 to disable the
+        // option-based cap (viewport clamping still applies).
+        double maxHeight = 300.0;
     };
 
     template <typename ActiveOptionType, typename OptionsValueType>
@@ -83,7 +105,7 @@ namespace ScriptNuiComponents
 
         SelectOptions<ActiveOptionType, OptionsValueType> options;
         std::weak_ptr<Nui::Dom::BasicElement> buttonElement{};
-        Nui::Observed<Detail::Positioning> positioning{{0.0, 0.0, 0.0}};
+        Nui::Observed<SelectDetail::Positioning> positioning{{0.0, 0.0, 0.0, 300.0, false}};
         std::string id = options.makeId();
     };
 
@@ -101,111 +123,125 @@ namespace ScriptNuiComponents
         auto state = std::make_shared<SelectState<ActiveOptionType, OptionsValueType>>(std::move(options));
 
         // clang-format off
-            return Nui::Elements::button{
-                mergeAttributes(
-                    std::vector<Nui::Attribute>{
-                        class_ = "script-nui-select",
-                        onClick = [state](Nui::WebApi::MouseEvent mouseEvent) {
-                            if (auto btn = state->buttonElement.lock(); btn)
-                            {
-                                auto rect = Nui::WebApi::DomRectReadOnly{btn->val().template call<Nui::val>("getBoundingClientRect")};
-                                // const auto relativeLeft = btn->val()["offsetLeft"].template as<double>();
-                                // const auto relativeTop = btn->val()["offsetTop"].template as<double>() + rect.height();
-                                state->positioning = Detail::Positioning{
-                                    .width = rect.width(),
-                                    // .top = relativeTop,
-                                    // .left = relativeLeft,
-                                    .top = rect.top() + rect.height(),
-                                    .left = rect.left()
-                                };
-                            }
-                            mouseEvent.stopPropagation();
-                        },
-                        "popovertarget"_attr = fmt::format("select-options-{}", state->id),
-                        reference = [state](std::weak_ptr<Nui::Dom::BasicElement> element) {
-                            state->buttonElement = std::move(element);
-                        },
+        return Nui::Elements::button{
+            mergeAttributes(
+                std::vector<Nui::Attribute>{
+                    class_ = "script-nui-select",
+                    onClick = [state](Nui::WebApi::MouseEvent mouseEvent) {
+                        if (auto btn = state->buttonElement.lock(); btn)
+                        {
+                            auto rect = Nui::WebApi::DomRectReadOnly{btn->val().template call<Nui::val>("getBoundingClientRect")};
+                            const double viewportHeight = Nui::val::global("window")["innerHeight"].template as<double>();
+                            const double spaceBelow = viewportHeight - rect.top() - rect.height();
+                            const double spaceAbove = rect.top();
+                            const bool flipUp = spaceBelow < state->options.maxHeight && spaceAbove > spaceBelow;
+                            const double availableSpace = flipUp ? spaceAbove : spaceBelow;
+                            const double cssMax = state->options.maxHeight > 0.0 ? state->options.maxHeight : availableSpace;
+                            const double computedMaxHeight = std::min(availableSpace, cssMax) - 8.0; // 8px breathing room
+                            const double top = flipUp
+                                ? rect.top() - computedMaxHeight
+                                : rect.top() + rect.height();
+                            state->positioning = SelectDetail::Positioning{
+                                .width = rect.width(),
+                                .top = top,
+                                .left = rect.left(),
+                                .maxHeight = computedMaxHeight,
+                                .flipUp = flipUp,
+                            };
+                        }
+                        mouseEvent.stopPropagation();
                     },
-                    std::move(state->options.attributes)
-                )
+                    "popovertarget"_attr = fmt::format("select-options-{}", state->id),
+                    reference = [state](std::weak_ptr<Nui::Dom::BasicElement> element) {
+                        state->buttonElement = std::move(element);
+                    },
+                },
+                std::move(state->options.attributes)
+            )
+        }(
+            state->options.activeRenderer(state->options.activeOption),
+            Nui::Elements::Svg::svg{
+                svga::viewBox = "0 0 24 24"s,
             }(
-                state->options.activeRenderer(state->options.activeOption),
-                Nui::Elements::Svg::svg{
-                    svga::viewBox = "0 0 24 24"s,
-                }(
-                    svge::path{
-                        svga::d = "m6 9 6 6 6-6"s,
-                    }()
-                ),
-                div{
-                    "popover"_attr = "auto",
-                    class_ = "script-nui-select-popover",
-                    id = fmt::format("select-options-{}", state->id),
-                    style = Nui::observe(state->positioning).generate([state]() {
-                        return fmt::format("top: {}px; left: {}px; width: {}px;", state->positioning.value().top, state->positioning.value().left, state->positioning.value().width);
-                    }),
-                    onClick = [state, onChange = std::move(state->options.onChange)](Nui::WebApi::MouseEvent event) mutable {
-                        event.val()["currentTarget"].call<void>("hidePopover");
-                        event.stopPropagation();
-                        auto target = event.target();
-                        int max = 10; // paranoid
-                        // while target is not div with data-index, keep looking up the parents:
-                        while (!target.isNull() && !target.isUndefined() && !target.call<bool>("hasAttribute", "data-index"s) && !target.call<bool>("hasAttribute", "popover"s) && max-- > 0)
-                        {
-                            target = target["parentElement"];
-                        }
-                        if (target.isNull() || target.isUndefined() || target.call<bool>("hasAttribute", "popover"s))
-                        {
-                            Nui::WebApi::Console::error("Could not find option element for select click event!");
-                            return; // dont know how.
-                        }
-
-                        if constexpr (Detail::AttributeTraits<OptionsValueType>::isMap)
-                        {
-                            auto key = target.call<std::string>("getAttribute", "data-key"s);
-                            auto& optionsMap = Detail::AttributeTraits<OptionsValueType>::unwrap(state->options.options);
-                            auto iter = optionsMap.find(key);
-                            if (iter == optionsMap.end())
-                            {
-                                Nui::WebApi::Console::error("Could not find option for select with key: {}", key);
-                                return;
-                            }
-                            if (!state->options.dontUpdateValue)
-                                Detail::AttributeTraits<ActiveOptionType>::assignValue(state->options.activeOption, iter->second);
-                            if (onChange)
-                                onChange(iter->second, event);
-                        }
-                        else
-                        {
-                            const auto dataIndex = std::stol(target.call<std::string>("getAttribute", "data-index"s));
-                            if (!state->options.dontUpdateValue)
-                                Detail::AttributeTraits<ActiveOptionType>::assignValue(state->options.activeOption, Detail::AttributeTraits<OptionsValueType>::unwrap(state->options.options)[dataIndex]);
-                            if (onChange)
-                                onChange(Detail::AttributeTraits<OptionsValueType>::unwrap(state->options.options)[dataIndex], event);
-                        }
-                    },
-                }(
-                    Detail::AttributeTraits<OptionsValueType>::range(state->options.options),
-                    [elementRenderer = std::move(state->options.elementRenderer)](long long index, auto const& item) -> Nui::ElementRenderer {
-                        return div{
-                            "data-index"_attr = static_cast<int>(index),
-                            "data-key"_attr = [&item]() -> std::optional<std::string> {
-                                if constexpr (Detail::AttributeTraits<OptionsValueType>::isMap)
-                                {
-                                    return std::make_optional<std::string>(item.first);
-                                }
-                                else
-                                {
-                                    (void)item;
-                                    return std::nullopt;
-                                }
-                            }()
-                        }(
-                            elementRenderer(item)
-                        );
+                svge::path{
+                    svga::d = "m6 9 6 6 6-6"s,
+                }()
+            ),
+            div{
+                "popover"_attr = "auto",
+                class_ = "script-nui-select-popover",
+                id = fmt::format("select-options-{}", state->id),
+                style = Nui::observe(state->positioning).generate([state]() {
+                    const auto& p = state->positioning.value();
+                    return fmt::format(
+                        "top: {}px; left: {}px; width: {}px; max-height: {}px; overflow-y: auto;"
+                        "transform-origin: {};",
+                        p.top, p.left, p.width, p.maxHeight,
+                        p.flipUp ? "bottom center" : "top center"
+                    );
+                }),
+                onClick = [state, onChange = std::move(state->options.onChange)](Nui::WebApi::MouseEvent event) mutable {
+                    event.val()["currentTarget"].call<void>("hidePopover");
+                    event.stopPropagation();
+                    auto target = event.target();
+                    int max = 10; // paranoid
+                    // while target is not div with data-index, keep looking up the parents:
+                    while (!target.isNull() && !target.isUndefined() && !target.call<bool>("hasAttribute", "data-index"s) && !target.call<bool>("hasAttribute", "popover"s) && max-- > 0)
+                    {
+                        target = target["parentElement"];
                     }
-                )
-            );
+                    if (target.isNull() || target.isUndefined() || target.call<bool>("hasAttribute", "popover"s))
+                    {
+                        Nui::WebApi::Console::error("Could not find option element for select click event!");
+                        return; // dont know how.
+                    }
+
+                    if constexpr (Detail::AttributeTraits<OptionsValueType>::isMap)
+                    {
+                        auto key = target.call<std::string>("getAttribute", "data-key"s);
+                        auto& optionsMap = Detail::AttributeTraits<OptionsValueType>::unwrap(state->options.options);
+                        auto iter = optionsMap.find(key);
+                        if (iter == optionsMap.end())
+                        {
+                            Nui::WebApi::Console::error("Could not find option for select with key: {}", key);
+                            return;
+                        }
+                        if (!state->options.dontUpdateValue)
+                            Detail::AttributeTraits<ActiveOptionType>::assignValue(state->options.activeOption, iter->second);
+                        if (onChange)
+                            onChange(iter->second, event);
+                    }
+                    else
+                    {
+                        const auto dataIndex = std::stol(target.call<std::string>("getAttribute", "data-index"s));
+                        if (!state->options.dontUpdateValue)
+                            Detail::AttributeTraits<ActiveOptionType>::assignValue(state->options.activeOption, Detail::AttributeTraits<OptionsValueType>::unwrap(state->options.options)[dataIndex]);
+                        if (onChange)
+                            onChange(Detail::AttributeTraits<OptionsValueType>::unwrap(state->options.options)[dataIndex], event);
+                    }
+                },
+            }(
+                Detail::AttributeTraits<OptionsValueType>::range(state->options.options),
+                [elementRenderer = std::move(state->options.elementRenderer)](long long index, auto const& item) -> Nui::ElementRenderer {
+                    return div{
+                        "data-index"_attr = static_cast<int>(index),
+                        "data-key"_attr = [&item]() -> std::optional<std::string> {
+                            if constexpr (Detail::AttributeTraits<OptionsValueType>::isMap)
+                            {
+                                return std::make_optional<std::string>(item.first);
+                            }
+                            else
+                            {
+                                (void)item;
+                                return std::nullopt;
+                            }
+                        }()
+                    }(
+                        elementRenderer(item)
+                    );
+                }
+            )
+        );
         // clang-format on
     }
 } // namespace ScriptNuiComponents

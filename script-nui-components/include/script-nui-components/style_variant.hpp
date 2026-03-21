@@ -10,6 +10,7 @@ namespace ScriptNuiComponents
         Primary,
         Warning,
         Danger,
+        Success,
         Transparent
     };
 
@@ -27,6 +28,8 @@ namespace ScriptNuiComponents
                 return "danger";
             case StyleVariant::Transparent:
                 return "transparent";
+            case StyleVariant::Success:
+                return "success";
             default:
                 return "regular";
         }

@@ -7,13 +7,15 @@
 @import "./dialog.css";
 @import "./tabs.css";
 @import "./popup_menu.css";
+@import "./message_strip.css";
+@import "./themes/light.css";
 
 :root {
     /* Non Dark/Light Dependent */
     font: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
     font-size: 16px;
-    /* --theme-color: #90d26d; */
-    --theme-color: #1596ec;
+    --theme-color: #90d26d;
+    /* --theme-color: #1596ec; */
 
     /* Fields */
     --script-nui-components-field-theme-color: var(--theme-color);
@@ -36,45 +38,9 @@
 :root[data-theme="light"] {
     /* Dark / Light */
     --background-color: #eeeeee;
-    --background-color-fields: #b9b9b9;
+    --background-color-fields: #ffffff;
     --color: black;
     --color-fields: var(--color);
-
-    /* Switch */
-    --script-nui-components-switch-color-active: #008000;
-    --script-nui-components-switch-color-inactive: #b9b9b9;
-    --script-nui-components-switch-thumb-color: #383838;
-
-    --script-nui-components-field-color: var(--color-fields);
-    --script-nui-components-field-background-color: var(--background-color-fields);
-    --script-nui-components-field-border-color: color-mix(in srgb, var(--color-fields) 50%, white);
-
-    --script-nui-components-button-color-regular: var(--background-color-fields);
-    --script-nui-components-button-color: var(--color-fields);
-
-
-    --script-nui-components-tabs-primary-color: #1a9e0a;
-    --script-nui-components-tabs-background-color: #f0f0f0;
-    --script-nui-components-tabs-background-color-tab: #e4e4e4;
-    --script-nui-components-tabs-background-color-tab-hover: #dcdcdc;
-    --script-nui-components-tabs-background-color-tab-selected: #f7f7f7;
-    --script-nui-components-tabs-color-tab: #7a8390;
-    --script-nui-components-tabs-color-tab-selected: #1a1a1a;
-    --script-nui-components-tabs-color-tab-hover: #3a3a3a;
-    --script-nui-components-tabs-border-color-tab: transparent;
-    --script-nui-components-tabs-border-color-tab-hover: #bbb;
-    --script-nui-components-tabs-border-color-tab-selected: #1a9e0a;
-    --script-nui-components-tabs-border-radius-tab: 6px;
-
-    /* internal-only hardcoded colours made themeable via private vars */
-    --script-nui-components-tabs-bar-border-color: #d4d4d4;
-    --script-nui-components-tabs-tab-border-color-selected: #d0d0d0;
-    --script-nui-components-tabs-close-button-color: #aaa;
-    --script-nui-components-tabs-close-button-color-hover: #555;
-    --script-nui-components-tabs-close-button-bg-hover: rgba(0, 0, 0, 0.07);
-    --script-nui-components-tabs-close-button-color-selected: #999;
-    --script-nui-components-tabs-close-button-color-selected-hover: #333;
-    --script-nui-components-tabs-close-button-bg-selected-hover: rgba(0, 0, 0, 0.06);
 }
 
 *,
@@ -108,6 +74,6 @@ body {
     &>div {
         display: grid;
         gap: 16px;
-        grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+        grid-template-columns: 1fr 1fr 1fr;
     }
 }

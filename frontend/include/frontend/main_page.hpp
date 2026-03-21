@@ -1,3 +1,4 @@
+
 #pragma once
 
 #include <nui/frontend/api/console.hpp>
@@ -18,29 +19,23 @@ class MainPage
     }
 
     Nui::ElementRenderer render();
+
+  private:
     Nui::ElementRenderer switch_();
     Nui::ElementRenderer textInput();
     Nui::ElementRenderer select();
     Nui::ElementRenderer iconButton();
     Nui::ElementRenderer colorPicker();
+    Nui::ElementRenderer messageStrips();
 
-  private:
-    Nui::Observed<std::vector<int>> massSwitches;
-    Nui::Observed<std::vector<int>> massInputs;
-    Nui::Observed<std::vector<int>> massSelects;
-    Nui::Observed<std::vector<int>> massIconButtons;
-    Nui::Observed<std::vector<int>> massColorPickers;
+    Nui::ElementRenderer section(std::string const& title, Nui::ElementRenderer content);
 
     Nui::Observed<bool> isChecked_{false};
     Nui::Observed<std::string> textInputValue_{};
     Nui::Observed<std::string> colorValue_{};
-
+    Nui::Observed<std::string> buttonTextSwitcher_{"A"};
     Nui::Observed<std::string> selectValue_{};
-    // Nui::Observed<std::vector<std::string>> selectOptions_{std::vector<std::string>{
-    //     "Option 1",
-    //     "Option 2",
-    //     "Option 3",
-    // }};
+
     std::vector<std::string> selectOptions_{std::vector<std::string>{
         "Option 1",
         "Option 2",

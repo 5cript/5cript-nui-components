@@ -21,7 +21,7 @@ nui_prepare_emscripten_target(
     TARGET
         ${PROJECT_NAME}-test
     PARCEL_ARGS
-        # --no-optimize
+        --no-optimize
     # Provide this argument if you dont want the main application bundled.
     # This can be useful if it gets large and you want to show a load screen.
     # LEAN_INDEX_HTML
@@ -55,4 +55,5 @@ nui_prepare_emscripten_target(
         "${CMAKE_SOURCE_DIR}/styles/dialog.css"
         "${CMAKE_SOURCE_DIR}/styles/tabs.css"
         "${CMAKE_SOURCE_DIR}/styles/popup_menu.css"
+        "${CMAKE_SOURCE_DIR}/styles/message_strip.css"
 )

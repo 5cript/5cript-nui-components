@@ -170,13 +170,13 @@ namespace ScriptNuiComponents
             {
                 if (mi.icon.empty())
                     return span{class_ = "script-nui-popup-menu__icon script-nui-popup-menu__icon--empty"}();
-                return span{class_ = "script-nui-popup-menu__icon"}(text{mi.icon}());
+                return span{class_ = "script-nui-popup-menu__icon"}(mi.icon);
             }();
 
             auto labelCell = [&]() -> Nui::ElementRenderer
             {
                 if (mi.shortcut.empty())
-                    return span{class_ = "script-nui-popup-menu__label"}(text{mi.label}());
+                    return span{class_ = "script-nui-popup-menu__label"}(mi.label);
                 return span{
                     class_ = "script-nui-popup-menu__label"
                 }(text{mi.label}(), span{class_ = "script-nui-popup-menu__shortcut"}(mi.shortcut));
@@ -322,21 +322,43 @@ namespace ScriptNuiComponents
         return impl_->visible.value();
     }
 
+    void PopupMenu::modifyItemByLabel(std::string const& label, std::function<void(MenuItem*)> modifier)
+    {
+        for (std::size_t i = 0; i < impl_->items.size(); ++i)
+        {
+            if (auto* mi = std::get_if<MenuItem>(&impl_->items[i]); mi != nullptr && mi->label == label)
+            {
+                modifier(mi);
+                if (i <= impl_->indices.size())
+                {
+                    impl_->indices[i] = i;
+                    impl_->indices.eventContext().sync();
+                }
+                else
+                    impl_->rebuildIndices();
+                return;
+            }
+        }
+    }
+
     // ── Render ───────────────────────────────────────────────────────────────────
 
-    Nui::ElementRenderer PopupMenu::operator()()
+    Nui::ElementRenderer PopupMenu::operator()(std::vector<Nui::Attribute> additionalAttributes)
     {
         using Nui::Elements::div;
         using Nui::Elements::span;
 
         auto* impl = impl_.get();
 
+        additionalAttributes.push_back(class_ = "script-nui-popup-menu-container");
+
         // Observe both `visible` and `measuring` so the render lambda re-runs
         // when the rAF callback flips measuring=false and sets the final position.
         // Observing only `visible` would mean the lambda fires once (Phase 1,
         // position=-9999, measuring=true) and never again — the menu stays hidden.
-        return div{}(
-            Nui::observe(impl->visible, impl->measuring),
+        return div{
+            std::move(additionalAttributes)
+        }(Nui::observe(impl->visible, impl->measuring),
             [impl](bool const& isVisible, bool const& isMeasuring) -> Nui::ElementRenderer
             {
                 if (!isVisible)
@@ -372,7 +394,6 @@ namespace ScriptNuiComponents
                         {
                             return impl->renderEntry(impl->items[idx]);
                         }));
-            }
-        );
+            });
     }
 }

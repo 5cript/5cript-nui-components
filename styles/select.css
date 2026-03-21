@@ -71,6 +71,9 @@
         /* left edges aligned */
         margin: 0 -1px 0 0;
 
+        overflow-y: auto;
+        overscroll-behavior: contain;
+
         &>div {
             padding: 0.5em;
             cursor: pointer;

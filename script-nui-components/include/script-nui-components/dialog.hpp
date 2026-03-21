@@ -2,6 +2,7 @@
 
 #include <script-nui-components/style_variant.hpp>
 
+#include <nui/frontend/state_transformer.hpp>
 #include <nui/event_system/observed_value.hpp>
 #include <nui/frontend/elements.hpp>
 #include <nui/frontend/attributes.hpp>
@@ -29,6 +30,10 @@ namespace ScriptNuiComponents
         friend auto operator|(Button lhs, Button rhs)
         {
             return static_cast<Button>(static_cast<unsigned>(lhs) | static_cast<unsigned>(rhs));
+        }
+        friend auto operator&(Button lhs, Button rhs)
+        {
+            return static_cast<Button>(static_cast<unsigned>(lhs) & static_cast<unsigned>(rhs));
         }
 
         Dialog(std::string id, Nui::ElementRenderer body);

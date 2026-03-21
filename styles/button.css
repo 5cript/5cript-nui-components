@@ -1,10 +1,15 @@
 .script-nui-button {
-    --color-primary: var(--script-nui-components-button-color-primary, #2563eb);
-    --color-warning: var(--script-nui-components-button-color-warning, #f59e0b);
-    --color-danger: var(--script-nui-components-button-color-danger, #dc2626);
+    --color-primary: var(--script-nui-components-button-color-primary, #042C53);
+    --color-warning: var(--script-nui-components-button-color-warning, #412402);
+    --color-danger: var(--script-nui-components-button-color-danger, #501313);
     --color-regular: var(--script-nui-components-button-color-regular, #202020);
+    --color-success: var(--script-nui-components-button-color-success, #173404);
     --color-disabled: var(--script-nui-components-button-color-disabled, color-mix(in srgb, var(--color-regular) 50%, white));
-    --border-color: var(--script-nui-components-button-border-color, #505050);
+    --border-color-primary: var(--script-nui-components-button-border-color-primary, #185FA5);
+    --border-color-warning: var(--script-nui-components-button-border-color-warning, #854F0B);
+    --border-color-danger: var(--script-nui-components-button-border-color-danger, #A32D2D);
+    --border-color-regular: var(--script-nui-components-button-border-color-regular, #5F5E5A);
+    --border-color-success: var(--script-nui-components-button-border-color-success, #3B6D11);
     --color: var(--script-nui-components-button-color, #dddddd);
     --font: var(--script-nui-components-button-font, inherit);
     --font-size: var(--script-nui-components-button-font-size, 0.8rem);
@@ -16,7 +21,7 @@
     outline: none;
     font-size: var(--font-size);
     padding: 0.5em 0.5em;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-color-regular);
     border-radius: var(--border-radius);
     color: var(--color);
     font-family: var(--font);
@@ -38,14 +43,22 @@
 
     &[data-variant="primary"] {
         background-color: var(--color-primary);
+        border-color: var(--border-color-primary);
     }
 
     &[data-variant="warning"] {
         background-color: var(--color-warning);
+        border-color: var(--border-color-warning);
     }
 
     &[data-variant="danger"] {
         background-color: var(--color-danger);
+        border-color: var(--border-color-danger);
+    }
+
+    &[data-variant="success"] {
+        background-color: var(--color-success);
+        border-color: var(--border-color-success);
     }
 
     &[data-variant="transparent"] {
@@ -64,13 +77,11 @@
     /* Hover state */
     &:not(:disabled):hover {
         filter: brightness(0.9);
-        border-color: var(--border-color);
     }
 
     /* Active state */
     &:not(:disabled):active {
         filter: brightness(0.8);
-        border-color: var(--border-color);
     }
 
     /* Focus */

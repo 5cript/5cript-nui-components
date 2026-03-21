@@ -34,11 +34,6 @@ namespace ScriptNuiComponents::Detail
         {
             return value;
         }
-        template <typename U>
-        static void assignValue(T& attribute, U&& value)
-        {
-            attribute = std::forward<U>(value);
-        }
         static auto range(Actual const& actual)
         {
             return Nui::range(actual);

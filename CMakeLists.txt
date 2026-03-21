@@ -4,6 +4,7 @@ project(script-nui-components VERSION 0.1.0)
 
 if (EMSCRIPTEN)
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/script-nui-components/source/script-nui-components)
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ui5-sap-icons)
 endif()
 
 if (PROJECT_IS_TOP_LEVEL)

@@ -5,10 +5,10 @@
     --background-color-tab: var(--script-nui-components-tabs-background-color-tab, #303030);
     --background-color-tab-hover: var(--script-nui-components-tabs-background-color-tab-hover, #3a3a3a);
     --background-color-tab-selected: var(--script-nui-components-tabs-background-color-tab-selected, #2a2a2a);
-    --color: var(--script-nui-components-tabs-color-tab, #7a8390);
-    --color-tab-selected: var(--script-nui-components-tabs-color-tab-selected, #e8eaed);
-    --color-tab-hover: var(--script-nui-components-tabs-color-tab-hover, #b0b8c4);
-    --border-color: var(--script-nui-components-tabs-border-color-tab, transparent);
+    --color: var(--script-nui-components-tabs-color-tab, #cbcbcb);
+    --color-tab-selected: var(--script-nui-components-tabs-color-tab-selected, #ffffff);
+    --color-tab-hover: var(--script-nui-components-tabs-color-tab-hover, #979ca4);
+    --border-color: var(--script-nui-components-tabs-border-color-tab, #333);
     --border-color-hover: var(--script-nui-components-tabs-border-color-tab-hover, #444);
     --border-color-selected: var(--script-nui-components-tabs-border-color-tab-selected, var(--primary-color));
     --border-radius: var(--script-nui-components-tabs-border-radius-tab, 6px);
@@ -24,6 +24,7 @@
     --_close-color-sel-hover: var(--script-nui-components-tabs-close-button-color-selected-hover, #bbb);
     --_close-bg-sel-hover: var(--script-nui-components-tabs-close-button-bg-selected-hover, rgba(255, 255, 255, 0.08));
 
+    box-sizing: border-box;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -35,6 +36,13 @@
     border-bottom: 1px solid var(--_bar-border);
     font: var(--font-size) var(--font);
     color: var(--color);
+    gap: 4px 0;
+
+    &>div {
+        display: flex;
+        gap: 0;
+        align-items: center;
+    }
 
     /* ── individual tab ───────────────────────────────────────────────── */
     &>div>.script-nui-tab {
@@ -44,10 +52,10 @@
         gap: 0;
         padding: 5px 4px 5px 10px;
         border-radius: var(--border-radius);
-        background-color: transparent;
+        background-color: var(--background-color-tab);
         color: var(--color);
         cursor: pointer;
-        border: 1px solid transparent;
+        border: 1px solid var(--border-color);
         transition:
             background-color 100ms ease,
             color 100ms ease,
@@ -105,7 +113,7 @@
             background-color: var(--background-color-tab-selected);
             color: var(--color-tab-selected);
             border-color: var(--_tab-border-selected);
-            font-weight: 500;
+            /*font-weight: 500;*/
 
             &::after {
                 opacity: 1;
@@ -136,7 +144,6 @@
 
     flex-shrink: 0;
     width: 3px;
-    margin: 0 3px;
     height: 1.5em;
     border-radius: 99px;
     background-color: var(--primary-color);
