@@ -1,0 +1,3 @@
+[submodule "ui5-sap-icons"]
+	path = ui5-sap-icons
+	url = https://github.com/NuiCpp/ui5-sap-icons.git
