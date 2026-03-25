@@ -128,27 +128,31 @@ namespace ScriptNuiComponents
                 std::vector<Nui::Attribute>{
                     class_ = "script-nui-select",
                     onClick = [state](Nui::WebApi::MouseEvent mouseEvent) {
-                        if (auto btn = state->buttonElement.lock(); btn)
+                        auto btn = state->buttonElement.lock();;
+                        if (!btn)
                         {
-                            auto rect = Nui::WebApi::DomRectReadOnly{btn->val().template call<Nui::val>("getBoundingClientRect")};
-                            const double viewportHeight = Nui::val::global("window")["innerHeight"].template as<double>();
-                            const double spaceBelow = viewportHeight - rect.top() - rect.height();
-                            const double spaceAbove = rect.top();
-                            const bool flipUp = spaceBelow < state->options.maxHeight && spaceAbove > spaceBelow;
-                            const double availableSpace = flipUp ? spaceAbove : spaceBelow;
-                            const double cssMax = state->options.maxHeight > 0.0 ? state->options.maxHeight : availableSpace;
-                            const double computedMaxHeight = std::min(availableSpace, cssMax) - 8.0; // 8px breathing room
-                            const double top = flipUp
-                                ? rect.top() - computedMaxHeight
-                                : rect.top() + rect.height();
-                            state->positioning = SelectDetail::Positioning{
-                                .width = rect.width(),
-                                .top = top,
-                                .left = rect.left(),
-                                .maxHeight = computedMaxHeight,
-                                .flipUp = flipUp,
-                            };
+                            Nui::WebApi::Console::error("Could not get button element for select component!");
+                            return;
                         }
+
+                        auto rect = Nui::WebApi::DomRectReadOnly{btn->val().template call<Nui::val>("getBoundingClientRect")};
+                        const double viewportHeight = Nui::val::global("window")["innerHeight"].template as<double>();
+                        const double spaceBelow = viewportHeight - rect.top() - rect.height();
+                        const double spaceAbove = rect.top();
+                        const bool flipUp = spaceBelow < state->options.maxHeight && spaceAbove > spaceBelow;
+                        const double availableSpace = flipUp ? spaceAbove : spaceBelow;
+                        const double cssMax = state->options.maxHeight > 0.0 ? state->options.maxHeight : availableSpace;
+                        const double computedMaxHeight = std::max(0.0, std::min(availableSpace, cssMax) - 8.0); // 8px breathing room
+                        const double top = flipUp
+                            ? rect.top()
+                            : rect.top() + rect.height();
+                        state->positioning = SelectDetail::Positioning{
+                            .width = rect.width(),
+                            .top = top,
+                            .left = rect.left(),
+                            .maxHeight = computedMaxHeight,
+                            .flipUp = flipUp,
+                        };
                         mouseEvent.stopPropagation();
                     },
                     "popovertarget"_attr = fmt::format("select-options-{}", state->id),
@@ -175,9 +179,10 @@ namespace ScriptNuiComponents
                     const auto& p = state->positioning.value();
                     return fmt::format(
                         "top: {}px; left: {}px; width: {}px; max-height: {}px; overflow-y: auto;"
-                        "transform-origin: {};",
+                        "transform-origin: {}; transform: {};",
                         p.top, p.left, p.width, p.maxHeight,
-                        p.flipUp ? "bottom center" : "top center"
+                        p.flipUp ? "bottom center" : "top center",
+                        p.flipUp ? "translateY(-100%)" : "none"
                     );
                 }),
                 onClick = [state, onChange = std::move(state->options.onChange)](Nui::WebApi::MouseEvent event) mutable {
