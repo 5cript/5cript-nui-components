@@ -1,0 +1,89 @@
+/* ============================================================
+   Carousel component styles
+   ============================================================ */
+
+/* --- Container -------------------------------------------- */
+.carousel {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+}
+
+/* --- Track ------------------------------------------------- */
+.carousel__track {
+    position: relative;
+    width: 100%;
+    /* Height is determined by the tallest visible card.
+       Override with a fixed height if desired. */
+}
+
+/* --- Cards ------------------------------------------------- */
+.carousel__card {
+    /* All cached cards are in the DOM; inactive ones are hidden. */
+    display: none;
+    width: 100%;
+}
+
+.carousel__card--active {
+    display: block;
+}
+
+/* --- Slide animation (suppressed when reduced-motion is on) -
+   The C++ side adds .carousel__animated only when
+   prefers-reduced-motion is NOT active.
+   ----------------------------------------------------------- */
+@media (prefers-reduced-motion: no-preference) {
+    .carousel__card.carousel__animated {
+        /* Cards slide in from the right by default.
+           If you track direction (prev vs next), toggle between
+           carousel__card--enter-left and carousel__card--enter-right
+           by adding a direction class from C++. */
+        animation: carousel-slide-in 250ms ease-out;
+    }
+
+    @keyframes carousel-slide-in {
+        from {
+            opacity: 0;
+            transform: translateX(40px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+}
+
+/* --- Controls --------------------------------------------- */
+.carousel__controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 0.75rem;
+}
+
+.carousel__prev,
+.carousel__next {
+    background: none;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.25rem;
+    line-height: 1;
+    padding: 0.25rem 0.6rem;
+    transition: opacity 150ms;
+}
+
+.carousel__prev--disabled,
+.carousel__next--disabled {
+    cursor: not-allowed;
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+/* --- Indicator -------------------------------------------- */
+.carousel__indicator {
+    font-variant-numeric: tabular-nums;
+    min-width: 4ch;
+    text-align: center;
+}
