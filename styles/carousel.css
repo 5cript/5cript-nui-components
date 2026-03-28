@@ -1,8 +1,8 @@
-
 .script-nui-carousel {
     --border-color: var(--script-nui-carousel-border-color, #505050);
-    --button-color: var(--script-nui-carousel-button-color, #505050);
-    --button-hover-color: var(--script-nui-carousel-button-hover-color, #707070);
+    --button-color: var(--script-nui-carousel-button-color, #dedede);
+    --button-hover-color: var(--script-nui-carousel-button-hover-color, #ffffff);
+    --button-hover-background: var(--script-nui-carousel-button-hover-background, #ffffff69);
     --button-disabled-opacity: var(--script-nui-carousel-button-disabled-opacity, 0.35);
     --button-size: var(--script-nui-carousel-button-size, 2em);
     --indicator-color: var(--script-nui-carousel-indicator-color, currentColor);
@@ -12,9 +12,47 @@
     position: relative;
     width: 100%;
 
+    /* ---- Shared button styles ---- */
+    & .script-nui-carousel__prev,
+    & .script-nui-carousel__next {
+        background: none;
+        border: 1px solid var(--button-color);
+        border-radius: 50%;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        line-height: 1;
+        min-width: var(--button-size);
+        min-height: var(--button-size);
+        padding: 0.25em 0.6em;
+        transition: border-color 150ms;
+
+        &:hover {
+            border-color: var(--button-hover-color);
+            background-color: var(--button-hover-background);
+        }
+
+        &.script-nui-carousel__prev--disabled,
+        &.script-nui-carousel__next--disabled {
+            cursor: not-allowed;
+            opacity: var(--button-disabled-opacity);
+            pointer-events: none;
+        }
+    }
+
+    /* ---- Track ---- */
     & .script-nui-carousel__track {
         position: relative;
         width: 100%;
+        /* Hint to the browser that horizontal touch gestures are handled here. */
+        touch-action: pan-y;
+        cursor: grab;
+
+        &:active {
+            cursor: grabbing;
+        }
 
         & .script-nui-carousel__card {
             display: none;
@@ -30,43 +68,80 @@
         }
     }
 
+    /* ---- Controls bar (top / bottom variants) ---- */
     & .script-nui-carousel__controls {
         display: flex;
         align-items: center;
         justify-content: center;
         gap: var(--gap);
-        margin-top: var(--gap);
-
-        & .script-nui-carousel__prev,
-        & .script-nui-carousel__next {
-            background: none;
-            border: 1px solid var(--button-color);
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 1.25rem;
-            line-height: 1;
-            min-width: var(--button-size);
-            min-height: var(--button-size);
-            padding: 0.25em 0.6em;
-            transition: border-color 150ms;
-
-            &:hover {
-                border-color: var(--button-hover-color);
-            }
-
-            &.script-nui-carousel__prev--disabled,
-            &.script-nui-carousel__next--disabled {
-                cursor: not-allowed;
-                opacity: var(--button-disabled-opacity);
-                pointer-events: none;
-            }
-        }
+        fill: var(--button-color);
 
         & .script-nui-carousel__indicator {
             color: var(--indicator-color);
             font-variant-numeric: tabular-nums;
             min-width: 4ch;
             text-align: center;
+        }
+    }
+
+    /* ==========================================================
+       Layout variants
+       ========================================================== */
+
+    /* ---- Bottom (default) ---- */
+    &.script-nui-carousel--controls-bottom {
+        display: flex;
+        flex-direction: column;
+        gap: var(--gap);
+    }
+
+    /* ---- Top ---- */
+    &.script-nui-carousel--controls-top {
+        display: flex;
+        flex-direction: column;
+        gap: var(--gap);
+    }
+
+    /* ---- Sides ---- */
+    /* The C++ render emits two .script-nui-carousel__controls siblings around
+       the track when Sides is active. The first holds prev, the second holds
+       next; the indicator and unwanted button in each half are hidden via CSS
+       so we can reuse the same renderControls() output without duplication. */
+    &.script-nui-carousel--controls-sides {
+        & .script-nui-carousel__body {
+            display: flex;
+            flex-direction: row;
+            align-items: stretch;
+            gap: var(--gap);
+
+            /* First controls block: show only prev, hide next + indicator */
+            & .script-nui-carousel__controls:first-child {
+                & .script-nui-carousel__next { display: none; }
+                & .script-nui-carousel__indicator { display: none; }
+                & .script-nui-carousel__prev {
+                    border-radius: 4px;
+                    align-self: stretch;
+                    min-height: unset;
+                    padding: 0 0.5em;
+                }
+            }
+
+            /* Second controls block: show only next, hide prev + indicator */
+            & .script-nui-carousel__controls:last-child {
+                & .script-nui-carousel__prev { display: none; }
+                & .script-nui-carousel__indicator { display: none; }
+                & .script-nui-carousel__next {
+                    border-radius: 4px;
+                    align-self: stretch;
+                    min-height: unset;
+                    padding: 0 0.5em;
+                }
+            }
+
+            & .script-nui-carousel__track {
+                flex: 1;
+                min-width: 0;
+            }
         }
     }
 }
