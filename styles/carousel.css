@@ -1,89 +1,83 @@
-/* ============================================================
-   Carousel component styles
-   ============================================================ */
 
-/* --- Container -------------------------------------------- */
-.carousel {
-    position: relative;
-    overflow: hidden;
-    width: 100%;
-}
+.script-nui-carousel {
+    --border-color: var(--script-nui-carousel-border-color, #505050);
+    --button-color: var(--script-nui-carousel-button-color, #505050);
+    --button-hover-color: var(--script-nui-carousel-button-hover-color, #707070);
+    --button-disabled-opacity: var(--script-nui-carousel-button-disabled-opacity, 0.35);
+    --button-size: var(--script-nui-carousel-button-size, 2em);
+    --indicator-color: var(--script-nui-carousel-indicator-color, currentColor);
+    --gap: var(--script-nui-carousel-gap, 0.75rem);
+    --animation-duration: var(--script-nui-carousel-animation-duration, 250ms);
 
-/* --- Track ------------------------------------------------- */
-.carousel__track {
     position: relative;
     width: 100%;
-    /* Height is determined by the tallest visible card.
-       Override with a fixed height if desired. */
-}
 
-/* --- Cards ------------------------------------------------- */
-.carousel__card {
-    /* All cached cards are in the DOM; inactive ones are hidden. */
-    display: none;
-    width: 100%;
-}
+    & .script-nui-carousel__track {
+        position: relative;
+        width: 100%;
 
-.carousel__card--active {
-    display: block;
-}
+        & .script-nui-carousel__card {
+            display: none;
+            width: 100%;
 
-/* --- Slide animation (suppressed when reduced-motion is on) -
-   The C++ side adds .carousel__animated only when
-   prefers-reduced-motion is NOT active.
-   ----------------------------------------------------------- */
-@media (prefers-reduced-motion: no-preference) {
-    .carousel__card.carousel__animated {
-        /* Cards slide in from the right by default.
-           If you track direction (prev vs next), toggle between
-           carousel__card--enter-left and carousel__card--enter-right
-           by adding a direction class from C++. */
-        animation: carousel-slide-in 250ms ease-out;
-    }
+            &.script-nui-carousel__card--active {
+                display: block;
 
-    @keyframes carousel-slide-in {
-        from {
-            opacity: 0;
-            transform: translateX(40px);
-        }
-        to {
-            opacity: 1;
-            transform: translateX(0);
+                &.script-nui-carousel__animated {
+                    animation: script-nui-carousel-slide-in var(--animation-duration) ease-out;
+                }
+            }
         }
     }
+
+    & .script-nui-carousel__controls {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--gap);
+        margin-top: var(--gap);
+
+        & .script-nui-carousel__prev,
+        & .script-nui-carousel__next {
+            background: none;
+            border: 1px solid var(--button-color);
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.25rem;
+            line-height: 1;
+            min-width: var(--button-size);
+            min-height: var(--button-size);
+            padding: 0.25em 0.6em;
+            transition: border-color 150ms;
+
+            &:hover {
+                border-color: var(--button-hover-color);
+            }
+
+            &.script-nui-carousel__prev--disabled,
+            &.script-nui-carousel__next--disabled {
+                cursor: not-allowed;
+                opacity: var(--button-disabled-opacity);
+                pointer-events: none;
+            }
+        }
+
+        & .script-nui-carousel__indicator {
+            color: var(--indicator-color);
+            font-variant-numeric: tabular-nums;
+            min-width: 4ch;
+            text-align: center;
+        }
+    }
 }
 
-/* --- Controls --------------------------------------------- */
-.carousel__controls {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
-    margin-top: 0.75rem;
-}
-
-.carousel__prev,
-.carousel__next {
-    background: none;
-    border: 1px solid currentColor;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 1.25rem;
-    line-height: 1;
-    padding: 0.25rem 0.6rem;
-    transition: opacity 150ms;
-}
-
-.carousel__prev--disabled,
-.carousel__next--disabled {
-    cursor: not-allowed;
-    opacity: 0.35;
-    pointer-events: none;
-}
-
-/* --- Indicator -------------------------------------------- */
-.carousel__indicator {
-    font-variant-numeric: tabular-nums;
-    min-width: 4ch;
-    text-align: center;
+@keyframes script-nui-carousel-slide-in {
+    from {
+        opacity: 0;
+        transform: translateX(40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
