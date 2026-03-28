@@ -57,9 +57,10 @@ namespace ScriptNuiComponents
         std::vector<Nui::Attribute> attributes = {};
 
         std::function<void(ActiveType const& newValue, Nui::WebApi::MouseEvent const&)> onChange = {};
-        std::function<Nui::ElementRenderer(ActiveOptionType const&)> activeRenderer = [](ActiveOptionType const& actual)
+        std::function<Nui::ElementRenderer(typename Detail::AttributeTraits<ActiveOptionType>::Actual&)>
+            activeRenderer = [](typename Detail::AttributeTraits<ActiveOptionType>::Actual& actual)
         {
-            return Nui::Elements::span{}(actual);
+            return Nui::Elements::span{}(observe(actual), Detail::AttributeTraits<ActiveOptionType>::unwrap(actual));
         };
         std::function<Nui::ElementRenderer(typename Detail::AttributeTraits<OptionsValueType>::Type::value_type const&)>
             elementRenderer = [](typename Detail::AttributeTraits<OptionsValueType>::Type::value_type const& each)
