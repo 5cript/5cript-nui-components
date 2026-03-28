@@ -1,6 +1,7 @@
 #pragma once
 
 #include <script-nui-components/state_transformers/text_node.hpp>
+#include <script-nui-components/state_transformers/style_variant.hpp>
 #include <script-nui-components/style_variant.hpp>
 
 #include <nui/frontend/utility/merge_attributes.hpp>
@@ -25,7 +26,7 @@ namespace ScriptNuiComponents
         Nui::StateTransformer<StateTransformers::TextNode> text = "";
         std::optional<Nui::ElementRenderer> icon = std::nullopt;
         std::vector<Nui::Attribute> attributes = {};
-        StyleVariant styleVariant = StyleVariant::Regular;
+        Nui::StateTransformer<StateTransformers::StyleVariantTransformer> styleVariant = StyleVariant::Regular;
     };
 
     Nui::ElementRenderer button(ButtonOptions options);

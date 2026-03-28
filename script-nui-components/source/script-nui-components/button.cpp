@@ -20,7 +20,7 @@ namespace ScriptNuiComponents
         auto btn = Nui::Elements::button{mergeAttributes(
             std::vector<Nui::Attribute>{
                 class_ = "script-nui-button",
-                "data-variant"_attr = toString(options.styleVariant),
+                std::get<0>(options.styleVariant.reify()),
             },
             std::move(options.attributes)
         )};
