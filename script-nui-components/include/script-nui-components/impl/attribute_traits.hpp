@@ -30,10 +30,6 @@ namespace ScriptNuiComponents::Detail
         constexpr static bool isObserved = false;
         constexpr static bool isMap = IsMap<T>;
 
-        static Type getValue(T const& value)
-        {
-            return value;
-        }
         static auto range(Actual const& actual)
         {
             return Nui::range(actual);
@@ -50,6 +46,10 @@ namespace ScriptNuiComponents::Detail
         {
             return fn(actual);
         }
+        static auto asChild(Actual const& actual)
+        {
+            return actual;
+        }
     };
 
     template <typename T>
@@ -60,10 +60,6 @@ namespace ScriptNuiComponents::Detail
         constexpr static bool isObserved = true;
         constexpr static bool isMap = IsMap<T>;
 
-        static Type getValue(Actual observed)
-        {
-            return observed.get().value();
-        }
         template <typename U>
         static void assignValue(Actual observed, U&& value)
         {
@@ -85,6 +81,10 @@ namespace ScriptNuiComponents::Detail
         {
             return Nui::observe(actual.get()).generate(std::forward<decltype(fn)>(fn));
         }
+        static auto const& asChild(Actual const& actual)
+        {
+            return actual.get();
+        }
     };
 
     template <typename T>
@@ -95,12 +95,6 @@ namespace ScriptNuiComponents::Detail
         constexpr static bool isObserved = true;
         constexpr static bool isMap = IsMap<T>;
 
-        static Type getValue(Actual const& observed)
-        {
-            if (auto shared = observed.lock(); shared)
-                return shared->value();
-            return Type{};
-        }
         template <typename U>
         static void assignValue(Actual& observed, U&& value)
         {
@@ -130,6 +124,10 @@ namespace ScriptNuiComponents::Detail
             if (auto shared = actual.lock(); shared)
                 return Nui::observe(*shared).generate(std::forward<decltype(fn)>(fn));
             return fn(Type{});
+        }
+        static auto asChild(Actual const& actual)
+        {
+            return actual;
         }
     };
 
