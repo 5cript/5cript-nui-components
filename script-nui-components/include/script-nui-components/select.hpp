@@ -60,7 +60,7 @@ namespace ScriptNuiComponents
         std::function<Nui::ElementRenderer(typename Detail::AttributeTraits<ActiveOptionType>::Actual&)>
             activeRenderer = [](typename Detail::AttributeTraits<ActiveOptionType>::Actual& actual)
         {
-            return Nui::Elements::span{}(observe(actual), Detail::AttributeTraits<ActiveOptionType>::unwrap(actual));
+            return Nui::Elements::span{}(Detail::AttributeTraits<ActiveOptionType>::asChild(actual));
         };
         std::function<Nui::ElementRenderer(typename Detail::AttributeTraits<OptionsValueType>::Type::value_type const&)>
             elementRenderer = [](typename Detail::AttributeTraits<OptionsValueType>::Type::value_type const& each)
