@@ -2,6 +2,7 @@
 
 #include <nui/event_system/observed_value.hpp>
 #include <nui/event_system/range.hpp>
+#include <nui/event_system/listen.hpp>
 
 #include <map>
 #include <unordered_map>
@@ -27,6 +28,8 @@ namespace ScriptNuiComponents::Detail
     {
         using Type = T;
         using Actual = T;
+        using Original = T;
+        using Listenable = Nui::Observed<T>;
         constexpr static bool isObserved = false;
         constexpr static bool isMap = IsMap<T>;
 
@@ -50,6 +53,8 @@ namespace ScriptNuiComponents::Detail
         {
             return actual;
         }
+        static void smartListen(Actual const&)
+        {}
     };
 
     template <typename T>
@@ -57,6 +62,8 @@ namespace ScriptNuiComponents::Detail
     {
         using Type = T;
         using Actual = std::reference_wrapper<Nui::Observed<T>>;
+        using Original = Nui::Observed<T>;
+        using Listenable = Nui::Observed<T>;
         constexpr static bool isObserved = true;
         constexpr static bool isMap = IsMap<T>;
 
@@ -85,6 +92,10 @@ namespace ScriptNuiComponents::Detail
         {
             return actual.get();
         }
+        static auto smartListen(Actual const& actual, auto&& fn)
+        {
+            return Nui::smartListen(actual.get(), std::forward<decltype(fn)>(fn));
+        }
     };
 
     template <typename T>
@@ -92,6 +103,9 @@ namespace ScriptNuiComponents::Detail
     {
         using Type = T;
         using Actual = std::weak_ptr<Nui::Observed<T>>;
+        using Original = std::shared_ptr<Nui::Observed<T>>;
+        using Listenable = std::shared_ptr<Nui::Observed<T>>;
+
         constexpr static bool isObserved = true;
         constexpr static bool isMap = IsMap<T>;
 
@@ -128,6 +142,12 @@ namespace ScriptNuiComponents::Detail
         static auto asChild(Actual const& actual)
         {
             return actual;
+        }
+        static auto smartListen(Actual const& actual, auto&& fn)
+        {
+            if (auto shared = actual.lock(); shared)
+                return Nui::smartListen(shared, std::forward<decltype(fn)>(fn));
+            return Nui::ListenRemover<Listenable>{};
         }
     };
 

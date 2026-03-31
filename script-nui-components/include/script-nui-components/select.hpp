@@ -17,6 +17,7 @@
 #include <nui/frontend/api/mouse_event.hpp>
 #include <nui/frontend/element_renderer.hpp>
 #include <nui/event_system/observed_value.hpp>
+#include <nui/event_system/listen.hpp>
 #include <nui/frontend/api/console.hpp>
 
 #include <fmt/format.h>
@@ -87,6 +88,7 @@ namespace ScriptNuiComponents
             }
             return crypto.call<std::string>("randomUUID");
         };
+        std::function<bool()> onOpen = {};
         bool dontUpdateValue = false;
 
         // Upper bound on the popover height in pixels. The actual height will be
@@ -107,7 +109,10 @@ namespace ScriptNuiComponents
         SelectOptions<ActiveOptionType, OptionsValueType> options;
         std::weak_ptr<Nui::Dom::BasicElement> buttonElement{};
         Nui::Observed<SelectDetail::Positioning> positioning{{0.0, 0.0, 0.0, 300.0, false}};
+        Nui::Observed<bool> loading{false};
         std::string id = options.makeId();
+        std::unique_ptr<Nui::ListenRemover<typename Detail::AttributeTraits<OptionsValueType>::Listenable>>
+            optionsListener;
     };
 
     template <typename ActiveOptionType, typename OptionsValueType>
@@ -128,8 +133,9 @@ namespace ScriptNuiComponents
             mergeAttributes(
                 std::vector<Nui::Attribute>{
                     class_ = "script-nui-select",
+                    "data-loading"_attr = state->loading,
                     onClick = [state](Nui::WebApi::MouseEvent mouseEvent) {
-                        auto btn = state->buttonElement.lock();;
+                        auto btn = state->buttonElement.lock();
                         if (!btn)
                         {
                             Nui::WebApi::Console::error("Could not get button element for select component!");
@@ -155,6 +161,21 @@ namespace ScriptNuiComponents
                             .flipUp = flipUp,
                         };
                         mouseEvent.stopPropagation();
+                        if (state->options.onOpen)
+                        {
+                            const auto loading = state->options.onOpen();
+                            if constexpr (Detail::AttributeTraits<OptionsValueType>::isObserved)
+                            {
+                                state->loading = loading;
+                                if (loading)
+                                {
+                                    state->optionsListener = std::make_unique<Nui::ListenRemover<typename Detail::AttributeTraits<OptionsValueType>::Listenable>>(
+                                        Detail::AttributeTraits<OptionsValueType>::smartListen(state->options.options, [state](auto&&...) {
+                                            state->loading = false;
+                                        }));
+                                }
+                            }
+                        }
                     },
                     "popovertarget"_attr = fmt::format("select-options-{}", state->id),
                     reference = [state](std::weak_ptr<Nui::Dom::BasicElement> element) {
@@ -172,6 +193,7 @@ namespace ScriptNuiComponents
                     svga::d = "m6 9 6 6 6-6"s,
                 }()
             ),
+            span{class_ = "script-nui-select-spinner"}(),
             div{
                 "popover"_attr = "auto",
                 class_ = "script-nui-select-popover",
