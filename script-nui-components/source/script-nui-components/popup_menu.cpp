@@ -1,12 +1,15 @@
 #include <script-nui-components/popup_menu.hpp>
 
 #include <nui/frontend/elements/div.hpp>
+#include <nui/frontend/elements/nil.hpp>
 #include <nui/frontend/elements/span.hpp>
 #include <nui/frontend/attributes/class.hpp>
 #include <nui/frontend/attributes/style.hpp>
 #include <nui/frontend/api/event.hpp>
+#include <nui/frontend/api/abort_controller.hpp>
 #include <nui/event_system/event_context.hpp>
 #include <nui/frontend/utility/functions.hpp>
+#include <nui/frontend/utility/body_portal.hpp>
 
 #include <emscripten/val.h>
 #include <fmt/format.h>
@@ -148,6 +151,50 @@ namespace ScriptNuiComponents
         // that.  Rebuilt whenever items changes.
         Nui::Observed<std::vector<std::size_t>> indices;
 
+        // Body portal: the menu is rendered as a direct child of document.body so
+        // that position:fixed is relative to the viewport, not to any ancestor
+        // with a CSS transform/filter/perspective.
+        std::optional<Nui::BodyPortal> portal;
+
+        // Used to remove the document-level outside-click listener when the menu
+        // closes.  A full-viewport backdrop div is intentionally NOT used: the
+        // backdrop would sit above other interactive elements (e.g. dropdown
+        // trigger buttons) in the portal stacking context, forcing two clicks to
+        // switch menus.  Instead we rely on a document-level click listener for
+        // "click outside" detection.
+        Nui::WebApi::AbortController outsideClickAbort{};
+
+        void attachOutsideClickListener()
+        {
+            // Abort any previous listener before creating a new controller.
+            outsideClickAbort.abort();
+            outsideClickAbort = Nui::WebApi::AbortController{};
+            auto options = emscripten::val::object();
+            options.set("signal", outsideClickAbort.signal().val());
+            auto* selfImpl = this;
+            emscripten::val::global("document")
+                .call<void>(
+                    "addEventListener",
+                    std::string{"click"},
+                    Nui::bind(
+                        [selfImpl](emscripten::val /*event*/)
+                        {
+                            selfImpl->visible = false;
+                            selfImpl->measuring = false;
+                            selfImpl->outsideClickAbort.abort();
+                            Nui::globalEventContext.executeActiveEventsImmediately();
+                        },
+                        std::placeholders::_1
+                    ),
+                    options
+                );
+        }
+
+        void detachOutsideClickListener()
+        {
+            outsideClickAbort.abort();
+        }
+
         void rebuildIndices()
         {
             indices.value().resize(items.size());
@@ -188,8 +235,13 @@ namespace ScriptNuiComponents
             auto action = mi.action;
             return div{
                 class_ = itemClass,
-                onClick = [action](Nui::val /*event*/)
+                onClick = [action, impl = this](Nui::val event)
                 {
+                    event.call<void>("stopPropagation");
+                    impl->visible = false;
+                    impl->measuring = false;
+                    impl->detachOutsideClickListener();
+                    Nui::globalEventContext.executeActiveEventsImmediately();
                     if (action)
                         action();
                 }
@@ -238,6 +290,7 @@ namespace ScriptNuiComponents
         impl_->posX = x;
         impl_->posY = y;
         impl_->visible = true;
+        impl_->attachOutsideClickListener();
         Nui::globalEventContext.executeActiveEventsImmediately();
     }
 
@@ -278,6 +331,7 @@ namespace ScriptNuiComponents
                         // The id wasn't found — caller passed a wrong id.
                         // Close the measuring pass so we don't leave a hidden
                         // ghost menu in the DOM.
+                        Nui::WebApi::Console::error("PopupMenu::openNextTo failed: no element with id '{}'", anchorId);
                         impl->visible = false;
                         impl->measuring = false;
                         Nui::globalEventContext.executeActiveEventsImmediately();
@@ -303,6 +357,77 @@ namespace ScriptNuiComponents
                     }
 
                     impl->measuring = false;
+                    // Attach the outside-click listener here, after the rAF tick,
+                    // so the click that opened the menu has already finished bubbling
+                    // and does not immediately close it.
+                    impl->attachOutsideClickListener();
+                    Nui::WebApi::Console::log(
+                        fmt::format(
+                            "PopupMenu::openNextTo anchorId='{}' anchorRect={{left:{:.1f}, top:{:.1f}, right:{:.1f}, "
+                            "bottom:{:.1f}}} finalPos={{x:{:.1f}, y:{:.1f}}}",
+                            anchorId,
+                            anchor.left,
+                            anchor.top,
+                            anchor.right,
+                            anchor.bottom,
+                            impl->posX.value(),
+                            impl->posY.value()
+                        )
+                    );
+                    Nui::globalEventContext.executeActiveEventsImmediately();
+                },
+                std::placeholders::_1
+            )
+        );
+    }
+
+    void PopupMenu::openAt(double x, double y)
+    {
+        auto* impl = impl_.get();
+
+        // Phase 1: off-screen measuring pass
+        impl->posX = -9999.0;
+        impl->posY = -9999.0;
+        impl->measuring = true;
+        impl->visible = true;
+        Nui::globalEventContext.executeActiveEventsImmediately();
+
+        // Phase 2: clamp into viewport after one rAF tick
+        emscripten::val::global("window").call<void>(
+            "requestAnimationFrame",
+            Nui::bind(
+                [impl, x, y](Nui::val /*timestamp*/) mutable
+                {
+                    const auto doc = emscripten::val::global("document");
+                    const auto menuEl = doc.call<emscripten::val>(
+                        "querySelector", emscripten::val(".script-nui-popup-menu--measuring")
+                    );
+
+                    const Size vp = viewportSize();
+
+                    if (!menuEl.isNull() && !menuEl.isUndefined())
+                    {
+                        const Rect menuR = getBoundingRect(menuEl);
+                        const Size menu = {menuR.width(), menuR.height()};
+                        // Treat the cursor as a zero-size anchor point so the menu
+                        // opens below/right of the cursor by default and flips when
+                        // it would overflow the viewport.
+                        const Rect anchor{x, y, x, y};
+                        const auto [fx, fy] = computeOptimalPosition(anchor, menu, vp);
+                        impl->posX = fx;
+                        impl->posY = fy;
+                    }
+                    else
+                    {
+                        // Fallback: simple clamp with margin
+                        impl->posX = std::max(kMargin, std::min(x, vp.width - kMargin));
+                        impl->posY = std::max(kMargin, std::min(y, vp.height - kMargin));
+                    }
+
+                    impl->measuring = false;
+                    // Attach after the rAF tick so the triggering click has
+                    // already finished bubbling and won't immediately close the menu.
+                    impl->attachOutsideClickListener();
                     Nui::globalEventContext.executeActiveEventsImmediately();
                 },
                 std::placeholders::_1
@@ -312,6 +437,7 @@ namespace ScriptNuiComponents
 
     void PopupMenu::close()
     {
+        impl_->detachOutsideClickListener();
         impl_->visible = false;
         impl_->measuring = false;
         Nui::globalEventContext.executeActiveEventsImmediately();
@@ -350,50 +476,51 @@ namespace ScriptNuiComponents
 
         auto* impl = impl_.get();
 
-        additionalAttributes.push_back(class_ = "script-nui-popup-menu-container");
+        if (!impl->portal)
+        {
+            additionalAttributes.push_back(class_ = "script-nui-popup-menu-container");
 
-        // Observe both `visible` and `measuring` so the render lambda re-runs
-        // when the rAF callback flips measuring=false and sets the final position.
-        // Observing only `visible` would mean the lambda fires once (Phase 1,
-        // position=-9999, measuring=true) and never again — the menu stays hidden.
-        return div{
-            std::move(additionalAttributes)
-        }(Nui::observe(impl->visible, impl->measuring),
-            [impl](bool const& isVisible, bool const& isMeasuring) -> Nui::ElementRenderer
-            {
-                if (!isVisible)
-                    return div{style = "display:none;"}();
+            // Observe both `visible` and `measuring` so the render lambda re-runs
+            // when the rAF callback flips measuring=false and sets the final position.
+            // Observing only `visible` would mean the lambda fires once (Phase 1,
+            // position=-9999, measuring=true) and never again — the menu stays hidden.
+            impl->portal.emplace(
+                div{
+                    std::move(additionalAttributes)
+                }(Nui::observe(impl->visible, impl->measuring),
+                    [impl](bool const& isVisible, bool const& isMeasuring) -> Nui::ElementRenderer
+                    {
+                        if (!isVisible)
+                            return div{style = "display:none;"}();
 
-                const std::string posStyle =
-                    fmt::format("left:{:.1f}px;top:{:.1f}px;", impl->posX.value(), impl->posY.value());
+                        const std::string posStyle =
+                            fmt::format("left:{:.1f}px;top:{:.1f}px;", impl->posX.value(), impl->posY.value());
 
-                const std::string menuClass =
-                    isMeasuring ? "script-nui-popup-menu script-nui-popup-menu--measuring" : "script-nui-popup-menu";
+                        const std::string menuClass = isMeasuring
+                            ? "script-nui-popup-menu script-nui-popup-menu--measuring"
+                            : "script-nui-popup-menu";
 
-                auto backdrop =
-                    div{style = "position:fixed;inset:0;z-index:9998;",
-                        onClick = [impl](Nui::val /*event*/)
-                        {
-                            impl->visible = false;
-                            impl->measuring = false;
-                        }}();
+                        return div{
+                            class_ = menuClass,
+                            style = posStyle,
+                            "click"_event =
+                                [](Nui::WebApi::Event event)
+                            {
+                                // Prevent clicks inside the menu from bubbling to
+                                // the document-level outside-click listener.
+                                event.stopPropagation();
+                            }
+                        }(Nui::range(impl->indices),
+                            [impl](long long /*i*/, std::size_t const& idx) -> Nui::ElementRenderer
+                            {
+                                return impl->renderEntry(impl->items[idx]);
+                            });
+                    })
+            );
+        }
 
-                return div{
-                    style = "contents;"
-                }(std::move(backdrop),
-                    div{
-                        class_ = menuClass,
-                        style = posStyle,
-                        "click"_event =
-                            [](Nui::WebApi::Event event)
-                        {
-                            event.stopPropagation();
-                        }
-                    }(Nui::range(impl->indices),
-                        [impl](long long /*i*/, std::size_t const& idx) -> Nui::ElementRenderer
-                        {
-                            return impl->renderEntry(impl->items[idx]);
-                        }));
-            });
+        // The actual menu DOM lives in document.body via the portal.
+        // Return nil() as a placeholder in the Nui component tree.
+        return Nui::nil();
     }
 }
