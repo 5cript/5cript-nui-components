@@ -129,6 +129,17 @@ namespace ScriptNuiComponents
         ///   menu.openNextTo("my-btn");      // pass that id here
         void openNextTo(std::string anchorId);
 
+        /// Show the menu at the given viewport coordinates, clamped to the
+        /// viewport so the menu never overflows any edge.
+        ///
+        /// Uses the same two-pass rAF measurement strategy as openNextTo:
+        /// the menu is rendered hidden to measure its size, then the final
+        /// position is committed in the next rAF tick.
+        ///
+        /// This is the preferred method for right-click / pointer context menus
+        /// where you have raw clientX/clientY coordinates but no anchor element.
+        void openAt(double x, double y);
+
         /// Programmatically close the menu.
         void close();
 

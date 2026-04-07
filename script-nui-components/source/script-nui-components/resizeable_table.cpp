@@ -11,6 +11,10 @@
 
 #include <fmt/format.h>
 
+#include <algorithm>
+#include <cstdint>
+#include <limits>
+
 using namespace Nui;
 using namespace Nui::Elements;
 using namespace Nui::Attributes;
@@ -21,7 +25,7 @@ namespace ScriptNuiComponents
     struct TableRowWithSelfController
     {
         ResizableTable::TableRow row;
-        std::unique_ptr<ResizableTable::ISelfController> selfController;
+        std::uint64_t rowId;
     };
 
     struct ResizableTable::Implementation
@@ -33,6 +37,7 @@ namespace ScriptNuiComponents
         Observed<bool> wasResizedOnce{false};
         std::weak_ptr<Nui::Dom::BasicElement> reference;
         std::optional<ResizableTable::AddFeature> addFeature;
+        std::uint64_t nextRowId_{0};
 
         Nui::val window = Nui::val::global("window");
         Nui::WebApi::AbortController mouseMoveAbort;
@@ -172,18 +177,25 @@ namespace ScriptNuiComponents
 
     namespace
     {
+        // Sentinel row IDs for header/footer cells — chosen to never collide with data row IDs.
+        constexpr std::uint64_t headerRowSentinelId = std::numeric_limits<std::uint64_t>::max();
+        constexpr std::uint64_t footerRowSentinelId = std::numeric_limits<std::uint64_t>::max() - 1;
+
+        using RowsObserved = Nui::Observed<std::vector<TableRowWithSelfController>>;
+
         class SelfController : public ResizableTable::ISelfController
         {
           public:
-            SelfController(ResizableTable& parent, int row, int column)
+            SelfController(ResizableTable& parent, RowsObserved& rows, std::uint64_t rowId, int column)
                 : parent_{&parent}
-                , row_{row}
+                , rows_{&rows}
+                , rowId_{rowId}
                 , column_{column}
             {}
 
             int row() const override
             {
-                return row_;
+                return findIndex();
             }
             int column() const override
             {
@@ -191,25 +203,48 @@ namespace ScriptNuiComponents
             }
             void remove() override
             {
-                parent_->remove(static_cast<std::size_t>(row_));
+                int idx = findIndex();
+                if (idx >= 0)
+                    parent_->remove(static_cast<std::size_t>(idx));
             }
-            void row(int newRow)
+            ResizableTable::TableRow const& rowData() const override
             {
-                row_ = newRow;
-            }
-            virtual ResizableTable::TableRow const& rowData() const override
-            {
-                return parent_->row(static_cast<std::size_t>(row_));
+                int idx = findIndex();
+                return parent_->row(static_cast<std::size_t>(idx));
             }
 
           private:
+            // Binary search is valid because rows are always appended (IDs are strictly increasing).
+            int findIndex() const
+            {
+                auto const& vec = *rows_;
+                auto it = std::lower_bound(
+                    vec.begin(),
+                    vec.end(),
+                    rowId_,
+                    [](TableRowWithSelfController const& entry, std::uint64_t id)
+                    {
+                        return entry.rowId < id;
+                    }
+                );
+                if (it == vec.end() || it->rowId != rowId_)
+                    return -1;
+                return static_cast<int>(std::distance(vec.begin(), it));
+            }
+
             ResizableTable* parent_;
-            int row_;
+            RowsObserved* rows_;
+            std::uint64_t rowId_;
             int column_;
         };
 
-        Nui::ElementRenderer
-        renderCell(ResizableTable& table, ResizableTable::TableCell const& cell, int rowIndex, int colIndex)
+        Nui::ElementRenderer renderCell(
+            ResizableTable& table,
+            RowsObserved& rows,
+            ResizableTable::TableCell const& cell,
+            std::uint64_t rowId,
+            int colIndex
+        )
         {
             using namespace Nui::Elements;
 
@@ -218,13 +253,13 @@ namespace ScriptNuiComponents
 
             return td{}(
                 std::get<std::function<Nui::ElementRenderer(std::unique_ptr<ResizableTable::ISelfController>)>>(cell)(
-                    std::make_unique<SelfController>(table, rowIndex, colIndex)
+                    std::make_unique<SelfController>(table, rows, rowId, colIndex)
                 )
             );
         }
 
         Nui::ElementRenderer
-        renderCell(ResizableTable& table, ResizableTable::HeaderTableCell const& cell, int rowIndex, int colIndex)
+        renderCell(ResizableTable& table, RowsObserved& rows, ResizableTable::HeaderTableCell const& cell, int colIndex)
         {
             using namespace Nui::Elements;
 
@@ -233,7 +268,7 @@ namespace ScriptNuiComponents
 
             return td{}(
                 std::get<std::function<Nui::ElementRenderer(std::unique_ptr<ResizableTable::ISelfController>)>>(cell
-                        .content)(std::make_unique<SelfController>(table, rowIndex, colIndex))
+                        .content)(std::make_unique<SelfController>(table, rows, headerRowSentinelId, colIndex))
             );
         }
     }
@@ -262,20 +297,15 @@ namespace ScriptNuiComponents
             );
             return;
         }
-        impl_->rows.push_back(
-            TableRowWithSelfController{
-                std::move(row), std::make_unique<SelfController>(*this, static_cast<int>(impl_->rows->size()), -1)
-            }
-        );
+        const std::uint64_t newId = impl_->nextRowId_++;
+        impl_->rows.push_back(TableRowWithSelfController{std::move(row), newId});
     }
 
     void ResizableTable::setRows(std::vector<TableRow> rows)
     {
         impl_->rows.clear();
         for (auto& row : rows)
-        {
             addRow(std::move(row));
-        }
     }
 
     void ResizableTable::remove(std::size_t index)
@@ -283,15 +313,8 @@ namespace ScriptNuiComponents
         if (index >= impl_->rows->size())
             return;
 
-        impl_->rows.erase(impl_->rows->begin() + index);
-
-        // Update indices for shifted rows
-        for (std::size_t i = index; i < impl_->rows->size(); ++i)
-        {
-            auto* controller = impl_->rows[i]->selfController.get();
-            if (controller)
-                static_cast<SelfController*>(controller)->row(static_cast<int>(i));
-        }
+        impl_->rows.erase(impl_->rows->begin() + static_cast<std::ptrdiff_t>(index));
+        // No index fixup needed: controllers find their row via binary search on stable IDs.
     }
 
     void ResizableTable::clear()
@@ -345,7 +368,7 @@ namespace ScriptNuiComponents
                                     );
                                 }
                             }(
-                                renderCell(*this, cell, -1, static_cast<int>(col)),
+                                renderCell(*this, impl_->rows, cell, static_cast<int>(col)),
                                 cell.resizeable ? div{class_ = "resize-handle"}() : Nui::nil()
                             );
                         }
@@ -370,11 +393,11 @@ namespace ScriptNuiComponents
                                 )
                             ) : Nui::nil()
                         ),
-                    [this](long long rowIndex, TableRowWithSelfController const& row) {
+                    [this](long long /*rowIndex*/, TableRowWithSelfController const& rowEntry) {
                         return tr{}(
-                            Nui::range(row.row),
-                            [this, rowIndex = static_cast<int>(rowIndex)](long long col, TableCell const& cell) {
-                                return renderCell(*this, cell, rowIndex, static_cast<int>(col));
+                            Nui::range(rowEntry.row),
+                            [this, rowId = rowEntry.rowId](long long col, TableCell const& cell) {
+                                return renderCell(*this, impl_->rows, cell, rowId, static_cast<int>(col));
                             }
                         );
                     }
@@ -387,7 +410,7 @@ namespace ScriptNuiComponents
                         Nui::range(*impl_->footer),
                         [this](long long col, TableCell const& cell)
                         {
-                            return renderCell(*this, cell, -2, static_cast<int>(col));
+                            return renderCell(*this, impl_->rows, cell, footerRowSentinelId, static_cast<int>(col));
                         }
                     )
                 ) : Nui::nil()
@@ -398,11 +421,11 @@ namespace ScriptNuiComponents
 
     int ResizableTable::rowCount() const
     {
-        return impl_->rows->size();
+        return static_cast<int>(impl_->rows->size());
     }
     int ResizableTable::columnCount() const
     {
-        return impl_->header.size();
+        return static_cast<int>(impl_->header.size());
     }
     ResizableTable::TableRow const& ResizableTable::row(std::size_t index) const
     {
