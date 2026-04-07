@@ -56,6 +56,7 @@ namespace ScriptNuiComponents
         Detail::AttributeTraits<ActiveOptionType>::Actual activeOption = {};
         Detail::AttributeTraits<OptionsValueType>::Actual options = {};
         std::vector<Nui::Attribute> attributes = {};
+        std::optional<std::string> popoverExtraClass = std::nullopt;
 
         std::function<void(ActiveType const& newValue, Nui::WebApi::MouseEvent const&)> onChange = {};
         std::function<Nui::ElementRenderer(typename Detail::AttributeTraits<ActiveOptionType>::Actual&)>
@@ -196,7 +197,7 @@ namespace ScriptNuiComponents
             span{class_ = "script-nui-select-spinner"}(),
             div{
                 "popover"_attr = "auto",
-                class_ = "script-nui-select-popover",
+                class_ = fmt::format("script-nui-select-popover {}", state->options.popoverExtraClass.value_or("")),
                 id = fmt::format("select-options-{}", state->id),
                 style = Nui::observe(state->positioning).generate([state]() {
                     const auto& p = state->positioning.value();
