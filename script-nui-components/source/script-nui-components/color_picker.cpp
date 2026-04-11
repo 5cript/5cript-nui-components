@@ -70,10 +70,11 @@ namespace ScriptNuiComponents
                     [options](Nui::WebApi::Event event)
                 {
                     auto target = event.target();
+                    Nui::WebApi::Console::log("Color input change event.");
                     if (!target.isUndefined())
                     {
-                        std::string value;
-                        value = target["value"].template as<std::string>();
+                        Nui::WebApi::Console::log("Color input change event, target value:", target["value"]);
+                        const std::string value = target["value"].template as<std::string>();
                         if (!options.dontUpdateValue)
                             options.value.assign(value, Nui::ChangePolicy::Tracked);
                         if (options.onChange)

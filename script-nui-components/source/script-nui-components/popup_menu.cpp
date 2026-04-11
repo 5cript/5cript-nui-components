@@ -215,9 +215,14 @@ namespace ScriptNuiComponents
 
             auto iconCell = [&]() -> Nui::ElementRenderer
             {
-                if (mi.icon.empty())
+                if (std::holds_alternative<Nui::ElementRenderer>(mi.icon))
+                    return span{class_ = "script-nui-popup-menu__icon script-nui-popup-menu__icon--svg"}(
+                        std::get<Nui::ElementRenderer>(mi.icon)
+                    );
+                const auto& str = std::get<std::string>(mi.icon);
+                if (str.empty())
                     return span{class_ = "script-nui-popup-menu__icon script-nui-popup-menu__icon--empty"}();
-                return span{class_ = "script-nui-popup-menu__icon"}(mi.icon);
+                return span{class_ = "script-nui-popup-menu__icon"}(str);
             }();
 
             auto labelCell = [&]() -> Nui::ElementRenderer

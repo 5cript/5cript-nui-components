@@ -130,6 +130,7 @@
     /* inherits color from item hover */
     color: var(--text-muted-color);
     transition: color 80ms ease;
+    fill: currentColor;
     flex-shrink: 0;
 }
 

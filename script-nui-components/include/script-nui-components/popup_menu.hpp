@@ -1,6 +1,7 @@
 #pragma once
 
 #include <nui/event_system/observed_value.hpp>
+#include <nui/frontend/element_renderer.hpp>
 #include <nui/frontend/elements.hpp>
 #include <nui/frontend/attributes.hpp>
 
@@ -39,7 +40,7 @@ namespace ScriptNuiComponents
         struct MenuItem
         {
             std::string label;
-            std::string icon; ///< UTF-8 icon/emoji; empty = no icon (grid still aligned)
+            std::variant<std::string, Nui::ElementRenderer> icon; ///< UTF-8 string, SVG ElementRenderer, or empty string for no icon
             std::string shortcut; ///< Optional keyboard-shortcut hint shown right-aligned
             bool disabled{false};
             std::function<void()> action;
@@ -62,6 +63,23 @@ namespace ScriptNuiComponents
         static Entry item(
             std::string label,
             std::string icon = {},
+            std::function<void()> action = {},
+            bool disabled = false,
+            std::string shortcut = {}
+        )
+        {
+            return MenuItem{
+                .label = std::move(label),
+                .icon = std::move(icon),
+                .shortcut = std::move(shortcut),
+                .disabled = disabled,
+                .action = std::move(action),
+            };
+        }
+
+        static Entry item(
+            std::string label,
+            Nui::ElementRenderer icon,
             std::function<void()> action = {},
             bool disabled = false,
             std::string shortcut = {}
