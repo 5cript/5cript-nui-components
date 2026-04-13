@@ -5,6 +5,7 @@ add_library(
         "dialog.cpp"
         "tabs.cpp"
         "popup_menu.cpp"
+        "tree.cpp"
         "dropdown_menu.cpp"
         "color_picker.cpp"
         "button.cpp"

@@ -89,3 +89,31 @@
         box-shadow: 0 0 0 2px color-mix(in srgb, var(--color) 50%, transparent);
     }
 }
+
+/* Opt-in attention shine: one-shot pulse around a button to direct the user's eye.
+ * Two parity classes (snc-shine-a / snc-shine-b) carry identical animations under
+ * different names so swapping between them restarts the animation.  No extra DOM. */
+.script-nui-button.snc-shinable {
+    --snc-shine-color: var(--script-nui-components-shine-color, rgba(80, 220, 120, 0.9));
+    position: relative;
+}
+
+.script-nui-button.snc-shine-a {
+    animation: snc-shine-a 1.4s ease-out 1;
+}
+
+.script-nui-button.snc-shine-b {
+    animation: snc-shine-b 1.4s ease-out 1;
+}
+
+@keyframes snc-shine-a {
+    0%   { box-shadow: 0 0 0 0 var(--snc-shine-color); }
+    50%  { box-shadow: 0 0 0 10px color-mix(in srgb, var(--snc-shine-color) 40%, transparent); }
+    100% { box-shadow: 0 0 0 18px transparent; }
+}
+
+@keyframes snc-shine-b {
+    0%   { box-shadow: 0 0 0 0 var(--snc-shine-color); }
+    50%  { box-shadow: 0 0 0 10px color-mix(in srgb, var(--snc-shine-color) 40%, transparent); }
+    100% { box-shadow: 0 0 0 18px transparent; }
+}
