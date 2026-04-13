@@ -235,22 +235,29 @@ namespace ScriptNuiComponents
             }();
 
             if (mi.disabled)
-                return div{class_ = itemClass}(std::move(iconCell), std::move(labelCell));
+            {
+                if (mi.tooltip.empty())
+                    return div{class_ = itemClass}(std::move(iconCell), std::move(labelCell));
+                return div{class_ = itemClass, "title"_attr = mi.tooltip}(
+                    std::move(iconCell), std::move(labelCell)
+                );
+            }
 
             auto action = mi.action;
-            return div{
-                class_ = itemClass,
-                onClick = [action, impl = this](Nui::val event)
-                {
-                    event.call<void>("stopPropagation");
-                    impl->visible = false;
-                    impl->measuring = false;
-                    impl->detachOutsideClickListener();
-                    Nui::globalEventContext.executeActiveEventsImmediately();
-                    if (action)
-                        action();
-                }
-            }(std::move(iconCell), std::move(labelCell));
+            auto onClickAttr = onClick = [action, impl = this](Nui::val event) {
+                event.call<void>("stopPropagation");
+                impl->visible = false;
+                impl->measuring = false;
+                impl->detachOutsideClickListener();
+                Nui::globalEventContext.executeActiveEventsImmediately();
+                if (action)
+                    action();
+            };
+            if (mi.tooltip.empty())
+                return div{class_ = itemClass, std::move(onClickAttr)}(std::move(iconCell), std::move(labelCell));
+            return div{class_ = itemClass, "title"_attr = mi.tooltip, std::move(onClickAttr)}(
+                std::move(iconCell), std::move(labelCell)
+            );
         }
 
         Nui::ElementRenderer renderEntry(Entry const& entry)

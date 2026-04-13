@@ -1,0 +1,319 @@
+.script-nui-tree {
+    --indent: var(--script-nui-components-tree-indent, 18px);
+    --row-pad-left: var(--script-nui-components-tree-row-pad-left, 4px);
+    --row-height: var(--script-nui-components-tree-row-height, 28px);
+    --row-padding-y: var(--script-nui-components-tree-row-padding-y, 0px);
+    --row-padding-right: var(--script-nui-components-tree-row-padding-right, 4px);
+    --row-radius: var(--script-nui-components-tree-row-radius, 0px);
+    --row-hover-bg: var(--script-nui-components-tree-row-hover-bg, rgba(255, 255, 255, 0.05));
+    --row-selected-bg: var(--script-nui-components-tree-row-selected-bg,
+            color-mix(in srgb, var(--theme-color, #4a9eff) 25%, transparent));
+    --row-focus-ring: var(--script-nui-components-tree-row-focus-ring, rgba(59, 130, 246, 0.55));
+    --chevron-width: var(--script-nui-components-tree-chevron-width, 12px);
+    --chevron-color: var(--script-nui-components-tree-chevron-color, currentColor);
+    --chevron-disabled-opacity: var(--script-nui-components-tree-chevron-disabled-opacity, 0.0);
+    --checkbox-width: var(--script-nui-components-tree-checkbox-width, 16px);
+    --slot-gap: var(--script-nui-components-tree-slot-gap, 6px);
+    --guide-color: var(--script-nui-components-tree-guide-color, rgba(255, 255, 255, 0.08));
+    --guide-width: var(--script-nui-components-tree-guide-width, 1px);
+    --skeleton-color: var(--script-nui-components-tree-skeleton-color, rgba(255, 255, 255, 0.3));
+    --error-color: var(--script-nui-components-tree-error-color, #e74c3c);
+    --load-more-color: var(--script-nui-components-tree-load-more-color, var(--color-secondary, #aaa));
+
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: inherit;
+    color: inherit;
+    user-select: none;
+    width: 100%;
+
+    & .script-nui-tree__children {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+    }
+
+    & .script-nui-tree__children--collapsed {
+        display: none;
+    }
+
+    & .script-nui-tree__row {
+        /* Total width (px) that the row's left-side fixtures consume BEFORE
+           `.script-nui-tree__content`: padding-left + depth indent + checkbox
+           + gap + chevron + gap.  Exposed as a CSS var so the caller's row
+           content can stretch past them via negative offsets, keeping
+           fixed-position inner elements (arrow, buttons) aligned to the full
+           row width instead of only to the content cell.
+           The checkbox contribution is ALWAYS included — callers that don't
+           show checkboxes will over-reach by `--checkbox-width + --slot-gap`,
+           which is acceptable: no such caller uses the negative-offset trick
+           today, and folding the checkbox in keeps the fixtures value stable
+           for showCheckboxes=true callers (the sync dialog) where arrows
+           must align across mirrored / non-mirrored tree pairs. */
+        --row-left-fixtures: calc(
+            var(--row-pad-left) + var(--depth, 0) * var(--indent)
+            + var(--checkbox-width) + var(--slot-gap)
+            + var(--chevron-width) + var(--slot-gap));
+        display: flex;
+        align-items: center;
+        gap: var(--slot-gap);
+        width: 100%;
+        min-width: 0;
+        height: var(--row-height);
+        padding-top: var(--row-padding-y);
+        padding-bottom: var(--row-padding-y);
+        padding-right: var(--row-padding-right);
+        padding-left: calc(var(--row-pad-left) + var(--depth, 0) * var(--indent));
+        border-radius: var(--row-radius);
+        cursor: default;
+        outline: none;
+        /* Vertical guide lines, one per ancestor depth, aligned with each
+           ancestor's chevron centre.  `repeating-linear-gradient` tiles a 1px
+           line at every `indent` step; `background-size` caps it at
+           `depth * indent` so only ancestor levels draw. */
+        background-image: repeating-linear-gradient(to right,
+                var(--guide-color) 0,
+                var(--guide-color) var(--guide-width),
+                transparent var(--guide-width),
+                transparent var(--indent));
+        background-size: calc(var(--depth, 0) * var(--indent)) 100%;
+        background-repeat: no-repeat;
+        background-position: calc(var(--row-pad-left) + var(--chevron-width) / 2) 0;
+    }
+
+    & .script-nui-tree__row:hover {
+        background-color: var(--row-hover-bg);
+    }
+
+    & .script-nui-tree__row--selected {
+        background-color: var(--row-selected-bg);
+    }
+
+    & .script-nui-tree__row:focus-visible {
+        box-shadow: inset 0 0 0 2px var(--row-focus-ring);
+    }
+
+    & .script-nui-tree__chevron {
+        /* Sits above any caller-supplied row content that may stretch back
+           over this area via negative margin (e.g. the sync dialog's row
+           uses --row-left-fixtures to centre an arrow).  Without this, the
+           stretched sibling intercepts all clicks in the chevron region. */
+        position: relative;
+        z-index: 1;
+        flex: 0 0 var(--chevron-width);
+        width: var(--chevron-width);
+        height: var(--chevron-width);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--chevron-color);
+        cursor: pointer;
+        transition: transform 120ms ease, opacity 120ms ease;
+        transform-origin: center;
+    }
+
+    & .script-nui-tree__chevron>svg {
+        width: 100%;
+        height: 100%;
+        fill: currentColor;
+        display: block;
+    }
+
+    & .script-nui-tree__chevron--collapsed {
+        transform: rotate(0deg);
+    }
+
+    & .script-nui-tree__chevron--expanded {
+        transform: rotate(90deg);
+    }
+
+    & .script-nui-tree__chevron--hidden {
+        opacity: var(--chevron-disabled-opacity);
+        pointer-events: none;
+    }
+
+    & .script-nui-tree__chevron--loading {
+        animation: script-nui-tree-spin 0.7s linear infinite;
+    }
+
+    & .script-nui-tree__checkbox {
+        /* Same rationale as .script-nui-tree__chevron above: lift above any
+           caller-supplied row content that reaches back into this column via
+           negative offsets (e.g. the sync dialog's absolutely-positioned
+           row). */
+        position: relative;
+        z-index: 1;
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    & .script-nui-tree__checkbox>input {
+        margin: 0;
+        cursor: pointer;
+        /* Pin the rendered checkbox size so `--row-left-fixtures` stays
+           accurate — native checkboxes otherwise drift by 1–4px across
+           themes/platforms, which is enough to misalign caller-supplied
+           content (e.g. sync dialog's centre arrow column). */
+        width: var(--checkbox-width);
+        height: var(--checkbox-width);
+        flex: 0 0 var(--checkbox-width);
+    }
+
+    & .script-nui-tree__icon {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    & .script-nui-tree__icon>svg {
+        width: 16px;
+        height: 16px;
+        fill: currentColor;
+    }
+
+    & .script-nui-tree__content {
+        flex: 1 1 auto;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        align-self: stretch;
+        width: 100%;
+        /* Positioned containing block for callers that want to span the full
+           tree-row width with an absolutely-positioned stretched element
+           (sync dialog does this for its 4-cell grid). */
+        position: relative;
+    }
+
+    & .script-nui-tree__content>* {
+        min-width: 0;
+    }
+
+    & .script-nui-tree__skeleton,
+    & .script-nui-tree__error,
+    & .script-nui-tree__load-more {
+        list-style: none;
+        margin: 0;
+        padding-top: var(--row-padding-y);
+        padding-bottom: var(--row-padding-y);
+        padding-right: var(--row-padding-right);
+        padding-left: calc(var(--row-pad-left) + var(--depth, 0) * var(--indent));
+        height: var(--row-height);
+        display: flex;
+        align-items: center;
+        gap: var(--slot-gap);
+        font-size: 0.85em;
+        background-image: repeating-linear-gradient(to right,
+                var(--guide-color) 0,
+                var(--guide-color) var(--guide-width),
+                transparent var(--guide-width),
+                transparent var(--indent));
+        background-size: calc(var(--depth, 0) * var(--indent)) 100%;
+        background-repeat: no-repeat;
+        background-position: calc(var(--row-pad-left) + var(--chevron-width) / 2) 0;
+    }
+
+    & .script-nui-tree__skeleton {
+        color: var(--skeleton-color);
+        font-style: italic;
+    }
+
+    & .script-nui-tree__error {
+        color: var(--error-color);
+    }
+
+    & .script-nui-tree__load-more {
+        color: var(--load-more-color);
+        cursor: pointer;
+        text-decoration: underline dotted;
+    }
+
+    & .script-nui-tree__load-more:hover {
+        color: var(--color, currentColor);
+    }
+}
+
+/* ─────────── Mirrored variant ────────────────────────────────────────────── */
+/* Chevron + indent + guide lines render on the RIGHT instead of the left. */
+
+.script-nui-tree--mirrored .script-nui-tree__row {
+    flex-direction: row-reverse;
+    padding-left: var(--row-padding-right);
+    padding-right: calc(var(--row-pad-left) + var(--depth, 0) * var(--indent));
+    background-position: right calc(var(--row-pad-left) + var(--chevron-width) / 2) top 0;
+}
+
+.script-nui-tree--mirrored .script-nui-tree__skeleton,
+.script-nui-tree--mirrored .script-nui-tree__error,
+.script-nui-tree--mirrored .script-nui-tree__load-more {
+    padding-left: var(--row-padding-right);
+    padding-right: calc(var(--row-pad-left) + var(--depth, 0) * var(--indent));
+    background-position: right calc(var(--row-pad-left) + var(--chevron-width) / 2) top 0;
+    flex-direction: row-reverse;
+}
+
+/* Triangle glyph: collapsed points LEFT (into the content), expanded rotates
+   down.  Animation goes 180 → 90 (counter-clockwise) which reads naturally. */
+.script-nui-tree--mirrored .script-nui-tree__chevron--collapsed {
+    transform: rotate(180deg);
+}
+
+.script-nui-tree--mirrored .script-nui-tree__chevron--expanded {
+    transform: rotate(90deg);
+}
+
+/* ─────────── Built-in toolbar ────────────────────────────────────────────── */
+
+.script-nui-tree__toolbar {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+    padding: 4px 6px;
+    /* Align with the chevron / checkbox side so the buttons visually belong
+       to the controls they affect: left for default trees, right for mirrored. */
+    justify-content: flex-start;
+    border-bottom: 1px solid var(--script-nui-tree-toolbar-border, rgba(128, 128, 128, 0.15));
+}
+
+.script-nui-tree--mirrored .script-nui-tree__toolbar {
+    justify-content: flex-end;
+}
+
+.script-nui-tree__toolbar-button {
+    background: transparent;
+    border: none;
+    border-radius: 3px;
+    padding: 2px 4px;
+    cursor: pointer;
+    color: var(--script-nui-tree-toolbar-color, currentColor);
+    opacity: 0.6;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.script-nui-tree__toolbar-button:hover {
+    opacity: 1;
+    background: var(--script-nui-tree-toolbar-hover-bg, rgba(128, 128, 128, 0.15));
+}
+
+.script-nui-tree__toolbar-button:active {
+    opacity: 1;
+    background: var(--script-nui-tree-toolbar-active-bg, rgba(128, 128, 128, 0.25));
+}
+
+.script-nui-tree__toolbar-button>svg {
+    width: 16px;
+    height: 16px;
+    display: block;
+}
+
+@keyframes script-nui-tree-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

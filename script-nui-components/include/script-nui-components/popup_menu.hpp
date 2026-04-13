@@ -44,6 +44,9 @@ namespace ScriptNuiComponents
             std::string shortcut; ///< Optional keyboard-shortcut hint shown right-aligned
             bool disabled{false};
             std::function<void()> action;
+            /// Optional hover hint rendered via the native `title` attribute.  Particularly
+            /// useful on disabled items to explain *why* they are disabled.
+            std::string tooltip;
         };
 
         /// A horizontal rule between groups of items.
@@ -65,7 +68,8 @@ namespace ScriptNuiComponents
             std::string icon = {},
             std::function<void()> action = {},
             bool disabled = false,
-            std::string shortcut = {}
+            std::string shortcut = {},
+            std::string tooltip = {}
         )
         {
             return MenuItem{
@@ -74,6 +78,7 @@ namespace ScriptNuiComponents
                 .shortcut = std::move(shortcut),
                 .disabled = disabled,
                 .action = std::move(action),
+                .tooltip = std::move(tooltip),
             };
         }
 
@@ -82,7 +87,8 @@ namespace ScriptNuiComponents
             Nui::ElementRenderer icon,
             std::function<void()> action = {},
             bool disabled = false,
-            std::string shortcut = {}
+            std::string shortcut = {},
+            std::string tooltip = {}
         )
         {
             return MenuItem{
@@ -91,6 +97,7 @@ namespace ScriptNuiComponents
                 .shortcut = std::move(shortcut),
                 .disabled = disabled,
                 .action = std::move(action),
+                .tooltip = std::move(tooltip),
             };
         }
 
