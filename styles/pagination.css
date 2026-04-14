@@ -1,0 +1,130 @@
+.script-nui-pagination {
+    /* ── public tokens (consumers override these) ─────────────────────── */
+    --primary-color: var(--script-nui-components-pagination-primary-color, #34ca20);
+    /* Transparent by default so the bar blends into whatever surface hosts it.
+       Consumers can override with a solid colour where desired. */
+    --background-color: var(--script-nui-components-pagination-background-color, transparent);
+    --background-color-page: var(--script-nui-components-pagination-background-color-page, rgba(255, 255, 255, 0.04));
+    --background-color-page-hover: var(--script-nui-components-pagination-background-color-page-hover, rgba(255, 255, 255, 0.10));
+    --background-color-page-selected: var(--script-nui-components-pagination-background-color-page-selected, rgba(80, 200, 100, 0.18));
+    --color: var(--script-nui-components-pagination-color, inherit);
+    --color-page-selected: var(--script-nui-components-pagination-color-page-selected, var(--primary-color));
+    --color-page-hover: var(--script-nui-components-pagination-color-page-hover, var(--color));
+    --color-gap: var(--script-nui-components-pagination-color-gap, rgba(255, 255, 255, 0.30));
+    --color-nav: var(--script-nui-components-pagination-color-nav, rgba(255, 255, 255, 0.55));
+    --color-nav-hover: var(--script-nui-components-pagination-color-nav-hover, var(--color));
+    --color-nav-disabled: var(--script-nui-components-pagination-color-nav-disabled, rgba(255, 255, 255, 0.15));
+    --border-color: var(--script-nui-components-pagination-border-color, rgba(255, 255, 255, 0.10));
+    --border-color-page-selected: var(--script-nui-components-pagination-border-color-page-selected, var(--primary-color));
+    --border-radius: var(--script-nui-components-pagination-border-radius, 4px);
+    --font: var(--script-nui-components-pagination-font, inherit);
+    --font-size: var(--script-nui-components-pagination-font-size, 12px);
+    --height: var(--script-nui-components-pagination-height, 22px);
+    --icon-size: var(--script-nui-components-pagination-icon-size, 10px);
+
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--background-color);
+    font: var(--font-size) var(--font);
+    color: var(--color);
+    -webkit-user-select: none;
+    user-select: none;
+
+    &>.script-nui-pagination-bar {
+        display: flex;
+        flex-direction: row;
+        align-items: stretch;
+        gap: 2px;
+        height: var(--height);
+        padding: 2px 4px;
+
+        &>.script-nui-pagination-page {
+            all: unset;
+            box-sizing: border-box;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: calc(var(--height) - 4px);
+            padding: 0 8px;
+            border-radius: var(--border-radius);
+            background-color: var(--background-color-page);
+            color: var(--color);
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition:
+                background-color 100ms ease,
+                color 100ms ease,
+                border-color 100ms ease;
+
+            &>span {
+                font-size: var(--font-size);
+                line-height: 1;
+                white-space: nowrap;
+            }
+
+            &:hover {
+                background-color: var(--background-color-page-hover);
+                color: var(--color-page-hover);
+            }
+
+            &.selected {
+                background-color: var(--background-color-page-selected);
+                color: var(--color-page-selected);
+                border-color: var(--border-color-page-selected);
+            }
+
+            &.live {
+                font-weight: 500;
+            }
+        }
+
+        &>.script-nui-pagination-nav {
+            all: unset;
+            box-sizing: border-box;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: calc(var(--height) - 4px);
+            border-radius: var(--border-radius);
+            color: var(--color-nav);
+            cursor: pointer;
+            transition:
+                color 100ms ease,
+                background-color 100ms ease;
+
+            &:hover:not(.disabled) {
+                background-color: var(--background-color-page-hover);
+                color: var(--color-nav-hover);
+            }
+
+            &.disabled {
+                color: var(--color-nav-disabled);
+                cursor: default;
+                pointer-events: none;
+            }
+        }
+
+        &>.script-nui-pagination-gap {
+            box-sizing: border-box;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: calc(var(--height) - 4px);
+            color: var(--color-gap);
+            pointer-events: none;
+        }
+    }
+
+    /* SVG icons are emitted without width/height attributes, so without an
+       explicit size they render at their intrinsic 300x150 (or viewBox) size.
+       Target all icons inside the bar with a flat selector that is robust to
+       any additional wrapper markup the ui5-sap-icons helpers might emit. */
+    & svg {
+        width: var(--icon-size);
+        height: var(--icon-size);
+        fill: currentColor;
+        flex: 0 0 auto;
+    }
+}

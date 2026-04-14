@@ -94,6 +94,23 @@
     --script-nui-message-strip-success-text-color: #27500A;
     --script-nui-message-strip-success-icon-color: #3B6D11;
 
+    /* Pagination (light): transparent bg + dark-alpha tints so the bar
+       blends with whatever surface hosts it, mirroring the dark defaults. */
+    --script-nui-components-pagination-primary-color: #1a9e0a;
+    --script-nui-components-pagination-background-color: transparent;
+    --script-nui-components-pagination-background-color-page: rgba(0, 0, 0, 0.04);
+    --script-nui-components-pagination-background-color-page-hover: rgba(0, 0, 0, 0.08);
+    --script-nui-components-pagination-background-color-page-selected: rgba(26, 158, 10, 0.14);
+    --script-nui-components-pagination-color: #1a1a1a;
+    --script-nui-components-pagination-color-page-selected: #0c5204;
+    --script-nui-components-pagination-color-page-hover: #000000;
+    --script-nui-components-pagination-color-gap: rgba(0, 0, 0, 0.32);
+    --script-nui-components-pagination-color-nav: rgba(0, 0, 0, 0.50);
+    --script-nui-components-pagination-color-nav-hover: #000000;
+    --script-nui-components-pagination-color-nav-disabled: rgba(0, 0, 0, 0.18);
+    --script-nui-components-pagination-border-color: rgba(0, 0, 0, 0.10);
+    --script-nui-components-pagination-border-color-page-selected: #1a9e0a;
+
     /* Popup menu (light) */
     --script-nui-popup-menu-primary-color: #3B6D11;
     --script-nui-popup-menu-primary-hover-color: #2f5a0d;
