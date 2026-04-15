@@ -10,6 +10,7 @@
 @import "./dropdown_menu.css";
 @import "./carousel.css";
 @import "./message_strip.css";
+@import "./pagination.css";
 @import "./themes/light.css";
 
 :root {
