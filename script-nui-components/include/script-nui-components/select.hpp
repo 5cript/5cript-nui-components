@@ -15,6 +15,7 @@
 #include <nui/frontend/svg_attributes.hpp>
 #include <nui/frontend/attributes.hpp>
 #include <nui/frontend/api/mouse_event.hpp>
+#include <nui/frontend/api/keyboard_event.hpp>
 #include <nui/frontend/element_renderer.hpp>
 #include <nui/event_system/observed_value.hpp>
 #include <nui/event_system/listen.hpp>
@@ -182,6 +183,33 @@ namespace ScriptNuiComponents
                     reference = [state](std::weak_ptr<Nui::Dom::BasicElement> element) {
                         state->buttonElement = std::move(element);
                     },
+                    "keydown"_event = [state](Nui::WebApi::KeyboardEvent event) {
+                        const auto key = event.key();
+                        if (key != "ArrowDown" && key != "ArrowUp")
+                            return;
+
+                        const auto popoverId = fmt::format("select-options-{}", state->id);
+                        auto popover = Nui::val::global("document").template call<Nui::val>("getElementById", popoverId);
+                        if (popover.isNull() || popover.isUndefined())
+                            return;
+
+                        event.preventDefault();
+
+                        const bool isOpen = popover.template call<bool>("matches", ":popover-open"s);
+                        if (!isOpen)
+                        {
+                            auto btn = state->buttonElement.lock();
+                            if (btn)
+                                btn->val().template call<void>("click");
+                        }
+
+                        const std::string selector = (key == "ArrowDown")
+                            ? "div[data-index]:first-of-type"s
+                            : "div[data-index]:last-of-type"s;
+                        auto option = popover.template call<Nui::val>("querySelector", selector);
+                        if (!option.isNull() && !option.isUndefined())
+                            option.template call<void>("focus");
+                    },
                 },
                 std::move(state->options.attributes)
             )
@@ -209,6 +237,65 @@ namespace ScriptNuiComponents
                         p.flipUp ? "translateY(-100%)" : "none"
                     );
                 }),
+                "keydown"_event = [state](Nui::WebApi::KeyboardEvent event) {
+                    const auto key = event.key();
+                    if (key != "ArrowDown" && key != "ArrowUp" && key != "Enter" && key != "Escape")
+                        return;
+
+                    auto popover = event.currentTarget();
+                    auto focused = Nui::val::global("document")["activeElement"];
+
+                    if (key == "Escape")
+                    {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        popover.template call<void>("hidePopover");
+                        auto btn = state->buttonElement.lock();
+                        if (btn)
+                            btn->val().template call<void>("focus");
+                        return;
+                    }
+
+                    if (key == "Enter")
+                    {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        if (!focused.isNull() && !focused.isUndefined() &&
+                            focused.template call<bool>("hasAttribute", "data-index"s))
+                        {
+                            focused.template call<void>("click");
+                            auto btn = state->buttonElement.lock();
+                            if (btn)
+                                btn->val().template call<void>("focus");
+                        }
+                        return;
+                    }
+
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    auto options = popover.template call<Nui::val>("querySelectorAll", "div[data-index]"s);
+                    const int count = options["length"].template as<int>();
+                    if (count == 0)
+                        return;
+
+                    int currentIdx = -1;
+                    if (!focused.isNull() && !focused.isUndefined() &&
+                        focused.template call<bool>("hasAttribute", "data-index"s))
+                    {
+                        currentIdx = std::stoi(focused.template call<std::string>("getAttribute", "data-index"s));
+                    }
+
+                    int nextIdx;
+                    if (key == "ArrowDown")
+                        nextIdx = (currentIdx + 1) % count;
+                    else
+                        nextIdx = (currentIdx <= 0) ? (count - 1) : (currentIdx - 1);
+
+                    auto next = options.template call<Nui::val>("item", nextIdx);
+                    if (!next.isNull() && !next.isUndefined())
+                        next.template call<void>("focus");
+                },
                 onClick = [state, onChange = std::move(state->options.onChange)](Nui::WebApi::MouseEvent event) mutable {
                     event.val()["currentTarget"].call<void>("hidePopover");
                     event.stopPropagation();
@@ -264,7 +351,8 @@ namespace ScriptNuiComponents
                                 (void)item;
                                 return std::nullopt;
                             }
-                        }()
+                        }(),
+                        tabIndex = -1,
                     }(
                         elementRenderer(item)
                     );

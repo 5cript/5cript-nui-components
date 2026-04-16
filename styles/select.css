@@ -43,6 +43,11 @@
         box-shadow: var(--hover-shadow);
     }
 
+    &:focus-visible:not(:disabled) {
+        box-shadow: var(--focus-shadow);
+        outline: none;
+    }
+
     &>span:first-child {
         height: 1lh;
         flex-grow: 1;
@@ -103,9 +108,12 @@
             cursor: pointer;
             text-align: left;
 
-            &:hover {
+            &:hover,
+            &:focus,
+            &:focus-visible {
                 background-color: var(--theme-color);
                 color: var(--background-color);
+                outline: none;
             }
         }
     }
