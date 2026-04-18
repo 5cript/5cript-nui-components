@@ -4,20 +4,20 @@
     --background-color-warning: var(--script-nui-components-dialog-background-color--warning, #412402);
     --background-color-danger: var(--script-nui-components-dialog-background-color--danger, #501313);
     --background-color-regular: var(--script-nui-components-dialog-background-color--regular, #2C2C2A);
-    --dialog-border-radius: var(--script-nui-dialog-border-radius, 10px);
-    --dialog-font-size: var(--script-nui-dialog-font-size, 0.85rem);
-    --dialog-font: var(--script-nui-dialog-font, system-ui, -apple-system, sans-serif);
+    --dialog-border-radius: var(--script-nui-components-dialog-border-radius, 10px);
+    --dialog-font-size: var(--script-nui-components-dialog-font-size, 0.85rem);
+    --dialog-font: var(--script-nui-components-dialog-font, system-ui, -apple-system, sans-serif);
 
-    --dialog-text-color: var(--script-nui-dialog-color, #c9d1d9);
-    --dialog-header-color: var(--script-nui-dialog-header-color, #e6edf3);
-    --dialog-footer-color: var(--script-nui-dialog-footer-color, #8b949e);
+    --dialog-text-color: var(--script-nui-components-dialog-color, #c9d1d9);
+    --dialog-header-color: var(--script-nui-components-dialog-header-color, #e6edf3);
+    --dialog-footer-color: var(--script-nui-components-dialog-footer-color, #8b949e);
 
-    --dialog-body-background: var(--script-nui-dialog-cell-background, rgb(30, 30, 30));
-    --dialog-header-background: var(--script-nui-dialog-header-background, var(--dialog-body-background));
-    --dialog-footer-background: var(--script-nui-dialog-footer-background, var(--dialog-body-background));
+    --dialog-body-background: var(--script-nui-components-dialog-cell-background, rgb(30, 30, 30));
+    --dialog-header-background: var(--script-nui-components-dialog-header-background, var(--dialog-body-background));
+    --dialog-footer-background: var(--script-nui-components-dialog-footer-background, var(--dialog-body-background));
 
-    --dialog-border-color: var(--script-nui-dialog-border-color, #444444);
-    --dialog-box-shadow: var(--script-nui-dialog-box-shadow, 0 2px 10px rgba(0, 0, 0, 0.5));
+    --dialog-border-color: var(--script-nui-components-dialog-border-color, #444444);
+    --dialog-box-shadow: var(--script-nui-components-dialog-box-shadow, 0 2px 10px rgba(0, 0, 0, 0.5));
 
     & .script-nui-dialog-header {
         background: var(--dialog-header-background);
