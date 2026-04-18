@@ -1,0 +1,18 @@
+.script-nui-spinner {
+    width: var(--script-nui-components-spinner-size, 20px);
+    height: var(--script-nui-components-spinner-size, 20px);
+    border-width: var(--script-nui-components-spinner-thickness, 2px);
+    border-style: solid;
+    border-color: color-mix(in srgb, var(--script-nui-components-spinner-color, currentColor) 25%, transparent);
+    border-top-color: var(--script-nui-components-spinner-color, currentColor);
+    border-radius: 50%;
+    animation: script-nui-spin 0.7s linear infinite;
+    flex-shrink: 0;
+    box-sizing: border-box;
+}
+
+@keyframes script-nui-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

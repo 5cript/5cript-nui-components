@@ -353,22 +353,22 @@ Nui::ElementRenderer MainPage::render()
 
 ```c++
 :root {
-    --script-nui-table-border-radius: 10px;
-    --script-nui-table-font-size: 0.85rem;
-    --script-nui-table-font: system-ui, -apple-system, sans-serif;
+    --script-nui-components-table-border-radius: 10px;
+    --script-nui-components-table-font-size: 0.85rem;
+    --script-nui-components-table-font: system-ui, -apple-system, sans-serif;
 
-    --script-nui-table-color: #c9d1d9;
-    --script-nui-table-header-color: #e6edf3;
-    --script-nui-table-footer-color: #8b949e;
+    --script-nui-components-table-color: #c9d1d9;
+    --script-nui-components-table-header-color: #e6edf3;
+    --script-nui-components-table-footer-color: #8b949e;
 
-    --script-nui-table-cell-background: rgb(30, 30, 30);
-    --script-nui-table-header-background: linear-gradient(180deg, var(--script-nui-table-cell-background), color-mix(in srgb, var(--script-nui-table-cell-background), black 40%));
-    --script-nui-table-footer-background: color-mix(in srgb, var(--script-nui-table-cell-background), white 10%);
+    --script-nui-components-table-cell-background: rgb(30, 30, 30);
+    --script-nui-components-table-header-background: linear-gradient(180deg, var(--script-nui-components-table-cell-background), color-mix(in srgb, var(--script-nui-components-table-cell-background), black 40%));
+    --script-nui-components-table-footer-background: color-mix(in srgb, var(--script-nui-components-table-cell-background), white 10%);
 
-    --script-nui-table-border-color: #444444;
-    --script-nui-table-row-hover: color-mix(in srgb, var(--script-nui-table-cell-background), white 10%);
+    --script-nui-components-table-border-color: #444444;
+    --script-nui-components-table-row-hover: color-mix(in srgb, var(--script-nui-components-table-cell-background), white 10%);
 
-    --script-nui-table-handle-color: rgb(90, 90, 90);
-    --script-nui-table-handle-active: #0078d4;
+    --script-nui-components-table-handle-color: rgb(90, 90, 90);
+    --script-nui-components-table-handle-active: #0078d4;
 }
 ```

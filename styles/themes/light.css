@@ -40,28 +40,28 @@
     --script-nui-components-tabs-close-button-bg-selected-hover: rgba(0, 0, 0, 0.06);
 
     /* Table (light) */
-    --script-nui-table-color: #1a1a1a;
-    --script-nui-table-header-color: #111111;
-    --script-nui-table-footer-color: #555555;
-    --script-nui-table-cell-background: #f7f7f7;
-    --script-nui-table-header-background: linear-gradient(180deg, #e8e8e8, #d8d8d8);
-    --script-nui-table-footer-background: #ececec;
-    --script-nui-table-border-color: #cccccc;
-    --script-nui-table-row-hover: #ebebeb;
-    --script-nui-table-handle-color: #aaaaaa;
-    --script-nui-table-handle-active: #0078d4;
+    --script-nui-components-table-color: #1a1a1a;
+    --script-nui-components-table-header-color: #111111;
+    --script-nui-components-table-footer-color: #555555;
+    --script-nui-components-table-cell-background: #f7f7f7;
+    --script-nui-components-table-header-background: linear-gradient(180deg, #e8e8e8, #d8d8d8);
+    --script-nui-components-table-footer-background: #ececec;
+    --script-nui-components-table-border-color: #cccccc;
+    --script-nui-components-table-row-hover: #ebebeb;
+    --script-nui-components-table-handle-color: #aaaaaa;
+    --script-nui-components-table-handle-active: #0078d4;
 
     /* Dialog (light) */
     --script-nui-components-dialog-background-color--primary: #E6F1FB;
     --script-nui-components-dialog-background-color--warning: #FAEEDA;
     --script-nui-components-dialog-background-color--danger: #FCEBEB;
     --script-nui-components-dialog-background-color--regular: #F1EFE8;
-    --script-nui-dialog-color: #1a1a1a;
-    --script-nui-dialog-header-color: #111111;
-    --script-nui-dialog-footer-color: #555555;
-    --script-nui-dialog-cell-background: #f7f7f7;
-    --script-nui-dialog-border-color: #cccccc;
-    --script-nui-dialog-box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    --script-nui-components-dialog-color: #1a1a1a;
+    --script-nui-components-dialog-header-color: #111111;
+    --script-nui-components-dialog-footer-color: #555555;
+    --script-nui-components-dialog-cell-background: #f7f7f7;
+    --script-nui-components-dialog-border-color: #cccccc;
+    --script-nui-components-dialog-box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
 
     /* Message strip (light) */
     --script-nui-message-strip-regular-bg: #F1EFE8;

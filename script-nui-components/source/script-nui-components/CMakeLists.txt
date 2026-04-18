@@ -9,6 +9,8 @@ add_library(
         "dropdown_menu.cpp"
         "color_picker.cpp"
         "button.cpp"
+        "spinner.cpp"
+        "anchored_panel.cpp"
         "message_strip.cpp"
         "switch.cpp"
         "text_input.cpp"

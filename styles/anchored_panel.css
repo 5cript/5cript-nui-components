@@ -1,0 +1,77 @@
+.script-nui-anchored-panel {
+    --anchored-panel-bg: var(
+        --script-nui-components-anchored-panel-background,
+        var(--script-nui-components-dialog-cell-background, rgb(30, 30, 30))
+    );
+    --anchored-panel-color: var(
+        --script-nui-components-anchored-panel-color,
+        var(--script-nui-components-dialog-color, #c9d1d9)
+    );
+    --anchored-panel-border-color: var(
+        --script-nui-components-anchored-panel-border-color,
+        var(--script-nui-components-dialog-border-color, #444444)
+    );
+    --anchored-panel-border-radius: var(--script-nui-components-anchored-panel-border-radius, 10px);
+    --anchored-panel-box-shadow: var(
+        --script-nui-components-anchored-panel-box-shadow,
+        var(--script-nui-components-dialog-box-shadow, 0 2px 10px rgba(0, 0, 0, 0.5))
+    );
+
+    --background-color-primary: var(--script-nui-components-dialog-background-color--primary, #042C53);
+    --background-color-warning: var(--script-nui-components-dialog-background-color--warning, #412402);
+    --background-color-danger: var(--script-nui-components-dialog-background-color--danger, #501313);
+    --background-color-regular: var(--script-nui-components-dialog-background-color--regular, #2C2C2A);
+
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: var(--anchored-panel-bg);
+    color: var(--anchored-panel-color);
+    border: 1px solid var(--anchored-panel-border-color);
+    border-radius: var(--anchored-panel-border-radius);
+    box-shadow: var(--anchored-panel-box-shadow);
+    min-width: 240px;
+    max-width: min(90%, 480px);
+    max-height: 90%;
+    overflow: hidden;
+    display: none;
+    flex-direction: column;
+    z-index: 100;
+
+    &[open] {
+        display: flex;
+    }
+
+    & .script-nui-anchored-panel-header {
+        padding: 0.75em 1em;
+        font-weight: 600;
+        border-bottom: 1px solid var(--anchored-panel-border-color);
+        flex: 0 0 auto;
+
+        &.regular {
+            background: var(--background-color-regular);
+        }
+
+        &.primary {
+            background: var(--background-color-primary);
+        }
+
+        &.warning {
+            background: var(--background-color-warning);
+        }
+
+        &.danger {
+            background: var(--background-color-danger);
+        }
+    }
+
+    & .script-nui-anchored-panel-body {
+        padding: 1em;
+        flex: 1 1 auto;
+        overflow: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75em;
+    }
+}
