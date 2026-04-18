@@ -40,6 +40,17 @@
         &.danger {
             background: var(--background-color-danger);
         }
+
+        &.script-nui-dialog-header-draggable {
+            cursor: grab;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+
+            &:active {
+                cursor: grabbing;
+            }
+        }
     }
 
     & .script-nui-dialog-body {

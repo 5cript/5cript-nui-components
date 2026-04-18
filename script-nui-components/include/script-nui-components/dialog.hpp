@@ -55,6 +55,14 @@ namespace ScriptNuiComponents
             std::function<void(std::optional<Button> buttonPressed)> onClose = [](auto) {};
             bool modal{true};
             bool mayCloseWithoutButton{false};
+            /**
+             * @brief When true, the user can drag the dialog around the
+             *        viewport by its header.  Only meaningful for non-modal
+             *        dialogs (modal dialogs are centered and their position
+             *        is controlled by the browser).  Drag position is
+             *        reset on each call to open().
+             */
+            bool draggable{false};
         };
 
         struct ButtonLabels

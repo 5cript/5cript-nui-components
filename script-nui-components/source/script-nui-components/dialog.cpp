@@ -35,6 +35,15 @@ namespace ScriptNuiComponents
 
         std::weak_ptr<Dom::BasicElement> dialog{};
         bool mayCloseWithoutButton = false;
+        Observed<bool> draggable{false};
+
+        // Live drag state.  Only meaningful while a pointerdown on the
+        // header has captured the pointer and pointerup hasn't fired.
+        bool dragging{false};
+        double dragStartPointerX{0};
+        double dragStartPointerY{0};
+        double dragStartDialogLeft{0};
+        double dragStartDialogTop{0};
     };
 
     Dialog::Dialog(std::string id, ElementRenderer body)
@@ -56,6 +65,7 @@ namespace ScriptNuiComponents
         impl_->buttons = options.buttons;
         impl_->onClose = options.onClose;
         impl_->mayCloseWithoutButton = options.mayCloseWithoutButton;
+        impl_->draggable = options.draggable;
 
         // If called outside an event handler, caller must flush manually.
         Nui::globalEventContext.executeActiveEventsImmediately();
@@ -63,6 +73,18 @@ namespace ScriptNuiComponents
         auto dialog = impl_->dialog.lock();
         if (dialog)
         {
+            // Clear any leftover drag offset from a previous open() so the
+            // dialog comes up in its default browser-centered position.
+            // transform is also cleared because the drag path sets left/top
+            // in absolute pixels and needs the CSS translate(-50%,-50%)
+            // centering to be out of the way once the user has moved it.
+            auto style = dialog->val()["style"];
+            style.set("left", std::string{""});
+            style.set("top", std::string{""});
+            style.set("margin", std::string{""});
+            style.set("transform", std::string{""});
+            impl_->dragging = false;
+
             if (options.modal)
                 dialog->val().call<void>("showModal");
             else
@@ -177,14 +199,118 @@ namespace ScriptNuiComponents
             }
         }(
             // Header
-            div{class_ = observe(impl_->styleVariant)
+            div{
+                class_ = observe(impl_->styleVariant, impl_->draggable)
                     .generate(
                         [this]()
                         {
-                            return fmt::format("{} script-nui-dialog-header", toString(*impl_->styleVariant));
+                            return fmt::format(
+                                "{} script-nui-dialog-header{}",
+                                toString(*impl_->styleVariant),
+                                impl_->draggable.value() ? " script-nui-dialog-header-draggable" : ""
+                            );
                         }
                     ),
-                style = "flex: 0 0 auto;"}(impl_->headerText),
+                style = "flex: 0 0 auto;",
+                // Draggable header: pointer capture means pointermove /
+                // pointerup keep firing on the header even while the mouse
+                // is outside it, so we don't need document-level listeners.
+                // Inactive (draggable=false) — all three branches bail on
+                // the flag check so there is no cost to non-draggable
+                // dialogs.
+                "pointerdown"_event = [this](Nui::val event) {
+                    if (!impl_->draggable.value())
+                        return;
+                    // Only primary mouse button / touch — ignore right click
+                    // and pen side buttons.
+                    if (event["button"].as<int>() != 0)
+                        return;
+                    auto dialog = impl_->dialog.lock();
+                    if (!dialog)
+                        return;
+
+                    auto rect = dialog->val().call<Nui::val>("getBoundingClientRect");
+                    impl_->dragStartPointerX = event["clientX"].as<double>();
+                    impl_->dragStartPointerY = event["clientY"].as<double>();
+                    impl_->dragStartDialogLeft = rect["left"].as<double>();
+                    impl_->dragStartDialogTop = rect["top"].as<double>();
+                    impl_->dragging = true;
+
+                    // Pin the dialog to its current position before the
+                    // drag mutates left/top — otherwise the browser's own
+                    // centering rules (margin:auto + translate(-50%,-50%))
+                    // would fight the first pointermove by snapping the
+                    // dialog back.  We drop transform here as well: the
+                    // centered on-screen position is already baked into
+                    // the bounding-rect coordinates we just captured, so
+                    // leaving the translate in place would re-offset the
+                    // dialog by half its size as soon as we commit left/top.
+                    auto style = dialog->val()["style"];
+                    style.set("margin", std::string{"0"});
+                    style.set("transform", std::string{"none"});
+                    style.set(
+                        "left",
+                        fmt::format("{}px", impl_->dragStartDialogLeft)
+                    );
+                    style.set(
+                        "top",
+                        fmt::format("{}px", impl_->dragStartDialogTop)
+                    );
+
+                    event["currentTarget"].call<void>(
+                        "setPointerCapture", event["pointerId"]
+                    );
+                    event.call<void>("preventDefault");
+                },
+                "pointermove"_event = [this](Nui::val event) {
+                    if (!impl_->dragging)
+                        return;
+                    auto dialog = impl_->dialog.lock();
+                    if (!dialog)
+                        return;
+
+                    const double dx = event["clientX"].as<double>() - impl_->dragStartPointerX;
+                    const double dy = event["clientY"].as<double>() - impl_->dragStartPointerY;
+                    auto style = dialog->val()["style"];
+                    style.set(
+                        "left",
+                        fmt::format("{}px", impl_->dragStartDialogLeft + dx)
+                    );
+                    style.set(
+                        "top",
+                        fmt::format("{}px", impl_->dragStartDialogTop + dy)
+                    );
+                },
+                "pointerup"_event = [this](Nui::val event) {
+                    if (!impl_->dragging)
+                        return;
+                    impl_->dragging = false;
+                    if (event["currentTarget"].call<bool>(
+                            "hasPointerCapture", event["pointerId"]
+                        ))
+                    {
+                        event["currentTarget"].call<void>(
+                            "releasePointerCapture", event["pointerId"]
+                        );
+                    }
+                },
+                "pointercancel"_event = [this](Nui::val event) {
+                    // Pointer cancelled mid-drag (OS gesture, tab blur, …).
+                    // Leave the dialog at its last known position and stop
+                    // tracking.
+                    if (!impl_->dragging)
+                        return;
+                    impl_->dragging = false;
+                    if (event["currentTarget"].call<bool>(
+                            "hasPointerCapture", event["pointerId"]
+                        ))
+                    {
+                        event["currentTarget"].call<void>(
+                            "releasePointerCapture", event["pointerId"]
+                        );
+                    }
+                },
+            }(impl_->headerText),
 
             // Body
             div{class_ = "script-nui-dialog-body", style = "flex: 1 1 auto;", tabIndex = 0}(impl_->body),
