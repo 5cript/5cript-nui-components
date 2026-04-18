@@ -59,4 +59,15 @@ namespace ScriptNuiComponents
         struct Implementation;
         std::unique_ptr<Implementation> impl_;
     };
+
+    /**
+     * @brief Stateless free-function alternative to the AnchoredPanel class.
+     *        Returns a permanently-open renderer for cases where the caller's
+     *        containing element already controls when to mount/hide the panel
+     *        (e.g. a connection-lost overlay that itself flips display:none).
+     */
+    Nui::ElementRenderer anchoredPanel(
+        AnchoredPanel::OpenOptions options,
+        Nui::ElementRenderer body
+    );
 } // namespace ScriptNuiComponents

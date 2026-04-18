@@ -70,4 +70,22 @@ namespace ScriptNuiComponents
             div{class_ = "script-nui-anchored-panel-body"}(impl_->body)
         );
     }
+
+    Nui::ElementRenderer anchoredPanel(AnchoredPanel::OpenOptions options, Nui::ElementRenderer body)
+    {
+        using Nui::Elements::div;
+        using namespace Nui::Attributes;
+
+        const auto headerClass =
+            fmt::format("script-nui-anchored-panel-header {}", toString(options.styleVariant));
+        auto headerText = std::move(options.headerText);
+
+        return div{
+            class_ = "script-nui-anchored-panel",
+            "open"_attr = std::string{""},
+        }(
+            div{class_ = headerClass}(std::move(headerText)),
+            div{class_ = "script-nui-anchored-panel-body"}(std::move(body))
+        );
+    }
 } // namespace ScriptNuiComponents
