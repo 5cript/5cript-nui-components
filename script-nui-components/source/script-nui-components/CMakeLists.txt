@@ -12,6 +12,7 @@ add_library(
         "spinner.cpp"
         "anchored_panel.cpp"
         "message_strip.cpp"
+        "slider.cpp"
         "switch.cpp"
         "text_input.cpp"
         "carousel.cpp"
