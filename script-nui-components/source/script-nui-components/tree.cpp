@@ -229,14 +229,33 @@ namespace ScriptNuiComponents
             const auto prevIt = nodes.find(id);
             const bool hadPrev = prevIt != nodes.end();
             bool previousExpanded = false;
+            bool lazyReseed = false;
             if (hadPrev)
             {
-                rec.everExpanded = prevIt->second.everExpanded;
                 rec.pageCursor = prevIt->second.pageCursor;
-                rec.loadState = (prevIt->second.loadState == NodeRecord::Load::Loaded || rec.loadState == NodeRecord::Load::Loaded)
-                    ? NodeRecord::Load::Loaded
-                    : prevIt->second.loadState;
-                rec.loadError = prevIt->second.loadError;
+                lazyReseed =
+                    rec.data.kind == NodeKind::Directory && !hasInlineChildren &&
+                    prevIt->second.loadState == NodeRecord::Load::Loaded;
+                // Lazy re-seed (caller passes children={} for a directory whose
+                // previous record already had children loaded) wipes the child
+                // list — so also reset everExpanded / loadState / loadError,
+                // otherwise @ref expand short-circuits the childrenLoader and
+                // the row renders empty.
+                if (lazyReseed)
+                {
+                    rec.everExpanded = false;
+                    rec.loadState = NodeRecord::Load::NotStarted;
+                    rec.loadError.clear();
+                }
+                else
+                {
+                    rec.everExpanded = prevIt->second.everExpanded;
+                    if (hasInlineChildren)
+                        rec.loadState = NodeRecord::Load::Loaded;
+                    else
+                        rec.loadState = prevIt->second.loadState;
+                    rec.loadError = prevIt->second.loadError;
+                }
                 if (prevIt->second.inLru)
                 {
                     collapsedLru.erase(prevIt->second.lruIt);
@@ -259,7 +278,12 @@ namespace ScriptNuiComponents
             // Sync observed state and rebuild the page indices for this node.
             auto& observedNode = *getOrCreateObs(id);
             auto& finalRec = nodes.at(id);
-            const bool startExpanded = hadPrev ? previousExpanded : wantInitial;
+            // On a lazy re-seed we must also force the visible `expanded` bit
+            // back to false — the children DOM has been implicitly un-mounted
+            // (everExpanded=false) and leaving the chevron in its previous
+            // expanded state would render an empty, stuck-open row.
+            const bool startExpanded =
+                lazyReseed ? false : (hadPrev ? previousExpanded : wantInitial);
 
             if (observedNode.everExpanded.value() != finalRec.everExpanded)
                 observedNode.everExpanded = finalRec.everExpanded;
@@ -538,6 +562,17 @@ namespace ScriptNuiComponents
             if (findIt == nodes.end())
                 return;
 
+            // Caller-provided override — takes full responsibility for the
+            // selection mutation.  Used for sparse-set semantics where a single
+            // entry implies a whole subtree.
+            if (options.toggleSelection)
+            {
+                options.toggleSelection(id, nowSelected, selectedSet);
+                options.selected->modify();
+                Nui::globalEventContext.executeActiveEventsImmediately();
+                return;
+            }
+
             if (findIt->second.data.kind == NodeKind::Leaf)
             {
                 if (nowSelected)
@@ -562,17 +597,15 @@ namespace ScriptNuiComponents
             Nui::globalEventContext.executeActiveEventsImmediately();
         }
 
-        enum class TriState
-        {
-            Unchecked,
-            Indeterminate,
-            Checked,
-        };
+        using TriState = SelectionState;
 
         TriState computeSelectionState(NodeId const& id) const
         {
             if (!options.selected)
                 return TriState::Unchecked;
+            // Caller override — full responsibility for the tri-state value.
+            if (options.selectionStateResolver)
+                return options.selectionStateResolver(id);
             auto const& selectedSet = options.selected->value();
             const auto findIt = nodes.find(id);
             if (findIt == nodes.end())
@@ -982,6 +1015,13 @@ namespace ScriptNuiComponents
         if (!impl_->options.selected)
             return;
         auto& selectedSet = impl_->options.selected->value();
+        if (impl_->options.selectAllAction)
+        {
+            impl_->options.selectAllAction(selectedSet);
+            impl_->options.selected->modify();
+            Nui::globalEventContext.executeActiveEventsImmediately();
+            return;
+        }
         for (auto const& [id, rec] : impl_->nodes)
         {
             if (rec.data.kind != NodeKind::Leaf)
@@ -1001,6 +1041,13 @@ namespace ScriptNuiComponents
         if (!impl_->options.selected)
             return;
         auto& selectedSet = impl_->options.selected->value();
+        if (impl_->options.deselectAllAction)
+        {
+            impl_->options.deselectAllAction(selectedSet);
+            impl_->options.selected->modify();
+            Nui::globalEventContext.executeActiveEventsImmediately();
+            return;
+        }
         if (impl_->options.onSelectionChanged)
         {
             // Snapshot the IDs before clearing so callbacks see a stable set.
@@ -1015,6 +1062,17 @@ namespace ScriptNuiComponents
         }
         impl_->options.selected->modify();
         Nui::globalEventContext.executeActiveEventsImmediately();
+    }
+
+    std::vector<Tree::NodeId> Tree::childrenOf(NodeId const& parent) const
+    {
+        // Root-level order lives outside the nodes map (synthetic root).
+        if (parent.empty())
+            return impl_->rootOrder;
+        const auto findIt = impl_->nodes.find(parent);
+        if (findIt == impl_->nodes.end())
+            return {};
+        return findIt->second.childOrder;
     }
 
     Nui::ElementRenderer Tree::operator()(std::vector<Nui::Attribute> additionalAttributes)
