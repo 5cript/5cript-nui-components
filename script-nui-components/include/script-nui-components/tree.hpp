@@ -48,6 +48,20 @@ namespace ScriptNuiComponents
             Directory,
         };
 
+        /** @brief Tri-state the checkbox exposes for a row.  A directory that
+         *         has no loaded children yet still has to report some state —
+         *         callers that drive selection with sparse semantics (e.g. a
+         *         diff-tree where "ancestor-in-set" implies every descendant)
+         *         install a resolver to override the default loaded-descendant
+         *         walk.
+         */
+        enum class SelectionState
+        {
+            Unchecked,
+            Indeterminate,
+            Checked,
+        };
+
         struct Node
         {
             NodeId id;
@@ -113,6 +127,27 @@ namespace ScriptNuiComponents
             /// tree.  Callers may also mutate it externally.
             std::shared_ptr<Nui::Observed<std::unordered_set<NodeId>>> selected{};
             SelectionChanged onSelectionChanged{};
+            /// OPTIONAL.  Overrides the tree's default loaded-descendant walk
+            /// when computing a row's tri-state.  Called during every re-render
+            /// driven by @ref selected.  Useful for sparse selection schemes
+            /// where a collapsed directory is Checked by ancestor-implication
+            /// even though none of its descendants are loaded.
+            std::function<SelectionState(NodeId const&)> selectionStateResolver{};
+            /// OPTIONAL.  Overrides the built-in toggle logic (which just
+            /// inserts/erases loaded leaves).  The callback owns the mutation;
+            /// the tree still calls @c selected->modify() afterwards.
+            std::function<void(
+                NodeId const&,
+                bool nowSelected,
+                std::unordered_set<NodeId>&
+            )> toggleSelection{};
+            /// OPTIONAL.  Overrides the built-in "select every loaded leaf"
+            /// behaviour of @ref Tree::selectAll().  Lets callers seed a
+            /// sparse selection (e.g. only the root-level relKeys).
+            std::function<void(std::unordered_set<NodeId>&)> selectAllAction{};
+            /// OPTIONAL.  Overrides the built-in "clear the set" behaviour of
+            /// @ref Tree::deselectAll().
+            std::function<void(std::unordered_set<NodeId>&)> deselectAllAction{};
             std::vector<Nui::Attribute> attributes{};
             /// Render a built-in collapse-all icon button in the tree toolbar.
             bool showCollapseAllButton{false};
@@ -158,6 +193,14 @@ namespace ScriptNuiComponents
          *         Fires onSelectionChanged once per previously-selected leaf.
          */
         void deselectAll();
+
+        /** @brief Returns the loaded direct children of @p parent in display
+         *         order.  Returns an empty vector when @p parent isn't in the
+         *         tree or its children haven't been loaded yet.  Used by
+         *         callers that implement sparse selection (they need to
+         *         enumerate siblings for collapse-up / fill-out).
+         */
+        std::vector<NodeId> childrenOf(NodeId const& parent) const;
 
         Nui::ElementRenderer operator()(std::vector<Nui::Attribute> additionalAttributes = {});
 
