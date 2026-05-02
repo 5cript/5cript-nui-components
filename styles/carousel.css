@@ -1,37 +1,111 @@
 .script-nui-carousel {
-    --border-color: var(--script-nui-carousel-border-color, #505050);
-    --button-color: var(--script-nui-carousel-button-color, #dedede);
-    --button-hover-color: var(--script-nui-carousel-button-hover-color, #ffffff);
-    --button-hover-background: var(--script-nui-carousel-button-hover-background, #ffffff69);
+    /* ---- Theme tokens (override per host page) ----
+       The defaults below produce the dark, glass-morphism look used on the
+       NuiSftp landing page. Each token also falls back to a sibling var so
+       host pages already exposing a global design system (e.g. --line,
+       --ink-dim) get a consistent palette for free. */
+    --border-color: var(--script-nui-carousel-border-color, var(--line-strong, rgba(255, 255, 255, 0.13)));
+    --frame-bg: var(--script-nui-carousel-frame-bg, var(--glass-bg, rgba(22, 22, 30, 0.55)));
+    --frame-border: var(--script-nui-carousel-frame-border, var(--glass-border, rgba(255, 255, 255, 0.08)));
+    --frame-blur: var(--script-nui-carousel-frame-blur, var(--glass-blur, 22px));
+    --frame-radius: var(--script-nui-carousel-frame-radius, var(--radius-xl, 32px));
+    --frame-min-height: var(--script-nui-carousel-frame-min-height, 520px);
+
+    --button-color: var(--script-nui-carousel-button-color, var(--ink-dim, #a6a3b8));
+    --button-hover-color: var(--script-nui-carousel-button-hover-color, var(--ink, #ecebf2));
+    --button-bg: var(--script-nui-carousel-button-bg, rgba(255, 255, 255, 0.04));
+    --button-hover-background: var(--script-nui-carousel-button-hover-background, rgba(255, 255, 255, 0.08));
     --button-disabled-opacity: var(--script-nui-carousel-button-disabled-opacity, 0.35);
-    --button-size: var(--script-nui-carousel-button-size, 2em);
-    --indicator-color: var(--script-nui-carousel-indicator-color, currentColor);
+    --button-size: var(--script-nui-carousel-button-size, 40px);
+
+    --indicator-color: var(--script-nui-carousel-indicator-color, var(--ink-muted, #6e6b80));
+    --counter-color: var(--script-nui-carousel-counter-color, var(--ink-muted, #6e6b80));
+    --counter-font: var(--script-nui-carousel-counter-font, 'JetBrains Mono', ui-monospace, monospace);
+
+    --dot-color: var(--script-nui-carousel-dot-color, rgba(255, 255, 255, 0.12));
+    --dot-active-bg: var(--script-nui-carousel-dot-active-bg,
+        var(--accent-grad, linear-gradient(135deg, #b59cff, #7fdce0)));
+    --dot-width: var(--script-nui-carousel-dot-width, 24px);
+    --dot-active-width: var(--script-nui-carousel-dot-active-width, 40px);
+    --dot-height: var(--script-nui-carousel-dot-height, 4px);
+
     --gap: var(--script-nui-carousel-gap, 0.75rem);
-    --animation-duration: var(--script-nui-carousel-animation-duration, 250ms);
+    --controls-margin: var(--script-nui-carousel-controls-margin, 24px);
+    --scroll-duration: var(--script-nui-carousel-scroll-duration, 600ms);
+    --scroll-easing: var(--script-nui-carousel-scroll-easing, cubic-bezier(0.7, 0, 0.2, 1));
 
     position: relative;
     width: 100%;
 
-    /* ---- Shared button styles ---- */
+    /* ---- Glass frame (top/bottom variants) ---- */
+    & .script-nui-carousel__frame {
+        position: relative;
+        border-radius: var(--frame-radius);
+        overflow: hidden;
+        background: var(--frame-bg);
+        border: 1px solid var(--frame-border);
+        backdrop-filter: blur(var(--frame-blur)) saturate(140%);
+        -webkit-backdrop-filter: blur(var(--frame-blur)) saturate(140%);
+        min-height: var(--frame-min-height);
+        box-shadow:
+            0 1px 0 rgba(255, 255, 255, 0.06) inset,
+            0 30px 80px rgba(0, 0, 0, 0.4);
+    }
+
+    /* ---- Track ----
+       All slots live in DOM at all times. The track translates by
+       -page * 100% to bring the active slot into view; CSS transition
+       handles the smooth slide. */
+    & .script-nui-carousel__track {
+        position: relative;
+        width: 100%;
+        display: flex;
+        will-change: transform;
+        /* Hint to the browser that horizontal touch gestures are handled here. */
+        touch-action: pan-y;
+        cursor: grab;
+
+        &:active {
+            cursor: grabbing;
+        }
+
+        &.script-nui-carousel__track--animated {
+            transition: transform var(--scroll-duration) var(--scroll-easing);
+        }
+
+        & .script-nui-carousel__card {
+            flex: 0 0 100%;
+            width: 100%;
+            min-width: 0;
+        }
+    }
+
+    /* ---- Prev / Next round arrow buttons ---- */
     & .script-nui-carousel__prev,
     & .script-nui-carousel__next {
-        background: none;
-        border: 1px solid var(--button-color);
+        background: var(--button-bg);
+        border: 1px solid var(--border-color);
         border-radius: 50%;
         cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.25rem;
+        color: var(--button-color);
+        fill: currentColor;
+        display: inline-grid;
+        place-items: center;
+        font-size: 1.1rem;
         line-height: 1;
-        min-width: var(--button-size);
-        min-height: var(--button-size);
-        padding: 0.25em 0.6em;
-        transition: border-color 150ms;
+        width: var(--button-size);
+        height: var(--button-size);
+        padding: 0;
+        transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+
+        & svg {
+            width: 1em;
+            height: 1em;
+        }
 
         &:hover {
-            border-color: var(--button-hover-color);
             background-color: var(--button-hover-background);
+            color: var(--button-hover-color);
         }
 
         &.script-nui-carousel__prev--disabled,
@@ -42,46 +116,59 @@
         }
     }
 
-    /* ---- Track ---- */
-    & .script-nui-carousel__track {
-        position: relative;
-        width: 100%;
-        /* Hint to the browser that horizontal touch gestures are handled here. */
-        touch-action: pan-y;
-        cursor: grab;
-
-        &:active {
-            cursor: grabbing;
-        }
-
-        & .script-nui-carousel__card {
-            display: none;
-            width: 100%;
-
-            &.script-nui-carousel__card--active {
-                display: block;
-
-                &.script-nui-carousel__animated {
-                    animation: script-nui-carousel-slide-in var(--animation-duration) ease-out;
-                }
-            }
-        }
-    }
-
     /* ---- Controls bar (top / bottom variants) ---- */
     & .script-nui-carousel__controls {
         display: flex;
         align-items: center;
-        justify-content: center;
+        justify-content: space-between;
         gap: var(--gap);
-        fill: var(--button-color);
+        margin-top: var(--controls-margin);
+        padding: 0 4px;
 
+        /* Legacy indicator (used by the Sides layout). */
         & .script-nui-carousel__indicator {
             color: var(--indicator-color);
             font-variant-numeric: tabular-nums;
             min-width: 4ch;
             text-align: center;
         }
+    }
+
+    /* ---- Dot strip ---- */
+    & .script-nui-carousel__dots {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+    & .script-nui-carousel__dot {
+        width: var(--dot-width);
+        height: var(--dot-height);
+        border-radius: 999px;
+        background: var(--dot-color);
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        transition: background 200ms ease, width 300ms cubic-bezier(0.7, 0, 0.2, 1);
+    }
+    & .script-nui-carousel__dot--active {
+        width: var(--dot-active-width);
+        background: var(--dot-active-bg);
+    }
+
+    /* ---- Arrows + counter pill ---- */
+    & .script-nui-carousel__arrows {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    & .script-nui-carousel__counter {
+        font-family: var(--counter-font);
+        font-size: 12px;
+        color: var(--counter-color);
+        margin: 0 12px;
+        min-width: 56px;
+        text-align: center;
+        font-variant-numeric: tabular-nums;
     }
 
     /* ==========================================================
@@ -92,14 +179,19 @@
     &.script-nui-carousel--controls-bottom {
         display: flex;
         flex-direction: column;
-        gap: var(--gap);
+        gap: 0;
     }
 
     /* ---- Top ---- */
     &.script-nui-carousel--controls-top {
         display: flex;
         flex-direction: column;
-        gap: var(--gap);
+        gap: 0;
+
+        & .script-nui-carousel__controls {
+            margin-top: 0;
+            margin-bottom: var(--controls-margin);
+        }
     }
 
     /* ---- Sides ---- */
@@ -112,15 +204,19 @@
             display: flex;
             flex-direction: row;
             align-items: stretch;
+            overflow: hidden;
             gap: var(--gap);
 
             /* First controls block: show only prev, hide next + indicator */
             & .script-nui-carousel__controls:first-child {
+                margin-top: 0;
                 & .script-nui-carousel__next { display: none; }
                 & .script-nui-carousel__indicator { display: none; }
                 & .script-nui-carousel__prev {
                     border-radius: 4px;
                     align-self: stretch;
+                    width: auto;
+                    height: auto;
                     min-height: unset;
                     padding: 0 0.5em;
                 }
@@ -128,11 +224,14 @@
 
             /* Second controls block: show only next, hide prev + indicator */
             & .script-nui-carousel__controls:last-child {
+                margin-top: 0;
                 & .script-nui-carousel__prev { display: none; }
                 & .script-nui-carousel__indicator { display: none; }
                 & .script-nui-carousel__next {
                     border-radius: 4px;
                     align-self: stretch;
+                    width: auto;
+                    height: auto;
                     min-height: unset;
                     padding: 0 0.5em;
                 }
@@ -146,13 +245,11 @@
     }
 }
 
-@keyframes script-nui-carousel-slide-in {
-    from {
-        opacity: 0;
-        transform: translateX(40px);
+@media (prefers-reduced-motion: reduce) {
+    .script-nui-carousel .script-nui-carousel__track--animated {
+        transition: none;
     }
-    to {
-        opacity: 1;
-        transform: translateX(0);
+    .script-nui-carousel .script-nui-carousel__dot {
+        transition: none;
     }
 }

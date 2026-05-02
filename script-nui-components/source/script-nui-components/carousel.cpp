@@ -1,6 +1,7 @@
 #include <script-nui-components/carousel.hpp>
 
 #include <nui/frontend/elements.hpp>
+#include <nui/frontend/elements/nil.hpp>
 #include <nui/frontend/attributes.hpp>
 #include <nui/event_system/observed_value.hpp>
 #include <nui/event_system/listen.hpp>
@@ -11,11 +12,14 @@
 #include <ui5-sap-icons/icons/navigation-left-arrow.hpp>
 #include <ui5-sap-icons/icons/navigation-right-arrow.hpp>
 
+#include <fmt/format.h>
+
 #include <algorithm>
 #include <cmath>
-#include <deque>
+#include <cstddef>
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace ScriptNuiComponents
 {
@@ -40,11 +44,21 @@ namespace ScriptNuiComponents
         Carousel::Factory factory;
         int itemCount;
         int cacheRadius;
-        int windowLo{0};
         CarouselControlsPosition controlsPosition;
         bool disableSwipe;
 
-        Nui::Observed<std::deque<std::unique_ptr<Card>>> cards;
+        // One slot per logical card index. Slots outside the cache window stay
+        // empty (nullptr) so the flex track keeps its horizontal positioning.
+        std::vector<std::unique_ptr<Card>> cards;
+
+        // Per-slot version counter. Bumping triggers re-render of just that
+        // slot's reactive subtree -- so swapping a card in or out doesn't
+        // disturb the smooth transform animation on the track.
+        // Held by unique_ptr so the Observed addresses stay stable across
+        // vector growth / move; lambdas capture by reference.
+        std::vector<std::unique_ptr<Nui::Observed<int>>> slotVersions;
+
+        Nui::Observed<std::vector<int>> slotIndices;
 
         bool prefersReducedMotion{false};
 
@@ -63,13 +77,10 @@ namespace ScriptNuiComponents
 
         // ---- Helpers -----------------------------------------------------------
 
-        int windowHi() const
-        {
-            return windowLo + static_cast<int>(cards->size()) - 1;
-        }
-
         std::pair<int, int> desiredWindow(int currentPage) const
         {
+            if (itemCount <= 0)
+                return {0, -1};
             return {
                 std::max(0, currentPage - cacheRadius),
                 std::min(itemCount - 1, currentPage + cacheRadius),
@@ -81,42 +92,56 @@ namespace ScriptNuiComponents
             return std::make_unique<Card>(Card{factory(index)});
         }
 
-        // ---- Window management -------------------------------------------------
-
-        void rebuildWindow(int currentPage)
+        // Bumps a per-slot version counter, which triggers a re-render of just
+        // that slot's reactive subtree (and only that slot's).
+        void bumpSlot(int i)
         {
-            auto [lo, hi] = desiredWindow(currentPage);
-            windowLo = lo;
-            auto proxy = cards.modify();
-            proxy.value().clear();
-            for (int i = lo; i <= hi; ++i)
-                proxy.value().push_back(makeCard(i));
+            if (i < 0 || i >= static_cast<int>(slotVersions.size()))
+                return;
+            *slotVersions[i] = **slotVersions[i] + 1;
         }
 
-        void slideWindow(int newPage)
+        void resizeSlotStorage()
         {
-            auto [newLo, newHi] = desiredWindow(newPage);
-
-            if (cards->empty() || newHi < windowLo || newLo > windowHi())
+            auto const target = static_cast<std::size_t>(std::max(0, itemCount));
+            cards.resize(target);
+            slotVersions.resize(target);
+            for (auto& slot : slotVersions)
             {
-                rebuildWindow(newPage);
-                return;
+                if (!slot)
+                    slot = std::make_unique<Nui::Observed<int>>(0);
             }
+        }
 
-            while (windowHi() > newHi)
-                cards.pop_back();
-            while (windowHi() < newHi)
-                cards.push_back(makeCard(windowHi() + 1));
+        void rebuildSlotIndices()
+        {
+            slotIndices.clear();
+            for (int i = 0; i < itemCount; ++i)
+                slotIndices.push_back(i);
+        }
 
-            while (windowLo < newLo)
+        // ---- Cache window management -------------------------------------------
+        // Eager-by-default: every slot inside [page-radius, page+radius] holds
+        // a built Card; everything outside is nullptr (rendered as an empty
+        // placeholder div so the flex track preserves its horizontal layout).
+
+        void rebuildCache(int currentPage)
+        {
+            auto [lo, hi] = desiredWindow(currentPage);
+            for (int i = 0; i < itemCount; ++i)
             {
-                cards.pop_front();
-                ++windowLo;
-            }
-            while (windowLo > newLo)
-            {
-                --windowLo;
-                cards.push_front(makeCard(windowLo));
+                bool const inWindow = (i >= lo && i <= hi);
+                bool const have = static_cast<bool>(cards[i]);
+                if (inWindow && !have)
+                {
+                    cards[i] = makeCard(i);
+                    bumpSlot(i);
+                }
+                else if (!inWindow && have)
+                {
+                    cards[i].reset();
+                    bumpSlot(i);
+                }
             }
         }
 
@@ -143,7 +168,9 @@ namespace ScriptNuiComponents
             );
             prefersReducedMotion = mql["matches"].as<bool>();
 
-            rebuildWindow(**page);
+            resizeSlotStorage();
+            rebuildSlotIndices();
+            rebuildCache(**page);
 
             pageListener = Nui::smartListen(
                 *page,
@@ -152,7 +179,7 @@ namespace ScriptNuiComponents
                     newPage = std::clamp(newPage, 0, itemCount - 1);
                     if (**page != newPage)
                         *page = newPage;
-                    slideWindow(newPage);
+                    rebuildCache(newPage);
                     Nui::globalEventContext.executeActiveEventsImmediately();
                 }
             );
@@ -311,8 +338,21 @@ namespace ScriptNuiComponents
             using namespace Nui::Attributes;
             using Nui::Elements::div;
 
+            // Track translateX is driven by the current page; CSS handles the
+            // smooth transition. The animated/static distinction is exposed
+            // as a class so prefers-reduced-motion can disable the transition.
+            std::string const trackClass = prefersReducedMotion
+                ? std::string{"script-nui-carousel__track"}
+                : std::string{"script-nui-carousel__track script-nui-carousel__track--animated"};
+
             return div{
-                class_ = "script-nui-carousel__track",
+                class_ = trackClass,
+                style = Nui::observe(*page).generate(
+                    [](int p) -> std::string
+                    {
+                        return fmt::format("transform: translateX(-{}%);", p * 100);
+                    }
+                ),
                 "touchstart"_event =
                     [this](Nui::val event)
                 {
@@ -333,27 +373,124 @@ namespace ScriptNuiComponents
                 {
                     onMouseDown(event);
                 },
-            }(Nui::range(cards),
-                [this](long long i, std::unique_ptr<Card> const& card) -> Nui::ElementRenderer
+            }(Nui::range(slotIndices),
+                [this](long long, int const& logicalIndex) -> Nui::ElementRenderer
                 {
-                    int logicalIndex = windowLo + static_cast<int>(i);
                     return div{
                         class_ = Nui::observe(*page).generate(
-                            [this, logicalIndex](int currentPage) -> std::string
+                            [logicalIndex](int currentPage) -> std::string
                             {
-                                std::string cls = "script-nui-carousel__card";
-                                if (!prefersReducedMotion)
-                                    cls += " script-nui-carousel__animated";
-                                if (logicalIndex == currentPage)
-                                    cls += " script-nui-carousel__card--active";
-                                return cls;
+                                return logicalIndex == currentPage
+                                    ? "script-nui-carousel__card script-nui-carousel__card--active"
+                                    : "script-nui-carousel__card";
                             }
                         ),
                         "data-carousel-index"_attr = std::to_string(logicalIndex),
-                    }(card->renderer);
+                    }(Nui::observe(*slotVersions[logicalIndex])
+                            .generate(
+                                [this, logicalIndex](int) -> Nui::ElementRenderer
+                                {
+                                    return (logicalIndex >= 0 && logicalIndex < static_cast<int>(cards.size()) &&
+                                               cards[logicalIndex])
+                                        ? cards[logicalIndex]->renderer
+                                        : Nui::nil();
+                                }
+                            ));
                 });
         }
 
+        Nui::ElementRenderer renderPrev()
+        {
+            using namespace Nui::Elements;
+            using namespace Nui::Attributes;
+
+            return button{
+                class_ = Nui::observe(*page).generate(
+                    [](int p) -> std::string
+                    {
+                        return p == 0 ? "script-nui-carousel__prev script-nui-carousel__prev--disabled"
+                                      : "script-nui-carousel__prev";
+                    }
+                ),
+                "aria-label"_attr = std::string{"Previous slide"},
+                onClick = [this](Nui::val)
+                {
+                    goPrev();
+                },
+            }(Ui5Icons::navigation_left_arrow());
+        }
+
+        Nui::ElementRenderer renderNext()
+        {
+            using namespace Nui::Elements;
+            using namespace Nui::Attributes;
+
+            return button{
+                class_ = Nui::observe(*page).generate(
+                    [this](int p) -> std::string
+                    {
+                        return p >= itemCount - 1 ? "script-nui-carousel__next script-nui-carousel__next--disabled"
+                                                  : "script-nui-carousel__next";
+                    }
+                ),
+                "aria-label"_attr = std::string{"Next slide"},
+                onClick = [this](Nui::val)
+                {
+                    goNext();
+                },
+            }(Ui5Icons::navigation_right_arrow());
+        }
+
+        Nui::ElementRenderer renderCounter()
+        {
+            using namespace Nui::Elements;
+            using namespace Nui::Attributes;
+            using Nui::Elements::span;
+
+            // Pad to two digits for that "01 / 08" mono-font look.
+            return span{class_ = "script-nui-carousel__counter"}(Nui::observe(*page).generate(
+                [this](int p) -> std::string
+                {
+                    auto pad = [](int v) -> std::string
+                    {
+                        auto s = std::to_string(v);
+                        return s.size() < 2 ? std::string(2 - s.size(), '0') + s : s;
+                    };
+                    return pad(p + 1) + " / " + pad(itemCount);
+                }
+            ));
+        }
+
+        Nui::ElementRenderer renderDots()
+        {
+            using namespace Nui::Elements;
+            using namespace Nui::Attributes;
+            using Nui::Elements::div;
+
+            return div{
+                class_ = "script-nui-carousel__dots"
+            }(Nui::range(slotIndices),
+                [this](long long, int const& i) -> Nui::ElementRenderer
+                {
+                    return button{
+                        class_ = Nui::observe(*page).generate(
+                            [i](int p) -> std::string
+                            {
+                                return p == i ? "script-nui-carousel__dot script-nui-carousel__dot--active"
+                                              : "script-nui-carousel__dot";
+                            }
+                        ),
+                        "aria-label"_attr = std::string{"Go to slide "} + std::to_string(i + 1),
+                        onClick = [this, i](Nui::val)
+                        {
+                            *page = i;
+                            Nui::globalEventContext.executeActiveEventsImmediately();
+                        },
+                    }();
+                });
+        }
+
+        // Legacy controls bar used for the Sides layout: prev + indicator + next.
         Nui::ElementRenderer renderControls()
         {
             using namespace Nui::Elements;
@@ -361,21 +498,9 @@ namespace ScriptNuiComponents
             using Nui::Elements::div;
             using Nui::Elements::span;
 
-            return div{class_ = "script-nui-carousel__controls"}(
-                button{
-                    class_ = Nui::observe(*page).generate(
-                        [](int p) -> std::string
-                        {
-                            return p == 0 ? "script-nui-carousel__prev script-nui-carousel__prev--disabled"
-                                          : "script-nui-carousel__prev";
-                        }
-                    ),
-                    onClick =
-                        [this](Nui::val)
-                    {
-                        goPrev();
-                    },
-                }(Ui5Icons::navigation_left_arrow()),
+            return div{
+                class_ = "script-nui-carousel__controls"
+            }(renderPrev(),
                 span{class_ = "script-nui-carousel__indicator"}(Nui::observe(*page).generate(
                     [this](int p) -> Nui::ElementRenderer
                     {
@@ -383,20 +508,20 @@ namespace ScriptNuiComponents
                         return span{}(std::to_string(p + 1) + " / " + std::to_string(itemCount));
                     }
                 )),
-                button{
-                    class_ = Nui::observe(*page).generate(
-                        [this](int p) -> std::string
-                        {
-                            return p >= itemCount - 1 ? "script-nui-carousel__next script-nui-carousel__next--disabled"
-                                                      : "script-nui-carousel__next";
-                        }
-                    ),
-                    onClick = [this](Nui::val)
-                    {
-                        goNext();
-                    },
-                }(Ui5Icons::navigation_right_arrow())
-            );
+                renderNext());
+        }
+
+        // Modern controls bar used for Top/Bottom: dots strip on the left,
+        // arrows + counter pill on the right.
+        Nui::ElementRenderer renderControlsBar()
+        {
+            using namespace Nui::Elements;
+            using namespace Nui::Attributes;
+            using Nui::Elements::div;
+
+            return div{
+                class_ = "script-nui-carousel__controls"
+            }(renderDots(), div{class_ = "script-nui-carousel__arrows"}(renderPrev(), renderCounter(), renderNext()));
         }
 
         // ---- Rendering ---------------------------------------------------------
@@ -439,14 +564,18 @@ namespace ScriptNuiComponents
                 ));
             }
 
-            // Top or Bottom: stacked layout
+            // Top or Bottom: glass frame around the track, modern controls bar
+            // (dots + arrows + counter) above or below.
+            using Nui::Elements::div;
+            auto framed = div{class_ = "script-nui-carousel__frame"}(renderTrack());
+
             if (controlsPosition == CarouselControlsPosition::Top)
             {
-                return div{std::move(mergedAttrs)}(renderControls(), renderTrack());
+                return div{std::move(mergedAttrs)}(renderControlsBar(), std::move(framed));
             }
 
             // Bottom (default)
-            return div{std::move(mergedAttrs)}(renderTrack(), renderControls());
+            return div{std::move(mergedAttrs)}(std::move(framed), renderControlsBar());
         }
     };
 
@@ -483,7 +612,9 @@ namespace ScriptNuiComponents
         int clamped = std::clamp(currentPage, 0, std::max(0, count - 1));
         if (clamped != currentPage)
             *(impl_->page) = clamped;
-        impl_->rebuildWindow(**(impl_->page));
+        impl_->resizeSlotStorage();
+        impl_->rebuildSlotIndices();
+        impl_->rebuildCache(**(impl_->page));
         Nui::globalEventContext.executeActiveEventsImmediately();
     }
 
