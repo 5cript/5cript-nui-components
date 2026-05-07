@@ -11,6 +11,7 @@ add_library(
         "button.cpp"
         "spinner.cpp"
         "anchored_panel.cpp"
+        "spotlight_overlay.cpp"
         "message_strip.cpp"
         "slider.cpp"
         "switch.cpp"

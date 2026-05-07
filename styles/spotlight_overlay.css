@@ -1,0 +1,206 @@
+.snc-spotlight-root {
+    --snc-spotlight-accent: var(--script-nui-components-spotlight-accent, var(--theme-color, #7CB342));
+
+    --snc-spotlight-accent-soft: var(--script-nui-components-spotlight-accent-soft,
+            color-mix(in srgb, var(--snc-spotlight-accent) 25%, transparent));
+    --snc-spotlight-accent-glow: var(--script-nui-components-spotlight-accent-glow,
+            color-mix(in srgb, var(--snc-spotlight-accent) 55%, transparent));
+    --snc-spotlight-tooltip-bg: var(--script-nui-components-spotlight-tooltip-bg,
+            var(--background-color, #1c1c1c));
+    --snc-spotlight-tooltip-fg: var(--script-nui-components-spotlight-tooltip-fg,
+            var(--color, #d8d8d8));
+    --snc-spotlight-tooltip-border: var(--script-nui-components-spotlight-tooltip-border,
+            var(--border-color-fields, #3a3a3a));
+    --snc-spotlight-tooltip-fg-dim: var(--script-nui-components-spotlight-tooltip-fg-dim,
+            var(--color-secondary, #9a9a9a));
+    --snc-spotlight-cta-fg: var(--script-nui-components-spotlight-cta-fg, #0d1607);
+
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    pointer-events: none;
+    display: none;
+}
+
+.snc-spotlight-root.snc-spotlight-root--visible {
+    display: block;
+}
+
+/* Backdrop with masked cutout. The SVG container itself never intercepts
+   events; only the inner dim rect does, and only on its painted pixels.
+   `<rect>` defaults to `pointer-events: visiblePainted`, which respects
+   mask alpha — masked-out (cutout) pixels are transparent and let clicks
+   pass through to the highlighted target underneath. */
+.snc-spotlight-dim {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.snc-spotlight-dim-fill {
+    cursor: pointer;
+}
+
+/* Pulsing ring tracing the cutout. Pure CSS shadow stack — no pointer events. */
+.snc-spotlight-ring {
+    position: absolute;
+    border-radius: 8px;
+    pointer-events: none;
+    box-shadow:
+        0 0 0 2px var(--snc-spotlight-accent),
+        0 0 0 6px var(--snc-spotlight-accent-soft),
+        0 0 28px 8px var(--snc-spotlight-accent-glow);
+    animation: snc-spotlight-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes snc-spotlight-pulse {
+
+    0%,
+    100% {
+        box-shadow:
+            0 0 0 2px var(--snc-spotlight-accent),
+            0 0 0 4px var(--snc-spotlight-accent-soft),
+            0 0 16px 4px var(--snc-spotlight-accent-glow);
+    }
+
+    50% {
+        box-shadow:
+            0 0 0 2px var(--snc-spotlight-accent),
+            0 0 0 8px var(--snc-spotlight-accent-soft),
+            0 0 36px 12px var(--snc-spotlight-accent-glow);
+    }
+}
+
+/* Chevron arrow pointing at the target from the chosen side. The transform
+   on the inner <g> places + rotates the chevron in viewport coords. */
+.snc-spotlight-arrow {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: visible;
+}
+
+.snc-spotlight-arrow-pointer path {
+    fill: var(--snc-spotlight-accent);
+    filter: drop-shadow(0 0 8px var(--snc-spotlight-accent-glow));
+    animation: snc-spotlight-pointer-nudge 1.4s ease-in-out infinite;
+}
+
+@keyframes snc-spotlight-pointer-nudge {
+
+    0%,
+    100% {
+        opacity: 0.85;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+/* Tooltip card. Always above the dim layer; opts back into pointer events. */
+.snc-spotlight-tooltip {
+    position: absolute;
+    pointer-events: auto;
+    background: var(--snc-spotlight-tooltip-bg);
+    border: 1px solid var(--snc-spotlight-tooltip-border);
+    border-radius: 10px;
+    padding: 16px 18px 14px;
+    width: 300px;
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.6),
+        0 0 0 1px rgba(124, 179, 66, 0.18);
+    color: var(--snc-spotlight-tooltip-fg);
+    font-size: 13px;
+}
+
+.snc-spotlight-tooltip-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.snc-spotlight-step {
+    font-family: "JetBrains Mono", "SF Mono", "Cascadia Mono", ui-monospace, monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--snc-spotlight-accent);
+}
+
+.snc-spotlight-close {
+    width: 22px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    color: var(--snc-spotlight-tooltip-fg-dim);
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    font-size: 16px;
+    line-height: 1;
+}
+
+.snc-spotlight-close:hover {
+    color: var(--snc-spotlight-tooltip-fg);
+    background: color-mix(in srgb, var(--snc-spotlight-tooltip-fg) 12%, transparent);
+}
+
+.snc-spotlight-title {
+    margin: 0 0 6px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--snc-spotlight-tooltip-fg);
+    letter-spacing: 0.01em;
+}
+
+.snc-spotlight-body-text {
+    margin: 0 0 12px;
+    color: var(--snc-spotlight-tooltip-fg);
+    line-height: 1.45;
+}
+
+.snc-spotlight-footer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: space-between;
+}
+
+.snc-spotlight-skip {
+    background: transparent;
+    border: none;
+    color: var(--snc-spotlight-tooltip-fg-dim);
+    font-size: 12px;
+    cursor: pointer;
+    padding: 6px 4px;
+}
+
+.snc-spotlight-skip:hover {
+    color: var(--snc-spotlight-tooltip-fg);
+}
+
+.snc-spotlight-cta {
+    background: var(--snc-spotlight-accent);
+    color: var(--snc-spotlight-cta-fg);
+    border: none;
+    border-radius: 5px;
+    padding: 7px 14px;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.snc-spotlight-cta:hover {
+    background: color-mix(in srgb, var(--snc-spotlight-accent) 80%, white 20%);
+}
