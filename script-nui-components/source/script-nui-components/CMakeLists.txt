@@ -18,6 +18,7 @@ add_library(
         "text_input.cpp"
         "carousel.cpp"
         "pagination.cpp"
+        "pill.cpp"
 )
 
 target_include_directories(script-nui-components PUBLIC "${CMAKE_CURRENT_LIST_DIR}/../../include")

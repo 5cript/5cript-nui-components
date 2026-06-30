@@ -1,0 +1,88 @@
+.script-nui-pill {
+    --color: var(--script-nui-components-pill-color, #d6d6d6);
+    --background-color: var(--script-nui-components-pill-background-color, #3b3b3b);
+    --border-color: var(--script-nui-components-pill-border-color, #5a5a5a);
+    --color-selected: var(--script-nui-components-pill-color-selected, #ffffff);
+    --background-color-selected: var(--script-nui-components-pill-background-color-selected, #185fa5);
+    --border-color-selected: var(--script-nui-components-pill-border-color-selected, #2e7bc7);
+    --font-size: var(--script-nui-components-pill-font-size, 0.75rem);
+    --border-radius: var(--script-nui-components-pill-border-radius, 999px);
+
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+    max-width: 100%;
+    /* Fixed height so every pill is the same size regardless of icon/remove content. */
+    height: 1.7em;
+    padding: 0 0.7em;
+    font-size: var(--font-size);
+    line-height: 1;
+    color: var(--color);
+    background-color: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    user-select: none;
+
+    & > svg {
+        width: 1em;
+        height: 1em;
+        flex: 0 0 auto;
+        fill: currentColor;
+    }
+
+    & .script-nui-pill-label {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &[data-clickable="true"] {
+        cursor: pointer;
+        transition: filter 120ms ease-in-out, background-color 120ms ease-in-out;
+    }
+
+    &[data-clickable="true"]:hover {
+        filter: brightness(1.15);
+    }
+
+    &[data-selected="true"] {
+        color: var(--color-selected);
+        background-color: var(--background-color-selected);
+        border-color: var(--border-color-selected);
+    }
+}
+
+/* Remove (x) affordance — uses the ui5 "decline" SVG icon. */
+.script-nui-pill-remove {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.15em;
+    height: 1.15em;
+    flex: 0 0 auto;
+    margin-right: -0.25em;
+    border-radius: 50%;
+    cursor: pointer;
+    opacity: 0.55;
+    transition: opacity 120ms ease-in-out, background-color 120ms ease-in-out;
+
+    & > svg {
+        width: 0.7em;
+        height: 0.7em;
+        fill: currentColor;
+    }
+
+    &:hover {
+        opacity: 1;
+        background-color: color-mix(in srgb, currentColor 25%, transparent);
+    }
+}
+
+.script-nui-pill-list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--script-nui-components-pill-list-gap, 0.4em);
+}
