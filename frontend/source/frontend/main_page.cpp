@@ -7,6 +7,10 @@
 #include <script-nui-components/color_picker.hpp>
 #include <script-nui-components/resizeable_table.hpp>
 #include <script-nui-components/message_strip.hpp>
+#include <script-nui-components/pill.hpp>
+#include <script-nui-components/pill_list.hpp>
+#include <script-nui-components/tag_box.hpp>
+#include <script-nui-components/collapsible_section.hpp>
 
 #include <nui/frontend/elements.hpp>
 #include <nui/frontend/attributes.hpp>
@@ -79,7 +83,18 @@ MainPage::MainPage()
               }()
           )
       }
+    , tagBox_{ScriptNuiComponents::TagBox::Options{
+          .initialTags = {"alpha", "beta"},
+          .placeholder = "add tag...",
+          .onChange =
+              [](std::vector<std::string> const& tags)
+          {
+              Nui::WebApi::Console::log("Tags changed, count: ", static_cast<int>(tags.size()));
+          },
+      }}
 {
+    rebuildFilterPills();
+
     tabs_.onSelect(
         [](std::size_t id)
         {
@@ -106,7 +121,7 @@ MainPage::MainPage()
     popupMenu_.setItems({
         PopupMenu::item(
             "Action 1",
-            {},
+            std::string{},
             []()
             {
                 Nui::WebApi::Console::log("Action 1 triggered");
@@ -114,7 +129,7 @@ MainPage::MainPage()
         ),
         PopupMenu::item(
             "Action 2 with shortcut",
-            {},
+            std::string{},
             []()
             {
                 Nui::WebApi::Console::log("Action 2 triggered");
@@ -126,7 +141,7 @@ MainPage::MainPage()
         PopupMenu::sectionHeader("Section 1"),
         PopupMenu::item(
             "Disabled Action",
-            {},
+            std::string{},
             []()
             {
                 Nui::WebApi::Console::log("This should not trigger");
@@ -135,7 +150,7 @@ MainPage::MainPage()
         ),
         PopupMenu::item(
             "Action 3",
-            {},
+            std::string{},
             []()
             {
                 Nui::WebApi::Console::log("Action 3 triggered");
@@ -208,6 +223,10 @@ Nui::ElementRenderer MainPage::render()
                         messageStrip({.text = "Transparent", .styleVariant = StyleVariant::Transparent})
                     )
                 ),
+                section("Pills", pills()),
+                section("Pill List (reactive: add / toggle / remove)", pillListSection()),
+                section("Tag Box", tagBoxSection()),
+                section("Collapsible Sections", collapsibleSections()),
                 section("Buttons",
                     div{
                         style = "display: flex; gap: 5px;"
@@ -391,5 +410,112 @@ Nui::ElementRenderer MainPage::colorPicker()
                 }()),
             .buttonStyleVariant = StyleVariant::Transparent,
         }
+    );
+}
+
+void MainPage::rebuildFilterPills()
+{
+    std::vector<PillOptions> pills;
+    pills.reserve(pillLabels_.size());
+    for (auto const& label : pillLabels_)
+    {
+        pills.push_back(PillOptions{
+            .text = label,
+            .selected = pillSelected_.contains(label),
+            .onClick =
+                [this, label]()
+            {
+                if (pillSelected_.contains(label))
+                    pillSelected_.erase(label);
+                else
+                    pillSelected_.insert(label);
+                rebuildFilterPills();
+            },
+            .onRemove =
+                [this, label]()
+            {
+                std::erase(pillLabels_, label);
+                pillSelected_.erase(label);
+                rebuildFilterPills();
+            },
+        });
+    }
+    *filterPills_ = std::move(pills);
+}
+
+Nui::ElementRenderer MainPage::pills()
+{
+    using namespace Nui::Elements;
+    using namespace Nui::Attributes;
+    using Nui::Elements::div;
+
+    return div{style = "display: flex; flex-wrap: wrap; gap: 6px; align-items: center;"}(
+        pill({.text = "Regular"}),
+        pill({.text = "Selected", .selected = true}),
+        pill({.text = "Clickable", .onClick = []() { Nui::WebApi::Console::log("Pill clicked"); }}),
+        pill({.text = "Removable", .onRemove = []() { Nui::WebApi::Console::log("Pill removed"); }}),
+        pill({.text = "With icon",
+              .icon = Nui::Elements::Svg::svg{Nui::Attributes::Svg::viewBox = "0 0 24 24"}(
+                  Nui::Elements::Svg::path{Nui::Attributes::Svg::d = "m6 9 6 6 6-6"}())})
+    );
+}
+
+Nui::ElementRenderer MainPage::pillListSection()
+{
+    using namespace Nui::Elements;
+    using namespace Nui::Attributes;
+    using Nui::Elements::div;
+    using ScriptNuiComponents::button;
+
+    return div{style = "display: flex; flex-direction: column; gap: 10px; align-items: flex-start;"}(
+        pillList({.pills = filterPills_}),
+        button({
+            .text = "Add pill",
+            .attributes = {
+                onClick =
+                    [this](auto const&)
+                {
+                    pillLabels_.push_back("tag-" + std::to_string(pillLabels_.size() + 1));
+                    rebuildFilterPills();
+                },
+            },
+        })
+    );
+}
+
+Nui::ElementRenderer MainPage::tagBoxSection()
+{
+    using namespace Nui::Attributes;
+    return tagBox_({style = "max-width: 420px;"});
+}
+
+Nui::ElementRenderer MainPage::collapsibleSections()
+{
+    using namespace Nui::Elements;
+    using namespace Nui::Attributes;
+    using Nui::Elements::div;
+
+    return div{style = "display: flex; flex-direction: column; gap: 4px; max-width: 480px;"}(
+        collapsibleSection(
+            {.title = "Today", .badge = "3"},
+            div{}(
+                div{}("git pull origin main"),
+                div{}("docker compose up -d --build"),
+                div{}("systemctl restart nginx")
+            )
+        ),
+        collapsibleSection(
+            {.title = "Yesterday", .badge = "2", .initiallyExpanded = false},
+            div{}(
+                div{}("kubectl get pods -n production"),
+                div{}("df -h")
+            )
+        ),
+        collapsibleSection(
+            {.title = "Pinned",
+             .initiallyExpanded = false,
+             .onToggle = [](bool expanded) { Nui::WebApi::Console::log("Pinned expanded: ", expanded); }},
+            div{}("htop")
+        )
     );
 }

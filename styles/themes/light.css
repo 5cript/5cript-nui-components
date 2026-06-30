@@ -122,4 +122,22 @@
     --script-nui-popup-menu-disabled-color: #b0b0ad;
     --script-nui-popup-menu-shadow-color: rgba(0, 0, 0, 0.12);
     --script-nui-popup-menu-separator-color: #d8d7d3;
+
+    /* Pill (light) */
+    --script-nui-components-pill-color: #1a1a1a;
+    --script-nui-components-pill-background-color: #e4e4e4;
+    --script-nui-components-pill-border-color: #c4c4c4;
+    --script-nui-components-pill-color-selected: #ffffff;
+    --script-nui-components-pill-background-color-selected: #1a73c7;
+    --script-nui-components-pill-border-color-selected: #1a73c7;
+
+    /* Tag box (light): follows the shared field convention. */
+    --script-nui-components-tag-box-color: var(--color-fields);
+    --script-nui-components-tag-box-background-color: var(--background-color-fields);
+    --script-nui-components-tag-box-border-color: color-mix(in srgb, var(--color-fields) 50%, white);
+
+    /* Collapsible section (light): muted/hover tints derive from the color above. */
+    --script-nui-components-collapsible-color: #1a1a1a;
+    --script-nui-components-collapsible-badge-color: #333333;
+    --script-nui-components-collapsible-badge-background: #dcdcdc;
 }

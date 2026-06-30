@@ -56,4 +56,7 @@ nui_prepare_emscripten_target(
         "${CMAKE_SOURCE_DIR}/styles/tabs.css"
         "${CMAKE_SOURCE_DIR}/styles/popup_menu.css"
         "${CMAKE_SOURCE_DIR}/styles/message_strip.css"
+        "${CMAKE_SOURCE_DIR}/styles/pill.css"
+        "${CMAKE_SOURCE_DIR}/styles/tag_box.css"
+        "${CMAKE_SOURCE_DIR}/styles/collapsible_section.css"
 )
