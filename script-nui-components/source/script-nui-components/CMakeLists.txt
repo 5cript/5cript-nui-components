@@ -20,6 +20,7 @@ add_library(
         "pagination.cpp"
         "pill.cpp"
         "pill_list.cpp"
+        "collapsible_section.cpp"
 )
 
 target_include_directories(script-nui-components PUBLIC "${CMAKE_CURRENT_LIST_DIR}/../../include")
