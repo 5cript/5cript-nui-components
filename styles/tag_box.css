@@ -1,0 +1,42 @@
+.script-nui-tag-box {
+    --color: var(--script-nui-components-tag-box-color, #dddddd);
+    --background-color: var(--script-nui-components-tag-box-background-color, #202020);
+    --border-color: var(--script-nui-components-tag-box-border-color, #505050);
+    --theme-color: var(--script-nui-components-tag-box-theme-color, #5fbcff);
+    --font-size: var(--script-nui-components-tag-box-font-size, 0.8rem);
+    --border-radius: var(--script-nui-components-tag-box-border-radius, 0.25rem);
+
+    box-sizing: border-box;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35em;
+    width: 100%;
+    padding: 0.35em 0.45em;
+    color: var(--color);
+    background-color: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    transition: box-shadow 200ms ease-in-out;
+    cursor: text;
+
+    &:focus-within {
+        box-shadow: 0 0 0 0.1rem var(--theme-color);
+    }
+
+    & .script-nui-tag-box-input {
+        flex: 1 1 6em;
+        min-width: 6em;
+        border: none;
+        outline: none;
+        background: transparent;
+        color: var(--color);
+        font: inherit;
+        font-size: var(--font-size);
+        padding: 0.15em 0.1em;
+    }
+
+    & .script-nui-tag-box-input::placeholder {
+        color: color-mix(in srgb, var(--color) 45%, transparent);
+    }
+}

@@ -20,6 +20,7 @@ add_library(
         "pagination.cpp"
         "pill.cpp"
         "pill_list.cpp"
+        "tag_box.cpp"
         "collapsible_section.cpp"
 )
 
