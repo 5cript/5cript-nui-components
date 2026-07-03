@@ -8,7 +8,7 @@
         },
         {
             "url": "https://github.com/NuiCpp/Nui.git",
-            "rev": "6761c1d848f7b42305492c471d02dc4ce79a45cf",
+            "rev": "v3.5.2",
             "branch": "main",
             "name": "Nui"
         }
