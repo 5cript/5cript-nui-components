@@ -14,6 +14,7 @@
 @import "./pill.css";
 @import "./tag_box.css";
 @import "./collapsible_section.css";
+@import "./toast.css";
 @import "./themes/light.css";
 
 :root {

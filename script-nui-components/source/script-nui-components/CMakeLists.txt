@@ -22,6 +22,7 @@ add_library(
         "pill_list.cpp"
         "tag_box.cpp"
         "collapsible_section.cpp"
+        "toast.cpp"
 )
 
 target_include_directories(script-nui-components PUBLIC "${CMAKE_CURRENT_LIST_DIR}/../../include")

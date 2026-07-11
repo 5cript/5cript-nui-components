@@ -140,4 +140,14 @@
     --script-nui-components-collapsible-color: #1a1a1a;
     --script-nui-components-collapsible-badge-color: #333333;
     --script-nui-components-collapsible-badge-background: #dcdcdc;
+
+    /* Toast (light): surface is lifted off the page, accents darkened for contrast. */
+    --script-nui-components-toast-background: #ffffff;
+    --script-nui-components-toast-color: #1a1a1a;
+    --script-nui-components-toast-color-dim: #6b6b68;
+    --script-nui-components-toast-border-color: #cfcfcf;
+    --script-nui-components-toast-info: #1a73c7;
+    --script-nui-components-toast-success: #3b8a12;
+    --script-nui-components-toast-warning: #b0740a;
+    --script-nui-components-toast-error: #c23934;
 }

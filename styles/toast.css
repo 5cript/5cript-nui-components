@@ -1,0 +1,332 @@
+.snc-toast-host {
+    --snc-toast-background: var(--script-nui-components-toast-background, var(--background-color, #262626));
+    --snc-toast-color: var(--script-nui-components-toast-color, var(--color, #dddddd));
+    --snc-toast-color-dim: var(--script-nui-components-toast-color-dim, var(--color-secondary, #9a9a9a));
+    --snc-toast-border-color: var(--script-nui-components-toast-border-color, var(--border-color-fields, #505050));
+
+    --snc-toast-info: var(--script-nui-components-toast-info, #4a9eda);
+    --snc-toast-success: var(--script-nui-components-toast-success, var(--theme-color, #7cb342));
+    --snc-toast-warning: var(--script-nui-components-toast-warning, #e0a02e);
+    --snc-toast-error: var(--script-nui-components-toast-error, #d9534f);
+
+    --snc-toast-enter-duration: 220ms;
+    /* Kept in sync with leaveDurationMilliseconds in toast.cpp. */
+    --snc-toast-leave-duration: 220ms;
+
+    position: fixed;
+    z-index: 11000;
+    display: flex;
+    flex-direction: column;
+    /* Only the toasts themselves take clicks, the host never covers the app. */
+    pointer-events: none;
+}
+
+/* Box: a stack of cards in one corner. Newest is always nearest to the anchored
+   edge, hence the reverse direction at the bottom. */
+.snc-toast-host[data-style="box"] {
+    gap: 8px;
+    padding: 16px;
+    width: min(420px, calc(100vw - 32px));
+}
+
+.snc-toast-host[data-style="box"][data-position^="top"] {
+    top: 0;
+}
+
+.snc-toast-host[data-style="box"][data-position^="bottom"] {
+    bottom: 0;
+    flex-direction: column-reverse;
+}
+
+.snc-toast-host[data-style="box"][data-position$="left"] {
+    left: 0;
+    align-items: flex-start;
+}
+
+.snc-toast-host[data-style="box"][data-position$="right"] {
+    right: 0;
+    align-items: flex-end;
+}
+
+.snc-toast-host[data-style="box"][data-position$="center"] {
+    left: 50%;
+    transform: translateX(-50%);
+    align-items: center;
+}
+
+/* Strip: full viewport width, the horizontal half of the position is ignored. */
+.snc-toast-host[data-style="strip"] {
+    left: 0;
+    right: 0;
+    width: 100%;
+}
+
+.snc-toast-host[data-style="strip"][data-position^="top"] {
+    top: 0;
+}
+
+.snc-toast-host[data-style="strip"][data-position^="bottom"] {
+    bottom: 0;
+    flex-direction: column-reverse;
+}
+
+.snc-toast {
+    pointer-events: auto;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    color: var(--snc-toast-color);
+    font-size: 13px;
+    line-height: 1.4;
+    cursor: pointer;
+    animation-fill-mode: both;
+    animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.snc-toast[data-severity="info"] {
+    --snc-toast-accent: var(--snc-toast-info);
+}
+
+.snc-toast[data-severity="success"] {
+    --snc-toast-accent: var(--snc-toast-success);
+}
+
+.snc-toast[data-severity="warning"] {
+    --snc-toast-accent: var(--snc-toast-warning);
+}
+
+.snc-toast[data-severity="error"] {
+    --snc-toast-accent: var(--snc-toast-error);
+}
+
+[data-style="box"] .snc-toast {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--snc-toast-border-color);
+    border-left: 3px solid var(--snc-toast-accent);
+    border-radius: 8px;
+    background: var(--snc-toast-background);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+
+[data-style="strip"] .snc-toast {
+    width: 100%;
+    padding: 12px 18px;
+    align-items: center;
+    background: color-mix(in srgb, var(--snc-toast-accent) 16%, var(--snc-toast-background));
+    box-shadow: 0 0 24px rgba(0, 0, 0, 0.35);
+}
+
+[data-style="strip"][data-position^="top"] .snc-toast {
+    border-bottom: 2px solid var(--snc-toast-accent);
+}
+
+[data-style="strip"][data-position^="bottom"] .snc-toast {
+    border-top: 2px solid var(--snc-toast-accent);
+}
+
+.snc-toast-icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+    margin-top: 1px;
+    color: var(--snc-toast-accent);
+}
+
+.snc-toast-icon svg {
+    width: 100%;
+    height: 100%;
+    fill: currentColor;
+}
+
+.snc-toast-content {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.snc-toast-title {
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.snc-toast-message {
+    overflow-wrap: anywhere;
+}
+
+.snc-toast-close {
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--snc-toast-color-dim);
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.snc-toast-close:hover {
+    color: var(--snc-toast-color);
+    background: color-mix(in srgb, var(--snc-toast-color) 12%, transparent);
+}
+
+/* Enter and leave move along the axis of the nearest edge: corners slide
+   sideways, centered boxes and strips slide vertically. */
+.snc-toast[data-state="in"] {
+    animation-duration: var(--snc-toast-enter-duration);
+}
+
+.snc-toast[data-state="out"] {
+    animation-duration: var(--snc-toast-leave-duration);
+    animation-timing-function: cubic-bezier(0.55, 0, 0.55, 0.2);
+}
+
+[data-style="box"][data-position$="left"] .snc-toast[data-state="in"] {
+    animation-name: snc-toast-in-left;
+}
+
+[data-style="box"][data-position$="left"] .snc-toast[data-state="out"] {
+    animation-name: snc-toast-out-left;
+}
+
+[data-style="box"][data-position$="right"] .snc-toast[data-state="in"] {
+    animation-name: snc-toast-in-right;
+}
+
+[data-style="box"][data-position$="right"] .snc-toast[data-state="out"] {
+    animation-name: snc-toast-out-right;
+}
+
+[data-style="box"][data-position="top-center"] .snc-toast[data-state="in"],
+[data-style="strip"][data-position^="top"] .snc-toast[data-state="in"] {
+    animation-name: snc-toast-in-top;
+}
+
+[data-style="box"][data-position="top-center"] .snc-toast[data-state="out"],
+[data-style="strip"][data-position^="top"] .snc-toast[data-state="out"] {
+    animation-name: snc-toast-out-top;
+}
+
+[data-style="box"][data-position="bottom-center"] .snc-toast[data-state="in"],
+[data-style="strip"][data-position^="bottom"] .snc-toast[data-state="in"] {
+    animation-name: snc-toast-in-bottom;
+}
+
+[data-style="box"][data-position="bottom-center"] .snc-toast[data-state="out"],
+[data-style="strip"][data-position^="bottom"] .snc-toast[data-state="out"] {
+    animation-name: snc-toast-out-bottom;
+}
+
+@keyframes snc-toast-in-right {
+    from {
+        opacity: 0;
+        transform: translateX(calc(100% + 24px));
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes snc-toast-out-right {
+    from {
+        opacity: 1;
+        transform: none;
+    }
+
+    to {
+        opacity: 0;
+        transform: translateX(calc(100% + 24px));
+    }
+}
+
+@keyframes snc-toast-in-left {
+    from {
+        opacity: 0;
+        transform: translateX(calc(-100% - 24px));
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes snc-toast-out-left {
+    from {
+        opacity: 1;
+        transform: none;
+    }
+
+    to {
+        opacity: 0;
+        transform: translateX(calc(-100% - 24px));
+    }
+}
+
+@keyframes snc-toast-in-top {
+    from {
+        opacity: 0;
+        transform: translateY(calc(-100% - 24px));
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes snc-toast-out-top {
+    from {
+        opacity: 1;
+        transform: none;
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(calc(-100% - 24px));
+    }
+}
+
+@keyframes snc-toast-in-bottom {
+    from {
+        opacity: 0;
+        transform: translateY(calc(100% + 24px));
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes snc-toast-out-bottom {
+    from {
+        opacity: 1;
+        transform: none;
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(calc(100% + 24px));
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .snc-toast[data-state="in"],
+    .snc-toast[data-state="out"] {
+        animation-name: none;
+    }
+
+    .snc-toast[data-state="out"] {
+        opacity: 0;
+    }
+}

@@ -11,6 +11,7 @@
 #include <script-nui-components/pill.hpp>
 #include <script-nui-components/pill_list.hpp>
 #include <script-nui-components/tag_box.hpp>
+#include <script-nui-components/toast.hpp>
 
 #include <memory>
 #include <set>
@@ -40,6 +41,7 @@ class MainPage
     Nui::ElementRenderer pillListSection();
     Nui::ElementRenderer tagBoxSection();
     Nui::ElementRenderer collapsibleSections();
+    Nui::ElementRenderer toastSection();
 
     /// Rebuilds the observed pill list from pillLabels_/pillSelected_ (the demo's source of truth).
     void rebuildFilterPills();
@@ -69,4 +71,5 @@ class MainPage
     ScriptNuiComponents::Tabs tabs_;
     ScriptNuiComponents::PopupMenu popupMenu_;
     ScriptNuiComponents::TagBox tagBox_;
+    ScriptNuiComponents::Toast toast_;
 };
