@@ -105,6 +105,7 @@ namespace ScriptNuiComponents
             std::string title{};
             std::string message{};
             ToastSeverity severity{ToastSeverity::Info};
+            std::function<void()> onClick{};
             /// Drives the leave animation; the toast is erased once it finished.
             bool leaving{false};
         };
@@ -201,7 +202,9 @@ namespace ScriptNuiComponents
             "data-state"_attr = std::string{toast.leaving ? "out" : "in"},
             "role"_attr = std::string{toast.severity == ToastSeverity::Error ? "alert" : "status"},
             onClick =
-                [this, id]() {
+                [this, id, onToastClick = toast.onClick]() {
+                    if (onToastClick)
+                        onToastClick();
                     if (options.dismissOnClick)
                         beginLeave(id);
                 },
@@ -211,7 +214,12 @@ namespace ScriptNuiComponents
             button{
                 class_ = "snc-toast-close",
                 "aria-label"_attr = std::string{"Dismiss"},
-                onClick = dismiss,
+                // The toast body has its own click handler, which must not see the close click.
+                onClick =
+                    [dismiss](Nui::val event) {
+                        event.call<void>("stopPropagation");
+                        dismiss();
+                    },
             }(Utf8::cp(0x00D7))
         );
     }
@@ -275,6 +283,7 @@ namespace ScriptNuiComponents
             .title = std::move(options.title),
             .message = std::move(options.message),
             .severity = options.severity,
+            .onClick = std::move(options.onClick),
             .leaving = false,
         });
         impl_->toasts.eventContext().sync();

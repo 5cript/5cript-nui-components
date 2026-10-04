@@ -3,6 +3,7 @@
 #include <nui/frontend/element_renderer.hpp>
 
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
@@ -109,6 +110,12 @@ namespace ScriptNuiComponents
          * @brief Overrides the host default. Zero keeps the toast until it is dismissed by hand.
          */
         std::optional<std::int32_t> durationMilliseconds{std::nullopt};
+
+        /**
+         * @brief Called when the toast body is clicked, before dismissOnClick applies. The close
+         *        button only dismisses and never calls this.
+         */
+        std::function<void()> onClick{};
     };
 
     /**
