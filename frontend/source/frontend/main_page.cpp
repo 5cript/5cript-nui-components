@@ -1,6 +1,7 @@
 #include <frontend/main_page.hpp>
 
 #include <script-nui-components/switch.hpp>
+#include <script-nui-components/checkbox.hpp>
 #include <script-nui-components/text_input.hpp>
 #include <script-nui-components/select.hpp>
 #include <script-nui-components/button.hpp>
@@ -215,6 +216,7 @@ Nui::ElementRenderer MainPage::render()
         div{class_ = "content"}(
             div{}(
                 section("Switch", switch_()),
+                section("Checkbox", checkboxSection()),
                 section("Text Input", textInput()),
                 section("Select", select()),
                 section("Icon Button", iconButton()),
@@ -345,6 +347,44 @@ Nui::ElementRenderer MainPage::switch_()
     return ScriptNuiComponents::switch_({
         .isChecked = isChecked_,
     });
+}
+
+Nui::ElementRenderer MainPage::checkboxSection()
+{
+    using namespace Nui::Elements;
+    using namespace Nui::Attributes;
+    using Nui::Elements::div;
+
+    // clang-format off
+    return div{
+        style = "display: flex; flex-direction: column; gap: 8px; align-items: flex-start;",
+    }(
+        ScriptNuiComponents::checkbox({
+            .isChecked = isChecked_,
+            .label = "Bound to the switch observed above",
+        }),
+        ScriptNuiComponents::checkbox({
+            .isChecked = true,
+            .label = "Starts checked",
+        }),
+        ScriptNuiComponents::checkbox({
+            .isChecked = false,
+            .label = "Doubled size",
+            .sizeFactor = 2.,
+        }),
+        ScriptNuiComponents::checkbox({
+            .isChecked = false,
+            .label = "Disabled",
+            .attributes = {disabled = true},
+        }),
+        ScriptNuiComponents::checkbox({
+            .isChecked = false,
+            .onChange = [](bool isChecked, Nui::WebApi::MouseEvent const&) {
+                Nui::WebApi::Console::log(fmt::format("Label free checkbox toggled: {}", isChecked));
+            },
+        })
+    );
+    // clang-format on
 }
 
 Nui::ElementRenderer MainPage::textInput()

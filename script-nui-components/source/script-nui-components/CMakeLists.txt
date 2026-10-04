@@ -15,6 +15,7 @@ add_library(
         "message_strip.cpp"
         "slider.cpp"
         "switch.cpp"
+        "checkbox.cpp"
         "text_input.cpp"
         "carousel.cpp"
         "pagination.cpp"

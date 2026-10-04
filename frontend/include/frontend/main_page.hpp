@@ -32,6 +32,7 @@ class MainPage
 
   private:
     Nui::ElementRenderer switch_();
+    Nui::ElementRenderer checkboxSection();
     Nui::ElementRenderer textInput();
     Nui::ElementRenderer select();
     Nui::ElementRenderer iconButton();

@@ -1,0 +1,76 @@
+.script-nui-checkbox {
+    --size-factor: var(--script-nui-components-checkbox-size-factor, 1);
+    --box-background: var(--script-nui-components-checkbox-background, #1f2937);
+    /* Deliberately brighter than typical field borders so the box stands out on very dark
+       surfaces. */
+    --box-border-color: var(--script-nui-components-checkbox-border-color, #8e8e8e);
+    --check-color: var(--script-nui-components-checkbox-check-color, #90d26d);
+    --label-color: var(--script-nui-components-checkbox-label-color, inherit);
+
+    display: inline-flex;
+    align-items: center;
+    gap: calc(6px * var(--size-factor));
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--label-color);
+    font: inherit;
+    cursor: pointer;
+    outline: none;
+
+    &>* {
+        pointer-events: none;
+    }
+
+    &>.script-nui-checkbox-box {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: calc(16px * var(--size-factor));
+        height: calc(16px * var(--size-factor));
+        flex: 0 0 auto;
+        border: 1px solid var(--box-border-color);
+        border-radius: calc(4px * var(--size-factor));
+        background-color: var(--box-background);
+        transition: background-color 120ms ease, border-color 120ms ease;
+
+        &>svg {
+            width: calc(12px * var(--size-factor));
+            height: calc(12px * var(--size-factor));
+            fill: none;
+            stroke: var(--check-color);
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            opacity: 0;
+            transform: scale(0.6);
+            transition: opacity 120ms ease, transform 120ms ease;
+        }
+    }
+
+    &[data-is-checked]>.script-nui-checkbox-box {
+        border-color: var(--check-color);
+
+        &>svg {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    &:hover>.script-nui-checkbox-box {
+        border-color: var(--check-color);
+    }
+
+    &[disabled] {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    &:focus-visible>.script-nui-checkbox-box {
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+    }
+
+    &>.script-nui-checkbox-label:empty {
+        display: none;
+    }
+}
