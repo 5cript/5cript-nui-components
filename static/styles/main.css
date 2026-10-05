@@ -1,4 +1,5 @@
 @import "./switch.css";
+@import "./checkbox.css";
 @import "./text_input.css";
 @import "./select.css";
 @import "./button.css";
@@ -11,6 +12,10 @@
 @import "./carousel.css";
 @import "./message_strip.css";
 @import "./pagination.css";
+@import "./pill.css";
+@import "./tag_box.css";
+@import "./collapsible_section.css";
+@import "./toast.css";
 @import "./themes/light.css";
 
 :root {
@@ -44,6 +49,9 @@
     --background-color-fields: #ffffff;
     --color: black;
     --color-fields: var(--color);
+
+    /* Component light overrides live in the library theme (./themes/light.css),
+       imported above — the single source of truth. */
 }
 
 *,

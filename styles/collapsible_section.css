@@ -1,0 +1,68 @@
+.script-nui-collapsible {
+    --color: var(--script-nui-components-collapsible-color, #dddddd);
+    --muted-color: var(--script-nui-components-collapsible-muted-color, color-mix(in srgb, var(--color) 55%, transparent));
+    --badge-color: var(--script-nui-components-collapsible-badge-color, #c8c8c8);
+    --badge-background: var(--script-nui-components-collapsible-badge-background, #2f2f2f);
+    --hover-background: var(--script-nui-components-collapsible-hover-background, color-mix(in srgb, var(--color) 8%, transparent));
+    --font-size: var(--script-nui-components-collapsible-font-size, 0.85rem);
+
+    color: var(--color);
+
+    & > .script-nui-collapsible-summary {
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        gap: 0.5em;
+        padding: 0.4em 0.5em;
+        font-size: var(--font-size);
+        font-weight: 600;
+        cursor: pointer;
+        list-style: none;
+        user-select: none;
+        border-radius: 0.25rem;
+
+        /* Hide the native disclosure marker (cross-browser). */
+        &::-webkit-details-marker {
+            display: none;
+        }
+
+        &:hover {
+            background-color: var(--hover-background);
+        }
+    }
+
+    & .script-nui-collapsible-chevron {
+        width: 0.85em;
+        height: 0.85em;
+        flex: 0 0 auto;
+        color: var(--muted-color);
+        transition: transform 150ms ease-in-out;
+    }
+
+    &[open] > .script-nui-collapsible-summary .script-nui-collapsible-chevron {
+        transform: rotate(90deg);
+    }
+
+    & .script-nui-collapsible-title {
+        flex: 1 1 auto;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    & .script-nui-collapsible-badge {
+        flex: 0 0 auto;
+        min-width: 1.4em;
+        padding: 0.05em 0.5em;
+        font-size: 0.78em;
+        font-weight: 600;
+        text-align: center;
+        color: var(--badge-color);
+        background-color: var(--badge-background);
+        border-radius: 999px;
+    }
+
+    & > .script-nui-collapsible-body {
+        padding: 0.15em 0.25em 0.5em;
+    }
+}

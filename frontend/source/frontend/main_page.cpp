@@ -1,12 +1,18 @@
 #include <frontend/main_page.hpp>
 
 #include <script-nui-components/switch.hpp>
+#include <script-nui-components/checkbox.hpp>
 #include <script-nui-components/text_input.hpp>
 #include <script-nui-components/select.hpp>
 #include <script-nui-components/button.hpp>
 #include <script-nui-components/color_picker.hpp>
 #include <script-nui-components/resizeable_table.hpp>
 #include <script-nui-components/message_strip.hpp>
+#include <script-nui-components/pill.hpp>
+#include <script-nui-components/pill_list.hpp>
+#include <script-nui-components/tag_box.hpp>
+#include <script-nui-components/collapsible_section.hpp>
+#include <script-nui-components/toast.hpp>
 
 #include <nui/frontend/elements.hpp>
 #include <nui/frontend/attributes.hpp>
@@ -79,7 +85,22 @@ MainPage::MainPage()
               }()
           )
       }
+    , tagBox_{ScriptNuiComponents::TagBox::Options{
+          .initialTags = {"alpha", "beta"},
+          .placeholder = "add tag...",
+          .onChange =
+              [](std::vector<std::string> const& tags)
+          {
+              Nui::WebApi::Console::log("Tags changed, count: ", static_cast<int>(tags.size()));
+          },
+      }}
+    , toast_{ScriptNuiComponents::ToastHostOptions{
+          .style = ScriptNuiComponents::ToastStyle::Box,
+          .position = ScriptNuiComponents::ToastPosition::BottomRight,
+      }}
 {
+    rebuildFilterPills();
+
     tabs_.onSelect(
         [](std::size_t id)
         {
@@ -106,7 +127,7 @@ MainPage::MainPage()
     popupMenu_.setItems({
         PopupMenu::item(
             "Action 1",
-            {},
+            std::string{},
             []()
             {
                 Nui::WebApi::Console::log("Action 1 triggered");
@@ -114,7 +135,7 @@ MainPage::MainPage()
         ),
         PopupMenu::item(
             "Action 2 with shortcut",
-            {},
+            std::string{},
             []()
             {
                 Nui::WebApi::Console::log("Action 2 triggered");
@@ -126,7 +147,7 @@ MainPage::MainPage()
         PopupMenu::sectionHeader("Section 1"),
         PopupMenu::item(
             "Disabled Action",
-            {},
+            std::string{},
             []()
             {
                 Nui::WebApi::Console::log("This should not trigger");
@@ -135,7 +156,7 @@ MainPage::MainPage()
         ),
         PopupMenu::item(
             "Action 3",
-            {},
+            std::string{},
             []()
             {
                 Nui::WebApi::Console::log("Action 3 triggered");
@@ -171,6 +192,7 @@ Nui::ElementRenderer MainPage::render()
     return body{}(
         dialog_(),
         popupMenu_(),
+        toast_(),
 
         div{class_ = "top-bar"}(
             div{
@@ -194,6 +216,7 @@ Nui::ElementRenderer MainPage::render()
         div{class_ = "content"}(
             div{}(
                 section("Switch", switch_()),
+                section("Checkbox", checkboxSection()),
                 section("Text Input", textInput()),
                 section("Select", select()),
                 section("Icon Button", iconButton()),
@@ -208,6 +231,11 @@ Nui::ElementRenderer MainPage::render()
                         messageStrip({.text = "Transparent", .styleVariant = StyleVariant::Transparent})
                     )
                 ),
+                section("Pills", pills()),
+                section("Pill List (reactive: add / toggle / remove)", pillListSection()),
+                section("Tag Box", tagBoxSection()),
+                section("Collapsible Sections", collapsibleSections()),
+                section("Toasts (box vs. strip)", toastSection()),
                 section("Buttons",
                     div{
                         style = "display: flex; gap: 5px;"
@@ -321,6 +349,44 @@ Nui::ElementRenderer MainPage::switch_()
     });
 }
 
+Nui::ElementRenderer MainPage::checkboxSection()
+{
+    using namespace Nui::Elements;
+    using namespace Nui::Attributes;
+    using Nui::Elements::div;
+
+    // clang-format off
+    return div{
+        style = "display: flex; flex-direction: column; gap: 8px; align-items: flex-start;",
+    }(
+        ScriptNuiComponents::checkbox({
+            .isChecked = isChecked_,
+            .label = "Bound to the switch observed above",
+        }),
+        ScriptNuiComponents::checkbox({
+            .isChecked = true,
+            .label = "Starts checked",
+        }),
+        ScriptNuiComponents::checkbox({
+            .isChecked = false,
+            .label = "Doubled size",
+            .sizeFactor = 2.,
+        }),
+        ScriptNuiComponents::checkbox({
+            .isChecked = false,
+            .label = "Disabled",
+            .attributes = {disabled = true},
+        }),
+        ScriptNuiComponents::checkbox({
+            .isChecked = false,
+            .onChange = [](bool isChecked, Nui::WebApi::MouseEvent const&) {
+                Nui::WebApi::Console::log(fmt::format("Label free checkbox toggled: {}", isChecked));
+            },
+        })
+    );
+    // clang-format on
+}
+
 Nui::ElementRenderer MainPage::textInput()
 {
     return ScriptNuiComponents::textInput({
@@ -391,5 +457,218 @@ Nui::ElementRenderer MainPage::colorPicker()
                 }()),
             .buttonStyleVariant = StyleVariant::Transparent,
         }
+    );
+}
+
+void MainPage::rebuildFilterPills()
+{
+    std::vector<PillOptions> pills;
+    pills.reserve(pillLabels_.size());
+    for (auto const& label : pillLabels_)
+    {
+        pills.push_back(PillOptions{
+            .text = label,
+            .selected = pillSelected_.contains(label),
+            .onClick =
+                [this, label]()
+            {
+                if (pillSelected_.contains(label))
+                    pillSelected_.erase(label);
+                else
+                    pillSelected_.insert(label);
+                rebuildFilterPills();
+            },
+            .onRemove =
+                [this, label]()
+            {
+                std::erase(pillLabels_, label);
+                pillSelected_.erase(label);
+                rebuildFilterPills();
+            },
+        });
+    }
+    *filterPills_ = std::move(pills);
+}
+
+Nui::ElementRenderer MainPage::pills()
+{
+    using namespace Nui::Elements;
+    using namespace Nui::Attributes;
+    using Nui::Elements::div;
+
+    return div{style = "display: flex; flex-wrap: wrap; gap: 6px; align-items: center;"}(
+        pill({.text = "Regular"}),
+        pill({.text = "Selected", .selected = true}),
+        pill({.text = "Clickable", .onClick = []() { Nui::WebApi::Console::log("Pill clicked"); }}),
+        pill({.text = "Removable", .onRemove = []() { Nui::WebApi::Console::log("Pill removed"); }}),
+        pill({.text = "With icon",
+              .icon = Nui::Elements::Svg::svg{Nui::Attributes::Svg::viewBox = "0 0 24 24"}(
+                  Nui::Elements::Svg::path{Nui::Attributes::Svg::d = "m6 9 6 6 6-6"}())})
+    );
+}
+
+Nui::ElementRenderer MainPage::pillListSection()
+{
+    using namespace Nui::Elements;
+    using namespace Nui::Attributes;
+    using Nui::Elements::div;
+    using ScriptNuiComponents::button;
+
+    return div{style = "display: flex; flex-direction: column; gap: 10px; align-items: flex-start;"}(
+        pillList({.pills = filterPills_}),
+        button({
+            .text = "Add pill",
+            .attributes = {
+                onClick =
+                    [this](auto const&)
+                {
+                    pillLabels_.push_back("tag-" + std::to_string(pillLabels_.size() + 1));
+                    rebuildFilterPills();
+                },
+            },
+        })
+    );
+}
+
+Nui::ElementRenderer MainPage::tagBoxSection()
+{
+    using namespace Nui::Attributes;
+    return tagBox_({style = "max-width: 420px;"});
+}
+
+Nui::ElementRenderer MainPage::toastSection()
+{
+    using namespace Nui::Elements;
+    using namespace Nui::Attributes;
+    using Nui::Elements::div;
+    using Nui::Elements::span;
+    using ScriptNuiComponents::button;
+    using ScriptNuiComponents::ToastPosition;
+    using ScriptNuiComponents::ToastSeverity;
+    using ScriptNuiComponents::ToastStyle;
+
+    const auto styleButton = [this](std::string const& label, ToastStyle style) {
+        return button({
+            .text = label,
+            .attributes = {onClick = [this, style](auto const&) { toast_.setStyle(style); }},
+            .styleVariant = StyleVariant::Primary,
+        });
+    };
+
+    const auto positionButton = [this](std::string const& label, ToastPosition position) {
+        return button({
+            .text = label,
+            .attributes = {onClick = [this, position](auto const&) { toast_.setPosition(position); }},
+        });
+    };
+
+    const auto severityButton = [this](std::string const& label, ToastSeverity severity, StyleVariant variant) {
+        return button({
+            .text = label,
+            .attributes = {onClick =
+                               [this, label, severity](auto const&)
+                           {
+                               toast_.show({
+                                   .message = label + " toast: the operation reported something worth seeing.",
+                                   .title = label,
+                                   .severity = severity,
+                               });
+                           }},
+            .styleVariant = variant,
+        });
+    };
+
+    const auto row = [](std::string const& label, Nui::ElementRenderer buttons) {
+        return div{style = "display: flex; align-items: center; gap: 6px; flex-wrap: wrap;"}(
+            span{style = "min-width: 70px; opacity: 0.7;"}(label),
+            std::move(buttons)
+        );
+    };
+
+    return div{style = "display: flex; flex-direction: column; gap: 10px;"}(
+        row("Style",
+            div{style = "display: flex; gap: 6px;"}(
+                styleButton("Box", ToastStyle::Box),
+                styleButton("Strip", ToastStyle::Strip)
+            )),
+        row("Position",
+            div{style = "display: flex; gap: 6px; flex-wrap: wrap;"}(
+                positionButton("Top left", ToastPosition::TopLeft),
+                positionButton("Top center", ToastPosition::TopCenter),
+                positionButton("Top right", ToastPosition::TopRight),
+                positionButton("Bottom left", ToastPosition::BottomLeft),
+                positionButton("Bottom center", ToastPosition::BottomCenter),
+                positionButton("Bottom right", ToastPosition::BottomRight)
+            )),
+        row("Show",
+            div{style = "display: flex; gap: 6px; flex-wrap: wrap;"}(
+                severityButton("Info", ToastSeverity::Info, StyleVariant::Primary),
+                severityButton("Success", ToastSeverity::Success, StyleVariant::Success),
+                severityButton("Warning", ToastSeverity::Warning, StyleVariant::Warning),
+                severityButton("Error", ToastSeverity::Error, StyleVariant::Danger)
+            )),
+        row("Other",
+            div{style = "display: flex; gap: 6px; flex-wrap: wrap;"}(
+                button({
+                    .text = "Sticky",
+                    .attributes = {onClick =
+                                       [this](auto const&)
+                                   {
+                                       toast_.show({
+                                           .message = "Stays until dismissed, because its duration is zero.",
+                                           .title = "Sticky",
+                                           .severity = ToastSeverity::Warning,
+                                           .durationMilliseconds = 0,
+                                       });
+                                   }},
+                }),
+                button({
+                    .text = "Burst of 6",
+                    .attributes = {onClick =
+                                       [this](auto const&)
+                                   {
+                                       for (int index = 1; index <= 6; ++index)
+                                       {
+                                           toast_.info(fmt::format("Message number {} of the burst", index));
+                                       }
+                                   }},
+                }),
+                button({
+                    .text = "Dismiss all",
+                    .attributes = {onClick = [this](auto const&) { toast_.dismissAll(); }},
+                    .styleVariant = StyleVariant::Transparent,
+                })
+            ))
+    );
+}
+
+Nui::ElementRenderer MainPage::collapsibleSections()
+{
+    using namespace Nui::Elements;
+    using namespace Nui::Attributes;
+    using Nui::Elements::div;
+
+    return div{style = "display: flex; flex-direction: column; gap: 4px; max-width: 480px;"}(
+        collapsibleSection(
+            {.title = "Today", .badge = "3"},
+            div{}(
+                div{}("git pull origin main"),
+                div{}("docker compose up -d --build"),
+                div{}("systemctl restart nginx")
+            )
+        ),
+        collapsibleSection(
+            {.title = "Yesterday", .badge = "2", .initiallyExpanded = false},
+            div{}(
+                div{}("kubectl get pods -n production"),
+                div{}("df -h")
+            )
+        ),
+        collapsibleSection(
+            {.title = "Pinned",
+             .initiallyExpanded = false,
+             .onToggle = [](bool expanded) { Nui::WebApi::Console::log("Pinned expanded: ", expanded); }},
+            div{}("htop")
+        )
     );
 }
