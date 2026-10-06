@@ -23,12 +23,32 @@ namespace ScriptNuiComponents
             std::optional<std::any> metadata{std::nullopt};
         };
 
+        /**
+         * @brief CSS classes the tab bar renders with, so it can take on another tab stylesheet.
+         */
+        struct ClassNames
+        {
+            std::string bar = "script-nui-tab-bar";
+            /**
+             * @brief Wrapper around each tab and its leading drop marker.
+             */
+            std::string item = "";
+            std::string tab = "script-nui-tab";
+            /**
+             * @brief Added to the tab class of the selected tab.
+             */
+            std::string selectedTab = "selected";
+            std::string label = "";
+            std::string closeButton = "";
+        };
+
         using OnSelect = std::function<bool /* really do select? */ (int id)>;
         using OnClose = std::function<bool /* remove it? */ (int id)>;
         using OnReorder = std::function<void(int from, int to)>;
 
       public:
         Tabs();
+        explicit Tabs(ClassNames classNames);
         ~Tabs();
 
         Tabs(Tabs const&) = delete;
