@@ -17,6 +17,7 @@ namespace ScriptNuiComponents
 {
     struct Tabs::Implementation
     {
+        ClassNames classNames{};
         Observed<std::vector<Tab>> tabs{};
         Observed<int> selectedId{-1};
         int idCounter{0};
@@ -33,8 +34,13 @@ namespace ScriptNuiComponents
     };
 
     Tabs::Tabs()
+        : Tabs{ClassNames{}}
+    {}
+
+    Tabs::Tabs(ClassNames classNames)
         : impl_{std::make_unique<Implementation>()}
     {
+        impl_->classNames = std::move(classNames);
         onClose(
             [this](int id)
             {
@@ -184,7 +190,8 @@ namespace ScriptNuiComponents
             }();
         };
 
-        extraAttributes.push_back(class_ = fmt::format("script-nui-tab-bar {}", fmt::join(extraClasses, " ")));
+        auto const& classNames = impl_->classNames;
+        extraAttributes.push_back(class_ = fmt::format("{} {}", classNames.bar, fmt::join(extraClasses, " ")));
 
         extraAttributes.push_back(
             "dragleave"_event =
@@ -252,7 +259,9 @@ namespace ScriptNuiComponents
                 ),
             [this, makeMarker](long long visualIndex, Tab const& tab) -> ElementRenderer
             {
+                auto const& classNames = impl_->classNames;
                 return div{
+                    class_ = classNames.item,
                 }(
                     // ── marker BEFORE this tab (slot == visualIndex) ──────
                     makeMarker(visualIndex),
@@ -260,11 +269,11 @@ namespace ScriptNuiComponents
                     // ── the tab ───────────────────────────────────────────
                     div{
                         class_ = observe(impl_->selectedId).generate(
-                            [tabId = tab.id](int sel)
+                            [tabId = tab.id, tabClass = classNames.tab, selectedTabClass = classNames.selectedTab](int sel)
                             {
                                 return sel == tabId
-                                    ? "script-nui-tab selected"
-                                    : "script-nui-tab";
+                                    ? fmt::format("{} {}", tabClass, selectedTabClass)
+                                    : tabClass;
                             }
                         ),
                         draggable = "true",
@@ -330,9 +339,10 @@ namespace ScriptNuiComponents
                             impl_->dragSource.reset();
                         }
                     }(
-                        span{}(tab.title),
+                        span{class_ = classNames.label}(tab.title),
                         tab.closable
                             ? button{
+                                class_ = classNames.closeButton,
                                 onClick = [this, tabId = tab.id](Nui::WebApi::MouseEvent e)
                                 {
                                     e.stopPropagation();
