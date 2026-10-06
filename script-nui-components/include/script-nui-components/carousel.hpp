@@ -5,6 +5,7 @@
 
 #include <functional>
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace ScriptNuiComponents
@@ -19,6 +20,15 @@ namespace ScriptNuiComponents
         Sides,
         Top,
         Bottom,
+    };
+
+    /// Accessible labels of the carousel controls.  English defaults.
+    struct CarouselLabels
+    {
+        std::string previous{"Previous slide"};
+        std::string next{"Next slide"};
+        /// fmt format string, receives the 1-based slide number.
+        std::string goToSlide{"Go to slide {}"};
     };
 
     /// A memoizing, virtualised carousel component.
@@ -75,6 +85,9 @@ namespace ScriptNuiComponents
 
         /// Change the total number of items. The current page is clamped if needed.
         void setItemCount(int count);
+
+        /// Replace the accessible labels of the controls; applies to the next render.
+        void setLabels(CarouselLabels labels);
 
         /// Render the carousel.
         /// @param additionalAttributes  Merged onto the outermost container element.

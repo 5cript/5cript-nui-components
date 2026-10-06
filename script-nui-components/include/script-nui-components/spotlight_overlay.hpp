@@ -28,7 +28,8 @@ namespace ScriptNuiComponents
         Left,
     };
 
-    /** @brief Step indicator rendered as `STEP n OF m` in the tooltip header. */
+    /** @brief Step indicator rendered with `SpotlightOptions::stepCounterFormat`
+     *         in the tooltip header. */
     struct SpotlightStepCounter
     {
         unsigned current{1};
@@ -50,6 +51,9 @@ namespace ScriptNuiComponents
         std::string bodyText{};
         /** @brief Optional step indicator. */
         std::optional<SpotlightStepCounter> stepCounter{};
+        /** @brief fmt format string of the step indicator, receives the
+         *         current step and the step count. */
+        std::string stepCounterFormat{"STEP {} OF {}"};
         /** @brief Preferred side; falls back to `Auto` semantics if the
          *         preferred side cannot fit the tooltip. */
         SpotlightSide preferredSide{SpotlightSide::Auto};
@@ -64,6 +68,8 @@ namespace ScriptNuiComponents
         std::string ctaLabel{};
         /** @brief Skip button label. Empty hides the button. */
         std::string skipLabel{};
+        /** @brief Accessible label of the close button. */
+        std::string dismissLabel{"Dismiss"};
         /** @brief Whether clicking the dim backdrop dismisses. */
         bool dismissOnBackdropClick{true};
         /** @brief Whether the Esc key dismisses. */

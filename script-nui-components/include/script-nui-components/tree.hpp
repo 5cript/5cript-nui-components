@@ -101,6 +101,23 @@ namespace ScriptNuiComponents
 
         using SelectionChanged = std::function<void(NodeId const&, bool selected)>;
 
+        /// Text the tree renders itself.  English defaults; pass translations
+        /// to localize.
+        struct Texts
+        {
+            /// Placeholder row while lazily loading children.
+            std::string loading{"Loading…"};
+            /// fmt format string, receives the error of the children loader.
+            std::string loadFailed{"Failed: {}"};
+            /// fmt format string, receives the page size and the number of
+            /// remaining children.
+            std::string loadMore{"Load up to {} more ({} remaining)"};
+            /// Tooltips of the toolbar buttons.
+            std::string collapseAll{"Collapse all"};
+            std::string selectAll{"Select all"};
+            std::string deselectAll{"Deselect all"};
+        };
+
         struct Options
         {
             /// REQUIRED. Renders the row's content cell.
@@ -157,6 +174,7 @@ namespace ScriptNuiComponents
             /// Render a built-in deselect-all icon button in the tree toolbar.
             /// Has no effect when @ref selected is null.
             bool showDeselectAllButton{false};
+            Texts texts{};
         };
 
         Tree();

@@ -46,7 +46,11 @@ namespace ScriptNuiComponents
     }
 
     Nui::ElementRenderer
-    DropdownMenu::operator()(std::string label, std::string anchorId, std::vector<Nui::Attribute> additionalAttributes)
+    DropdownMenu::operator()(
+        Nui::StateTransformer<StateTransformers::TextNode> label,
+        std::string anchorId,
+        std::vector<Nui::Attribute> additionalAttributes
+    )
     {
         using Nui::Elements::div;
         using Nui::Elements::span;
@@ -72,6 +76,9 @@ namespace ScriptNuiComponents
                 }}
         );
 
-        return button{std::move(attributes)}(span{}(label), Ui5Icons::navigation_down_arrow(), impl->popup());
+        auto [labelText] = label.reify();
+        return button{std::move(attributes)}(
+            span{}(std::move(labelText)), Ui5Icons::navigation_down_arrow(), impl->popup()
+        );
     }
 } // namespace ScriptNuiComponents
