@@ -87,6 +87,11 @@ namespace ScriptNuiComponents
          * @brief Whether a click anywhere on the toast dismisses it, not just the close button.
          */
         bool dismissOnClick{true};
+
+        /**
+         * @brief Accessible label of the close button.
+         */
+        std::string dismissLabel{"Dismiss"};
     };
 
     /**

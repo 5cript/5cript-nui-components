@@ -1,6 +1,7 @@
 #pragma once
 
 #include <script-nui-components/popup_menu.hpp>
+#include <script-nui-components/state_transformers/text_node.hpp>
 
 #include <nui/frontend/element_renderer.hpp>
 #include <nui/frontend/attributes.hpp>
@@ -68,14 +69,14 @@ namespace ScriptNuiComponents
         /**
          * @brief Render the trigger button together with the popup container.
          *
-         * @param label Text shown on the trigger button.
+         * @param label Text shown on the trigger button, a string or an observed text.
          * @param anchorId Stable HTML id assigned to the trigger button.
          *                 Must be unique on the page; used internally by openNextTo().
          * @param additionalAttributes Extra Nui attributes merged onto the outer wrapper div.
          * @return Nui::ElementRenderer
          */
         Nui::ElementRenderer operator()(
-            std::string label,
+            Nui::StateTransformer<StateTransformers::TextNode> label,
             std::string anchorId,
             std::vector<Nui::Attribute> additionalAttributes = {}
         );

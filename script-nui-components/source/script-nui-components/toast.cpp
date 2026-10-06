@@ -213,7 +213,7 @@ namespace ScriptNuiComponents
             div{class_ = "snc-toast-content"}(titleElement(), div{class_ = "snc-toast-message"}(toast.message)),
             button{
                 class_ = "snc-toast-close",
-                "aria-label"_attr = std::string{"Dismiss"},
+                "aria-label"_attr = options.dismissLabel,
                 // The toast body has its own click handler, which must not see the close click.
                 onClick =
                     [dismiss](Nui::val event) {

@@ -599,7 +599,7 @@ namespace ScriptNuiComponents
 
         const auto& opts = currentOptions;
         const auto stepText = opts.stepCounter
-            ? fmt::format("STEP {} OF {}", opts.stepCounter->current, opts.stepCounter->total)
+            ? fmt::format(fmt::runtime(opts.stepCounterFormat), opts.stepCounter->current, opts.stepCounter->total)
             : std::string{};
         const auto onSkip = [this]()
         {
@@ -649,7 +649,7 @@ namespace ScriptNuiComponents
               span{class_ = "snc-spotlight-step"}(stepText),
               button{
                   class_ = "snc-spotlight-close",
-                  "aria-label"_attr = std::string{"Dismiss"},
+                  "aria-label"_attr = opts.dismissLabel,
                   onClick = onSkip,
               }(Utf8::cp(0x00D7)) // multiplication sign — used as close glyph
           ),

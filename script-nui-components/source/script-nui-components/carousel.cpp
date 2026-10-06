@@ -46,6 +46,7 @@ namespace ScriptNuiComponents
         int cacheRadius;
         CarouselControlsPosition controlsPosition;
         bool disableSwipe;
+        CarouselLabels labels{};
 
         // One slot per logical card index. Slots outside the cache window stay
         // empty (nullptr) so the flex track keeps its horizontal positioning.
@@ -412,7 +413,7 @@ namespace ScriptNuiComponents
                                       : "script-nui-carousel__prev";
                     }
                 ),
-                "aria-label"_attr = std::string{"Previous slide"},
+                "aria-label"_attr = labels.previous,
                 onClick = [this](Nui::val)
                 {
                     goPrev();
@@ -433,7 +434,7 @@ namespace ScriptNuiComponents
                                                   : "script-nui-carousel__next";
                     }
                 ),
-                "aria-label"_attr = std::string{"Next slide"},
+                "aria-label"_attr = labels.next,
                 onClick = [this](Nui::val)
                 {
                     goNext();
@@ -480,7 +481,7 @@ namespace ScriptNuiComponents
                                               : "script-nui-carousel__dot";
                             }
                         ),
-                        "aria-label"_attr = std::string{"Go to slide "} + std::to_string(i + 1),
+                        "aria-label"_attr = fmt::format(fmt::runtime(labels.goToSlide), i + 1),
                         onClick = [this, i](Nui::val)
                         {
                             *page = i;
@@ -603,6 +604,11 @@ namespace ScriptNuiComponents
 
     Carousel::~Carousel() = default;
     Carousel::Carousel(Carousel&&) = default;
+
+    void Carousel::setLabels(CarouselLabels labels)
+    {
+        impl_->labels = std::move(labels);
+    }
     Carousel& Carousel::operator=(Carousel&&) = default;
 
     void Carousel::setItemCount(int count)

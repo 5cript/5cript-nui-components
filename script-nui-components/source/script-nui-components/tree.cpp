@@ -833,13 +833,13 @@ namespace ScriptNuiComponents
                     if (findIt->second.loadState == NodeRecord::Load::Loading)
                     {
                         const std::string depthStyle = fmt::format("--depth: {};", childDepth);
-                        return div{class_ = "script-nui-tree__skeleton", style = depthStyle}("Loading…");
+                        return div{class_ = "script-nui-tree__skeleton", style = depthStyle}(options.texts.loading);
                     }
                     if (findIt->second.loadState == NodeRecord::Load::Failed)
                     {
                         const std::string depthStyle = fmt::format("--depth: {};", childDepth);
                         return div{class_ = "script-nui-tree__error", style = depthStyle}(
-                            fmt::format("Failed: {}", findIt->second.loadError)
+                            fmt::format(fmt::runtime(options.texts.loadFailed), findIt->second.loadError)
                         );
                     }
                 }
@@ -877,7 +877,7 @@ namespace ScriptNuiComponents
                     const auto remaining = total - visible;
                     const std::string depthStyle = fmt::format("--depth: {};", childDepth);
                     const std::string label =
-                        fmt::format("Load up to {} more ({} remaining)", options.pageSize, remaining);
+                        fmt::format(fmt::runtime(options.texts.loadMore), options.pageSize, remaining);
                     return div{
                         class_ = "script-nui-tree__load-more",
                         style = depthStyle,
@@ -1119,13 +1119,13 @@ namespace ScriptNuiComponents
         {
             toolbar = div{class_ = "script-nui-tree__toolbar"}(
                 impl->options.showCollapseAllButton
-                    ? toolbarButton(collapseAllGlyph(), "Collapse all", [this]() { collapseAll(); })
+                    ? toolbarButton(collapseAllGlyph(), impl->options.texts.collapseAll, [this]() { collapseAll(); })
                     : Nui::nil(),
                 (impl->options.showSelectAllButton && impl->options.selected)
-                    ? toolbarButton(selectAllGlyph(), "Select all", [this]() { selectAll(); })
+                    ? toolbarButton(selectAllGlyph(), impl->options.texts.selectAll, [this]() { selectAll(); })
                     : Nui::nil(),
                 (impl->options.showDeselectAllButton && impl->options.selected)
-                    ? toolbarButton(deselectAllGlyph(), "Deselect all", [this]() { deselectAll(); })
+                    ? toolbarButton(deselectAllGlyph(), impl->options.texts.deselectAll, [this]() { deselectAll(); })
                     : Nui::nil()
             );
         }
