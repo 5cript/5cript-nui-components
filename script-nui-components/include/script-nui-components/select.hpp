@@ -48,6 +48,23 @@ namespace ScriptNuiComponents
             double maxHeight;
             bool flipUp; // true when opening upward (more space above than below)
         };
+
+        // Not part of the SelectOptions template, so all instantiations share one counter.
+        inline std::string makeDefaultId()
+        {
+            const auto crypto = Nui::val::global("crypto");
+            if (crypto.isUndefined() || crypto.isNull() || crypto["randomUUID"].isUndefined())
+            {
+                // fallback if crypto.randomUUID is not available for some reason:
+                Nui::WebApi::Console::warn(
+                    "crypto.randomUUID is not available, falling back to less robust id generation for select "
+                    "component. You should pass makeId to SelectOptions!"
+                );
+                static int counter = 0;
+                return fmt::format("select-{}", counter++);
+            }
+            return crypto.call<std::string>("randomUUID");
+        }
     }
 
     template <typename ActiveOptionType, typename OptionsValueType>
@@ -75,21 +92,7 @@ namespace ScriptNuiComponents
             else
                 return Nui::Elements::span{}(each);
         };
-        std::function<std::string()> makeId = []()
-        {
-            const auto crypto = Nui::val::global("crypto");
-            if (crypto.isUndefined() || crypto.isNull() || !crypto.hasOwnProperty("randomUUID"))
-            {
-                // fallback if crypto.randomUUID is not available for some reason:
-                Nui::WebApi::Console::warn(
-                    "crypto.randomUUID is not available, falling back to less robust id generation for select "
-                    "component. You should pass makeId to SelectOptions!"
-                );
-                static int counter = 0;
-                return fmt::format("select-{}", counter++);
-            }
-            return crypto.call<std::string>("randomUUID");
-        };
+        std::function<std::string()> makeId = &SelectDetail::makeDefaultId;
         std::function<bool()> onOpen = {};
         bool dontUpdateValue = false;
 
