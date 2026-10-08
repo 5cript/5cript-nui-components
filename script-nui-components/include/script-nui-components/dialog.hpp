@@ -49,10 +49,18 @@ namespace ScriptNuiComponents
             StyleVariant styleVariant = StyleVariant::Regular;
             std::string headerText = "";
             Button buttons = Button::Ok;
+            /// Buttons that start out disabled; see setButtonsDisabled.
+            Button disabledButtons = Button::Unknown;
             /// Focus on a button or an element by id:
             std::optional<std::variant<Button, std::string>> initialFocus = std::nullopt;
             /// Called when the dialog is closed.
             std::function<void(std::optional<Button> buttonPressed)> onClose = [](auto) {};
+            /**
+             * @brief Called when a footer button is pressed, before the dialog closes. Returning
+             *        false keeps the dialog open and skips onClose, e.g. for the steps of a wizard.
+             *        Unset, every button closes the dialog.
+             */
+            std::function<bool(Button buttonPressed)> onButton = {};
             bool modal{true};
             bool mayCloseWithoutButton{false};
             /**
@@ -82,11 +90,25 @@ namespace ScriptNuiComponents
         /// Close the dialog.
         void close();
 
+        /**
+         * @brief Enables or disables footer buttons while the dialog is open, e.g. an Ok that
+         *        needs valid input. A disabled button cannot close the dialog, not even by keyboard.
+         *        open() resets the state to OpenOptions::disabledButtons.
+         *
+         * @param buttons One or more buttons, combined with operator|.
+         * @param disabled True disables, false enables them again.
+         */
+        void setButtonsDisabled(Button buttons, bool disabled);
+
+        /// Whether the given button is currently disabled.
+        bool isButtonDisabled(Button button) const;
+
         Nui::ElementRenderer operator()();
 
       private:
         void dialogButtonContainerKeydown(Nui::WebApi::KeyboardEvent const& event);
         void closeByButton(Button button);
+        Nui::Attribute disabledWhile(Button button);
         void doFocus();
 
       private:

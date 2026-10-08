@@ -21,10 +21,12 @@ namespace ScriptNuiComponents
 
         Observed<std::string> headerText;
         Observed<Button> buttons;
+        Observed<Button> disabledButtons{Button::Unknown};
 
         std::optional<std::variant<Dialog::Button, std::string>> initialFocus{std::nullopt};
         Observed<StyleVariant> styleVariant{StyleVariant::Regular};
         std::function<void(std::optional<Button> buttonPressed)> onClose;
+        std::function<bool(Button buttonPressed)> onButton;
 
         Observed<std::string> okButtonLabel{"Ok"};
         Observed<std::string> cancelButtonLabel{"Cancel"};
@@ -63,7 +65,9 @@ namespace ScriptNuiComponents
         impl_->initialFocus = options.initialFocus;
         impl_->styleVariant = options.styleVariant;
         impl_->buttons = options.buttons;
+        impl_->disabledButtons = options.disabledButtons;
         impl_->onClose = options.onClose;
+        impl_->onButton = options.onButton;
         impl_->mayCloseWithoutButton = options.mayCloseWithoutButton;
         impl_->draggable = options.draggable;
 
@@ -165,8 +169,32 @@ namespace ScriptNuiComponents
         impl_->noneButtonLabel = labels.none;
     }
 
+    void Dialog::setButtonsDisabled(Button buttons, bool disabled)
+    {
+        const auto current = static_cast<unsigned>(impl_->disabledButtons.value());
+        const auto changed = static_cast<unsigned>(buttons);
+        impl_->disabledButtons = static_cast<Button>(disabled ? (current | changed) : (current & ~changed));
+    }
+
+    bool Dialog::isButtonDisabled(Button button) const
+    {
+        return (static_cast<unsigned>(impl_->disabledButtons.value()) & static_cast<unsigned>(button)) != 0;
+    }
+
+    Nui::Attribute Dialog::disabledWhile(Button button)
+    {
+        return disabled = observe(impl_->disabledButtons).generate([this, button]() {
+            return isButtonDisabled(button);
+        });
+    }
+
     void Dialog::closeByButton(Button button)
     {
+        // Keyboard paths and programmatic clicks must not bypass a disabled button.
+        if (isButtonDisabled(button))
+            return;
+        if (impl_->onButton && !impl_->onButton(button))
+            return;
         auto dialog = impl_->dialog.lock();
         if (dialog)
             dialog->val().call<void>("close");
@@ -335,6 +363,7 @@ namespace ScriptNuiComponents
                                   .text = impl_->okButtonLabel,
                                   .attributes =
                                       {id = impl_->id + "_ok",
+                                          disabledWhile(Button::Ok),
                                           "click"_event =
                                               [this](Nui::val)
                                           {
@@ -358,6 +387,7 @@ namespace ScriptNuiComponents
                                 {.text = impl_->yesButtonLabel,
                                     .attributes =
                                         {id = impl_->id + "_yes",
+                                          disabledWhile(Button::Yes),
                                             "click"_event =
                                                 [this](Nui::val)
                                             {
@@ -380,6 +410,7 @@ namespace ScriptNuiComponents
                                 {.text = impl_->noButtonLabel,
                                     .attributes =
                                         {id = impl_->id + "_no",
+                                          disabledWhile(Button::No),
                                             "click"_event =
                                                 [this](Nui::val)
                                             {
@@ -402,6 +433,7 @@ namespace ScriptNuiComponents
                                 {.text = impl_->allButtonLabel,
                                     .attributes =
                                         {id = impl_->id + "_all",
+                                          disabledWhile(Button::All),
                                             "click"_event =
                                                 [this](Nui::val)
                                             {
@@ -424,6 +456,7 @@ namespace ScriptNuiComponents
                                 {.text = impl_->noneButtonLabel,
                                     .attributes =
                                         {id = impl_->id + "_none",
+                                          disabledWhile(Button::None),
                                             "click"_event =
                                                 [this](Nui::val)
                                             {
@@ -447,6 +480,7 @@ namespace ScriptNuiComponents
                                     .attributes =
                                         {
                                             id = impl_->id + "_cancel",
+                                          disabledWhile(Button::Cancel),
                                             "click"_event =
                                                 [this](Nui::val)
                                             {
