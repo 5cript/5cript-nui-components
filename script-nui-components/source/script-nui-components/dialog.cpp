@@ -26,6 +26,7 @@ namespace ScriptNuiComponents
         std::optional<std::variant<Dialog::Button, std::string>> initialFocus{std::nullopt};
         Observed<StyleVariant> styleVariant{StyleVariant::Regular};
         std::function<void(std::optional<Button> buttonPressed)> onClose;
+        std::function<bool(Button buttonPressed)> onButton;
 
         Observed<std::string> okButtonLabel{"Ok"};
         Observed<std::string> cancelButtonLabel{"Cancel"};
@@ -66,6 +67,7 @@ namespace ScriptNuiComponents
         impl_->buttons = options.buttons;
         impl_->disabledButtons = options.disabledButtons;
         impl_->onClose = options.onClose;
+        impl_->onButton = options.onButton;
         impl_->mayCloseWithoutButton = options.mayCloseWithoutButton;
         impl_->draggable = options.draggable;
 
@@ -190,6 +192,8 @@ namespace ScriptNuiComponents
     {
         // Keyboard paths and programmatic clicks must not bypass a disabled button.
         if (isButtonDisabled(button))
+            return;
+        if (impl_->onButton && !impl_->onButton(button))
             return;
         auto dialog = impl_->dialog.lock();
         if (dialog)

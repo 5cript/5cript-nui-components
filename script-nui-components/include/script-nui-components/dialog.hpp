@@ -55,6 +55,12 @@ namespace ScriptNuiComponents
             std::optional<std::variant<Button, std::string>> initialFocus = std::nullopt;
             /// Called when the dialog is closed.
             std::function<void(std::optional<Button> buttonPressed)> onClose = [](auto) {};
+            /**
+             * @brief Called when a footer button is pressed, before the dialog closes. Returning
+             *        false keeps the dialog open and skips onClose, e.g. for the steps of a wizard.
+             *        Unset, every button closes the dialog.
+             */
+            std::function<bool(Button buttonPressed)> onButton = {};
             bool modal{true};
             bool mayCloseWithoutButton{false};
             /**
