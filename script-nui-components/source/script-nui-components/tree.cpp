@@ -136,22 +136,28 @@ namespace ScriptNuiComponents
             // NodeId and updated with granular inserts/erases, so rows of unchanged children keep
             // their DOM when the list changes.
             Nui::Observed<std::vector<NodeId>> visible{};
-            // Bumped when the node's data changed; re-renders only the row's content cell.
+            // Bumped when the node's data changed; re-renders the row's content cell, or the
+            // whole row when it refreshes as a whole (see refreshesWholeRow).
             Nui::Observed<int> dataTick{0};
             // Bumped whenever loadState/loadError change so the skeleton/error
             // renderer re-runs.
             Nui::Observed<int> loadTick{0};
-            // Bumped whenever the load-more affordance changes visibility.
+            // Bumped whenever the remaining count shown by the load-more affordance changes.
             Nui::Observed<int> loadMoreTick{0};
+            // Remaining count the load-more affordance was last bumped for.
+            std::size_t shownRemaining{0};
         };
 
         std::unordered_map<NodeId, NodeRecord> nodes{};
         std::unordered_map<NodeId, std::shared_ptr<NodeObs>> obs{};
         std::vector<NodeId> rootOrder{};
-        // Holds page indices for the synthetic root level (id = kRootParentId).
+        // Observed state of the synthetic root level (id = kRootParentId).
         std::shared_ptr<NodeObs> rootObs{std::make_shared<NodeObs>()};
+        // Page cursor of the synthetic root level, the counterpart of NodeRecord::pageCursor.
+        std::size_t rootPageCursor{0};
         std::list<NodeId> collapsedLru{};
-        // Nodes re-registered with a different kind or child presence; their whole element is rebuilt.
+        // Nodes re-registered with a different kind, child presence, selectability or row refresh
+        // mode; their whole element is rebuilt.
         std::unordered_set<NodeId> restructured{};
 
         // ──────────────────────── helpers ────────────────────────────────────
@@ -186,6 +192,22 @@ namespace ScriptNuiComponents
                 return rootOrder.size();
             const auto findIt = nodes.find(parentId);
             return findIt == nodes.end() ? 0u : findIt->second.childOrder.size();
+        }
+
+        std::size_t pageCursorOf(NodeId const& parentId) const
+        {
+            if (parentId == kRootParentId)
+                return rootPageCursor;
+            const auto findIt = nodes.find(parentId);
+            return findIt == nodes.end() ? 0u : findIt->second.pageCursor;
+        }
+
+        /** @brief Whether a change of @p data re-renders the whole row instead of only the
+         *         content cell.  The icon and the row attributes live outside the content cell.
+         */
+        bool refreshesWholeRow(Node const& data) const
+        {
+            return static_cast<bool>(options.rowAttributes) || (options.showIcons && data.icon);
         }
 
         // ──────────────────────── registration ───────────────────────────────
@@ -244,7 +266,8 @@ namespace ScriptNuiComponents
                 const bool hasChildren =
                     rec.data.kind == NodeKind::Directory && (rec.data.hasChildren || hasInlineChildren);
                 if (previous.kind != rec.data.kind || hadChildren != hasChildren ||
-                    previous.selectable != rec.data.selectable)
+                    previous.selectable != rec.data.selectable ||
+                    refreshesWholeRow(previous) != refreshesWholeRow(rec.data))
                     restructured.insert(id);
                 contentChanged = !options.sameUserData || !options.sameUserData(previous.userData, rec.data.userData);
                 rec.pageCursor = prevIt->second.pageCursor;
@@ -290,7 +313,7 @@ namespace ScriptNuiComponents
             for (auto& child : incomingChildren)
                 registerNode(std::move(child), id);
 
-            // Sync observed state and rebuild the page indices for this node.
+            // Sync observed state and the visible children of this node.
             auto& observedNode = *getOrCreateObs(id);
             auto& finalRec = nodes.at(id);
             // On a lazy re-seed we must also force the visible `expanded` bit
@@ -304,7 +327,8 @@ namespace ScriptNuiComponents
                 observedNode.everExpanded = finalRec.everExpanded;
             if (observedNode.expanded.value() != startExpanded)
                 observedNode.expanded = startExpanded;
-            if (contentChanged)
+            // A restructured row is rebuilt by its parent, re-rendering the old one would be wasted.
+            if (contentChanged && !restructured.contains(id))
                 observedNode.dataTick = observedNode.dataTick.value() + 1;
             syncVisible(id);
         }
@@ -317,14 +341,7 @@ namespace ScriptNuiComponents
         {
             auto observedParent = obsOf(parentId);
             const auto total = totalChildren(parentId);
-            std::size_t cursor = options.pageSize;
-            if (parentId != kRootParentId)
-            {
-                const auto findIt = nodes.find(parentId);
-                if (findIt != nodes.end())
-                    cursor = findIt->second.pageCursor + options.pageSize;
-            }
-            const std::size_t count = std::min(total, std::max<std::size_t>(cursor, options.pageSize));
+            const std::size_t count = std::min(total, pageCursorOf(parentId) + options.pageSize);
             auto const& order = childOrderOf(parentId);
             auto const& current = observedParent->visible.value();
 
@@ -353,7 +370,18 @@ namespace ScriptNuiComponents
                 observedParent->visible.insert(
                     observedParent->visible.begin() + start, order.begin() + start, order.begin() + insertEnd
                 );
-            observedParent->loadMoreTick = observedParent->loadMoreTick.value() + 1;
+            refreshLoadMore(*observedParent, total);
+        }
+
+        /** @brief Re-renders the load-more affordance when the remaining count it shows changed. */
+        void refreshLoadMore(NodeObs& observedParent, std::size_t total)
+        {
+            const auto visibleCount = observedParent.visible.value().size();
+            const std::size_t remaining = total > visibleCount ? total - visibleCount : 0u;
+            if (remaining == observedParent.shownRemaining)
+                return;
+            observedParent.shownRemaining = remaining;
+            observedParent.loadMoreTick = observedParent.loadMoreTick.value() + 1;
         }
 
         // ──────────────────────── expand / collapse ──────────────────────────
@@ -495,6 +523,7 @@ namespace ScriptNuiComponents
             observedNode->everExpanded = false;
             observedNode->expanded = false;
             observedNode->visible.clear();
+            refreshLoadMore(*observedNode, 0);
             observedNode->loadTick = observedNode->loadTick.value() + 1;
         }
 
@@ -555,28 +584,16 @@ namespace ScriptNuiComponents
         {
             if (parentId == kRootParentId)
             {
-                const auto total = rootOrder.size();
-                const auto current = rootObs->visible.value().size();
-                const auto next = std::min(total, current + options.pageSize);
-                for (auto i = current; i < next; ++i)
-                    rootObs->visible.push_back(rootOrder[i]);
-                rootObs->loadMoreTick = rootObs->loadMoreTick.value() + 1;
+                rootPageCursor += options.pageSize;
             }
             else
             {
                 const auto findIt = nodes.find(parentId);
                 if (findIt == nodes.end())
                     return;
-                auto& rec = findIt->second;
-                rec.pageCursor += options.pageSize;
-                auto observedNode = getOrCreateObs(parentId);
-                const auto total = rec.childOrder.size();
-                const auto current = observedNode->visible.value().size();
-                const auto next = std::min(total, current + options.pageSize);
-                for (auto i = current; i < next; ++i)
-                    observedNode->visible.push_back(rec.childOrder[i]);
-                observedNode->loadMoreTick = observedNode->loadMoreTick.value() + 1;
+                findIt->second.pageCursor += options.pageSize;
             }
+            syncVisible(parentId);
             Nui::globalEventContext.executeActiveEventsImmediately();
         }
 
@@ -771,7 +788,6 @@ namespace ScriptNuiComponents
                 return span{class_ = "script-nui-tree__icon"}(*rec.data.icon);
             }();
 
-            // Caller-supplied content
             const RowContext ctx{
                 .id = id,
                 .depth = depth,
@@ -779,25 +795,35 @@ namespace ScriptNuiComponents
                 .hasChildren = hasChildren,
                 .userData = rec.data.userData,
             };
-            auto contentCell = div{class_ = "script-nui-tree__content"}(
-                Nui::observe(observedNode->dataTick),
-                [this, id, depth]() -> Nui::ElementRenderer
+            // A row refreshing as a whole is rendered again by renderRowSlot, so its content
+            // cell does not observe dataTick itself.
+            auto contentCell = [&]() -> Nui::ElementRenderer {
+                if (refreshesWholeRow(rec.data))
                 {
-                    const auto findInnerIt = nodes.find(id);
-                    if (!options.rowContent || findInnerIt == nodes.end())
-                        return Nui::nil();
-                    auto const& record = findInnerIt->second;
-                    const bool innerIsDir = record.data.kind == NodeKind::Directory;
-                    const RowContext innerCtx{
-                        .id = id,
-                        .depth = depth,
-                        .expanded = getOrCreateObs(id)->expanded.value(),
-                        .hasChildren = innerIsDir && (record.data.hasChildren || !record.childOrder.empty()),
-                        .userData = record.data.userData,
-                    };
-                    return options.rowContent(innerCtx);
+                    return div{class_ = "script-nui-tree__content"}(
+                        options.rowContent ? options.rowContent(ctx) : Nui::nil()
+                    );
                 }
-            );
+                return div{class_ = "script-nui-tree__content"}(
+                    Nui::observe(observedNode->dataTick),
+                    [this, id, depth, sharedObs = observedNode]() -> Nui::ElementRenderer
+                    {
+                        const auto findInnerIt = nodes.find(id);
+                        if (!options.rowContent || findInnerIt == nodes.end())
+                            return Nui::nil();
+                        auto const& record = findInnerIt->second;
+                        const bool innerIsDir = record.data.kind == NodeKind::Directory;
+                        const RowContext innerCtx{
+                            .id = id,
+                            .depth = depth,
+                            .expanded = sharedObs->expanded.value(),
+                            .hasChildren = innerIsDir && (record.data.hasChildren || !record.childOrder.empty()),
+                            .userData = record.data.userData,
+                        };
+                        return options.rowContent(innerCtx);
+                    }
+                );
+            }();
 
             const std::string depthStyle = fmt::format("--depth: {};", depth);
             // aria-expanded reflects the directory's current expansion state at
@@ -872,7 +898,7 @@ namespace ScriptNuiComponents
             );
         }
 
-        /** @brief Loading / error state, or the page-indexed row list.  Swapped
+        /** @brief Loading / error state, or the visible row list.  Swapped
          *         in by the outer loadTick observer so we don't have to rebuild
          *         the expand/collapse DOM when the load state changes.
          */
@@ -960,11 +986,33 @@ namespace ScriptNuiComponents
 
             if (!isDir)
             {
-                return div{class_ = "script-nui-tree__node"}(renderRow(id, depth));
+                return div{class_ = "script-nui-tree__node"}(renderRowSlot(id, depth));
             }
             return div{class_ = "script-nui-tree__node"}(
-                renderRow(id, depth),
+                renderRowSlot(id, depth),
                 renderChildrenSlot(id, depth + 1)
+            );
+        }
+
+        /** @brief The row of @p id, wrapped in a `display: contents` slot that renders it again
+         *         on dataTick when the row refreshes as a whole.  The children are not touched.
+         */
+        Nui::ElementRenderer renderRowSlot(NodeId const& id, std::size_t depth)
+        {
+            using namespace Nui::Elements;
+            using namespace Nui::Attributes;
+            using Nui::Elements::div;
+
+            const auto findIt = nodes.find(id);
+            if (findIt == nodes.end() || !refreshesWholeRow(findIt->second.data))
+                return renderRow(id, depth);
+
+            auto observedNode = getOrCreateObs(id);
+            return div{class_ = "script-nui-tree__row-slot"}(
+                Nui::observe(observedNode->dataTick),
+                [this, id, depth, sharedObs = observedNode]() -> Nui::ElementRenderer {
+                    return renderRow(id, depth);
+                }
             );
         }
     };
@@ -1025,7 +1073,6 @@ namespace ScriptNuiComponents
         impl_->restructured.clear();
         impl_->rootObs->everExpanded = true;
         impl_->rootObs->expanded = true;
-        impl_->rootObs->loadMoreTick = impl_->rootObs->loadMoreTick.value() + 1;
         Nui::globalEventContext.executeActiveEventsImmediately();
     }
 
