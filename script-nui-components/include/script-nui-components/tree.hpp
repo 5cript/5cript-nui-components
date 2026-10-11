@@ -152,7 +152,9 @@ namespace ScriptNuiComponents
             std::function<SelectionState(NodeId const&)> selectionStateResolver{};
             /// OPTIONAL.  Tells whether two userData values render the same.  When a re-registered
             /// node (setRoots, children load) compares equal, its row content is not rendered
-            /// again.  Without it every re-registered row content re-renders.
+            /// again.  Without it every re-registered row content re-renders.  Rows with an icon
+            /// or @ref rowAttributes re-render as a whole instead, so the icon and the attributes
+            /// are expected to follow userData.
             std::function<bool(std::any const&, std::any const&)> sameUserData{};
             /// OPTIONAL.  Overrides the built-in toggle logic (which just
             /// inserts/erases loaded leaves).  The callback owns the mutation;
@@ -194,7 +196,9 @@ namespace ScriptNuiComponents
          *         expanded, pageCursor, loadState) is preserved for surviving
          *         nodes, dropped for removed ones, fresh for newly added ones.
          *         Rows of surviving nodes keep their DOM; only their content cell
+         *         (or the whole row, when it has an icon or row attributes)
          *         re-renders, and only when @ref Options::sameUserData says it changed.
+         *         Children pages loaded with "load more" stay loaded.
          */
         void setRoots(std::vector<Node> roots);
 

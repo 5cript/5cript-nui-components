@@ -39,6 +39,10 @@
         display: none;
     }
 
+    & .script-nui-tree__row-slot {
+        display: contents;
+    }
+
     & .script-nui-tree__row {
         /* Total width (px) that the row's left-side fixtures consume BEFORE
            `.script-nui-tree__content`: padding-left + depth indent + checkbox
