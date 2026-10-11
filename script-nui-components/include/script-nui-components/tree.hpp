@@ -150,6 +150,10 @@ namespace ScriptNuiComponents
             /// where a collapsed directory is Checked by ancestor-implication
             /// even though none of its descendants are loaded.
             std::function<SelectionState(NodeId const&)> selectionStateResolver{};
+            /// OPTIONAL.  Tells whether two userData values render the same.  When a re-registered
+            /// node (setRoots, children load) compares equal, its row content is not rendered
+            /// again.  Without it every re-registered row content re-renders.
+            std::function<bool(std::any const&, std::any const&)> sameUserData{};
             /// OPTIONAL.  Overrides the built-in toggle logic (which just
             /// inserts/erases loaded leaves).  The callback owns the mutation;
             /// the tree still calls @c selected->modify() afterwards.
@@ -189,6 +193,8 @@ namespace ScriptNuiComponents
          *         existing nodes (matched by NodeId): runtime state (everExpanded,
          *         expanded, pageCursor, loadState) is preserved for surviving
          *         nodes, dropped for removed ones, fresh for newly added ones.
+         *         Rows of surviving nodes keep their DOM; only their content cell
+         *         re-renders, and only when @ref Options::sameUserData says it changed.
          */
         void setRoots(std::vector<Node> roots);
 
