@@ -195,6 +195,10 @@ Nui::ElementRenderer MainPage::render()
                 // and others...
                 .disabled = false
             },
+            // Optional muted text inside the box in front of the active option. Also takes an Observed string.
+            .label = "Fruit",
+            // Optional icon in front of the label or the active option. Either one can be used alone.
+            .icon = Ui5Icons::nutrition_activity(),
             .onChange = [this](std::string const& newValue, auto const&)
             {
                 Nui::WebApi::Console::log("Selected option: "s + newValue);
