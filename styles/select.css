@@ -69,7 +69,7 @@
         }
     }
 
-    &>span:first-child,
+    &>span:first-child:not(.script-nui-select-prefix),
     &>.script-nui-select-prefix + span {
         height: 1lh;
         flex-grow: 1;
