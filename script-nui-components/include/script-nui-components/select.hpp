@@ -1,6 +1,7 @@
 #pragma once
 
 #include <script-nui-components/impl/attribute_traits.hpp>
+#include <script-nui-components/state_transformers/text_node.hpp>
 #include <nui/frontend/utility/merge_attributes.hpp>
 
 #include <nui/frontend/api/dom_rect_readonly.hpp>
@@ -17,6 +18,7 @@
 #include <nui/frontend/api/mouse_event.hpp>
 #include <nui/frontend/api/keyboard_event.hpp>
 #include <nui/frontend/element_renderer.hpp>
+#include <nui/frontend/state_transformer.hpp>
 #include <nui/event_system/observed_value.hpp>
 #include <nui/event_system/listen.hpp>
 #include <nui/frontend/api/console.hpp>
@@ -65,6 +67,35 @@ namespace ScriptNuiComponents
             }
             return crypto.call<std::string>("randomUUID");
         }
+
+        /**
+         * @brief Renders the icon and label in front of the active option, nothing if neither is set.
+         *
+         * @param icon Optional icon in front of the label.
+         * @param label Optional text naming what the select chooses.
+         */
+        inline Nui::ElementRenderer
+        prefix(std::optional<Nui::ElementRenderer> icon, std::optional<Nui::StateTransformer<StateTransformers::TextNode>> label)
+        {
+            using Nui::Attributes::class_;
+            using Nui::Elements::span;
+
+            if (!icon && !label)
+                return Nui::nil();
+
+            Nui::ElementRenderer iconRenderer = Nui::nil();
+            if (icon)
+                iconRenderer = span{class_ = "script-nui-select-icon"}(std::move(*icon));
+
+            Nui::ElementRenderer labelRenderer = Nui::nil();
+            if (label)
+            {
+                auto [text] = label->reify();
+                labelRenderer = span{class_ = "script-nui-select-label"}(std::move(text));
+            }
+
+            return span{class_ = "script-nui-select-prefix"}(std::move(iconRenderer), std::move(labelRenderer));
+        }
     }
 
     template <typename ActiveOptionType, typename OptionsValueType>
@@ -74,6 +105,10 @@ namespace ScriptNuiComponents
         Detail::AttributeTraits<ActiveOptionType>::Actual activeOption = {};
         Detail::AttributeTraits<OptionsValueType>::Actual options = {};
         std::vector<Nui::Attribute> attributes = {};
+        /** @brief Text inside the box in front of the active option, naming what the select chooses. */
+        std::optional<Nui::StateTransformer<StateTransformers::TextNode>> label = std::nullopt;
+        /** @brief Icon inside the box in front of the label or the active option. */
+        std::optional<Nui::ElementRenderer> icon = std::nullopt;
         std::optional<std::string> popoverExtraClass = std::nullopt;
 
         std::function<void(ActiveType const& newValue, Nui::WebApi::MouseEvent const&)> onChange = {};
@@ -217,6 +252,7 @@ namespace ScriptNuiComponents
                 std::move(state->options.attributes)
             )
         }(
+            SelectDetail::prefix(std::move(state->options.icon), std::move(state->options.label)),
             state->options.activeRenderer(state->options.activeOption),
             Nui::Elements::Svg::svg{
                 svga::viewBox = "0 0 24 24"s,

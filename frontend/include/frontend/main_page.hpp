@@ -35,6 +35,7 @@ class MainPage
     Nui::ElementRenderer checkboxSection();
     Nui::ElementRenderer textInput();
     Nui::ElementRenderer select();
+    Nui::ElementRenderer labeledSelect();
     Nui::ElementRenderer iconButton();
     Nui::ElementRenderer colorPicker();
     Nui::ElementRenderer messageStrips();
