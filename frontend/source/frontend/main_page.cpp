@@ -219,6 +219,7 @@ Nui::ElementRenderer MainPage::render()
                 section("Checkbox", checkboxSection()),
                 section("Text Input", textInput()),
                 section("Select", select()),
+                section("Select with label and icon", labeledSelect()),
                 section("Icon Button", iconButton()),
                 section("Color Picker", colorPicker()),
                 section("Message Strips",
@@ -409,6 +410,27 @@ Nui::ElementRenderer MainPage::select()
             {
                 Nui::WebApi::Console::log("Selected option: "s + newValue);
             }
+        }
+    );
+}
+
+Nui::ElementRenderer MainPage::labeledSelect()
+{
+    return ScriptNuiComponents::select(
+        SelectOptions<decltype(selectValue_), decltype(selectOptions_)>{
+            .activeOption = selectValue_,
+            .options = selectOptions_,
+            .attributes =
+                {
+                    Nui::Attributes::style = "min-width: 200px",
+                },
+            .label = "Fruit",
+            .icon =
+                Nui::Elements::Svg::svg{
+                    Nui::Attributes::Svg::viewBox = "0 0 24 24"s,
+                }(Nui::Elements::Svg::path{
+                    Nui::Attributes::Svg::d = "M12 2l3 7h7l-5.5 4.5 2 7.5-6.5-4.5-6.5 4.5 2-7.5L2 9h7z"s,
+                }()),
         }
     );
 }
