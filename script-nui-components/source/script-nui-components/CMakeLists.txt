@@ -25,6 +25,7 @@ add_library(
         "collapsible_section.cpp"
         "toast.cpp"
         "progress_bar.cpp"
+        "progress_ring.cpp"
 )
 
 target_include_directories(script-nui-components PUBLIC "${CMAKE_CURRENT_LIST_DIR}/../../include")

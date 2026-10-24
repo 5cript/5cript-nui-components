@@ -155,4 +155,8 @@
     --script-nui-components-progress-bar-track: #606060;
     --script-nui-components-progress-bar-text-color: #303030;
     --script-nui-components-progress-bar-theme: #3b8a12;
+
+    /* Progress ring (light) */
+    --script-nui-components-progress-ring-track: #d0d0d0;
+    --script-nui-components-progress-ring-theme: #3b8a12;
 }

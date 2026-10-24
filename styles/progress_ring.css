@@ -1,0 +1,60 @@
+.script-nui-progress-ring {
+    --size: var(--script-nui-components-progress-ring-size, 16px);
+    --stroke-width: var(--script-nui-components-progress-ring-stroke-width, 3);
+    --track: var(--script-nui-components-progress-ring-track, #505050);
+    --theme: var(--script-nui-components-progress-ring-theme, #4caf50);
+    --transition: var(--script-nui-components-progress-ring-transition, stroke-dashoffset 200ms linear, stroke 200ms linear);
+    --spin-duration: var(--script-nui-components-progress-ring-spin-duration, 1s);
+
+    flex: 0 0 auto;
+    width: var(--size);
+    height: var(--size);
+    transform: rotate(-90deg);
+
+    & > .script-nui-progress-ring-track,
+    & > .script-nui-progress-ring-fill {
+        fill: none;
+        stroke-width: var(--stroke-width);
+    }
+
+    & > .script-nui-progress-ring-track {
+        stroke: var(--track);
+    }
+
+    & > .script-nui-progress-ring-fill {
+        stroke-dasharray: 100;
+        transition: var(--transition);
+    }
+
+    &[data-color-mode="theme"] > .script-nui-progress-ring-fill {
+        stroke: var(--theme);
+    }
+
+    &[data-indeterminate] {
+        animation: script-nui-progress-ring-spin var(--spin-duration) linear infinite;
+    }
+
+    &[data-indeterminate] > .script-nui-progress-ring-fill {
+        stroke-dashoffset: 72;
+    }
+}
+
+@keyframes script-nui-progress-ring-spin {
+    from {
+        transform: rotate(-90deg);
+    }
+
+    to {
+        transform: rotate(270deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .script-nui-progress-ring[data-indeterminate] {
+        animation: none;
+    }
+
+    .script-nui-progress-ring > .script-nui-progress-ring-fill {
+        transition: none;
+    }
+}
