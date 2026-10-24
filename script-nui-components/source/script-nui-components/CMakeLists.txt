@@ -28,6 +28,7 @@ add_library(
         "progress_ring.cpp"
         "badge.cpp"
         "tab_strip.cpp"
+        "list_row.cpp"
 )
 
 target_include_directories(script-nui-components PUBLIC "${CMAKE_CURRENT_LIST_DIR}/../../include")

@@ -1,0 +1,75 @@
+.script-nui-list-row {
+    --color: var(--script-nui-components-list-row-color, #dddddd);
+    --side-color: var(--script-nui-components-list-row-side-color, #9a9a9a);
+    --hover-background: var(--script-nui-components-list-row-hover-background, rgba(255, 255, 255, 0.05));
+    --selected-background: var(--script-nui-components-list-row-selected-background, rgba(74, 158, 218, 0.22));
+    --selected-color: var(--script-nui-components-list-row-selected-color, #ffffff);
+    --focus-color: var(--script-nui-components-list-row-focus-color, #4a9eda);
+    --height: var(--script-nui-components-list-row-height, 1.9rem);
+    --padding: var(--script-nui-components-list-row-padding, 0 0.5rem);
+    --gap: var(--script-nui-components-list-row-gap, 0.5rem);
+    --radius: var(--script-nui-components-list-row-radius, 4px);
+    --font-size: var(--script-nui-components-list-row-font-size, 0.8rem);
+
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: var(--gap);
+    min-width: 0;
+    min-height: var(--height);
+    padding: var(--padding);
+    border-radius: var(--radius);
+    color: var(--color);
+    font-size: var(--font-size);
+    cursor: pointer;
+    user-select: none;
+    outline: none;
+
+    &:hover {
+        background-color: var(--hover-background);
+    }
+
+    &:focus-visible {
+        box-shadow: inset 0 0 0 1px var(--focus-color);
+    }
+
+    &[data-selected] {
+        background-color: var(--selected-background);
+        color: var(--selected-color);
+    }
+
+    & > .script-nui-list-row-leading {
+        display: inline-flex;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: center;
+    }
+
+    & > .script-nui-list-row-label {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    & > .script-nui-list-row-side {
+        flex: 0 0 auto;
+        color: var(--side-color);
+        font-size: 0.9em;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+
+        &:empty {
+            display: none;
+        }
+    }
+
+    & > .script-nui-list-row-trailing {
+        display: inline-flex;
+        flex: 0 0 auto;
+        align-items: center;
+        gap: 0.25em;
+        cursor: default;
+    }
+}
