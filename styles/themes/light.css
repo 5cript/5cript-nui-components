@@ -178,4 +178,12 @@
     --script-nui-components-tab-strip-accent-color: #1a9e0a;
     --script-nui-components-tab-strip-hover-background: rgba(0, 0, 0, 0.05);
     --script-nui-components-tab-strip-border-color: #d4d4d4;
+
+    /* List row (light) */
+    --script-nui-components-list-row-color: #1a1a1a;
+    --script-nui-components-list-row-side-color: #6b6b68;
+    --script-nui-components-list-row-hover-background: rgba(0, 0, 0, 0.05);
+    --script-nui-components-list-row-selected-background: rgba(26, 115, 199, 0.15);
+    --script-nui-components-list-row-selected-color: #0c447c;
+    --script-nui-components-list-row-focus-color: #1a73c7;
 }
