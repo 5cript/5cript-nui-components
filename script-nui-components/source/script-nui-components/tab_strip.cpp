@@ -7,8 +7,6 @@
 #include <nui/frontend/elements/nil.hpp>
 #include <nui/frontend/elements/span.hpp>
 #include <nui/frontend/attributes/class.hpp>
-#include <nui/frontend/attributes/on_click.hpp>
-#include <nui/frontend/attributes/on_key_down.hpp>
 #include <nui/event_system/observed_value_combinator.hpp>
 #include <nui/event_system/range.hpp>
 
@@ -112,11 +110,11 @@ namespace ScriptNuiComponents
             tabAttributes.push_back("tabindex"_attr = Nui::observe(state->selected).generate([focusTargetNow]() {
                 return std::string{focusTargetNow() ? "0" : "-1"};
             }));
-            tabAttributes.push_back(onClick = [state, index]() {
+            tabAttributes.push_back("click"_event = [state, index]() {
                 assignSelection(*state, index);
                 notifySelection(*state, index);
             });
-            tabAttributes.push_back(onKeyDown = [state, index](Nui::WebApi::KeyboardEvent event) {
+            tabAttributes.push_back("keydown"_event = [state, index](Nui::WebApi::KeyboardEvent event) {
                 const auto target = keyTargetOf(event, index, state->keys.size());
                 if (!target)
                     return;

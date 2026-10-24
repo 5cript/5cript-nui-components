@@ -109,7 +109,8 @@ namespace ScriptNuiComponents
      *
      * Clicking a tab, or Left / Right (wrapping) and Home / End on a focused tab, selects it: the strip assigns the
      * key to selected (when it differs), moves the focus with the keys and calls onSelect. Keys pressed with Alt, Ctrl
-     * or Meta are left alone. Without a selected pointer the strip keeps the selection itself.
+     * or Meta are left alone. Without a selected pointer the strip keeps the selection itself. The tabs listen with
+     * addEventListener, so click and keydown handlers in TabStripTab::attributes run next to their own.
      *
      * @code
      * auto selected = std::make_shared<Nui::Observed<std::string>>("conflicts");
