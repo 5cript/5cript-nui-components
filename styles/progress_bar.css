@@ -75,6 +75,6 @@
 
 @media (prefers-reduced-motion: reduce) {
     .script-nui-progress-bar > .script-nui-progress-bar-shine {
-        animation: none;
+        display: none;
     }
 }

@@ -489,7 +489,7 @@ void MainPage::onProgress(std::int64_t done, std::int64_t total)
     /* Fill color in ProgressColorMode::Theme. */
     --script-nui-components-progress-bar-theme: #4caf50;
     --script-nui-components-progress-bar-fill-transition: none;
-    /* Highlight of the shine gradient; prefers-reduced-motion stops the shine. */
+    /* Highlight of the shine gradient; prefers-reduced-motion hides the shine. */
     --script-nui-components-progress-bar-shine: rgba(255, 255, 255, 0.5);
     --script-nui-components-progress-bar-shine-duration: 2s;
 }
