@@ -1,7 +1,7 @@
 .script-nui-progress-ring {
     --size: var(--script-nui-components-progress-ring-size, 16px);
     --stroke-width: var(--script-nui-components-progress-ring-stroke-width, 3);
-    --track: var(--script-nui-components-progress-ring-track, #505050);
+    --track: var(--script-nui-components-progress-ring-track, #606060);
     --theme: var(--script-nui-components-progress-ring-theme, #4caf50);
     --transition: var(--script-nui-components-progress-ring-transition, stroke-dashoffset 200ms linear, stroke 200ms linear);
     --spin-duration: var(--script-nui-components-progress-ring-spin-duration, 1s);
