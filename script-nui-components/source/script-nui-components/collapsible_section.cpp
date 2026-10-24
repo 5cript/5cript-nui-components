@@ -11,6 +11,7 @@
 #include <nui/frontend/svg_elements.hpp>
 
 #include <nui/frontend/attributes/class.hpp>
+#include <nui/frontend/attributes/on_click.hpp>
 #include <nui/frontend/svg_attributes.hpp>
 
 namespace ScriptNuiComponents
@@ -54,6 +55,14 @@ namespace ScriptNuiComponents
                 span{class_ = "script-nui-collapsible-title"}(std::move(title)),
                 options.badge
                     ? span{class_ = "script-nui-collapsible-badge"}(text{*options.badge}())
+                    : Nui::nil(),
+                options.headerEnd
+                    ? span{
+                          class_ = "script-nui-collapsible-header-end",
+                          onClick = [](Nui::val event) {
+                              event.call<void>("preventDefault");
+                          },
+                      }(std::move(*options.headerEnd))
                     : Nui::nil()
             ),
             div{class_ = "script-nui-collapsible-body"}(std::move(content))
