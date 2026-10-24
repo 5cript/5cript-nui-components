@@ -237,6 +237,12 @@ Nui::ElementRenderer MainPage::render()
                 section("Tag Box", tagBoxSection()),
                 section("Collapsible Sections", collapsibleSections()),
                 section("Toasts (box vs. strip)", toastSection()),
+                section("Progress Bar", progressBarSection()),
+                section("Progress Ring", progressRingSection()),
+                section("Badge", badgeSection()),
+                section("Tab Strip", tabStripSection()),
+                section("List Row", listRowSection()),
+                section("Header End and Action Slots", slotExtensionsSection()),
                 section("Buttons",
                     div{
                         style = "display: flex; gap: 5px;"

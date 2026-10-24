@@ -12,7 +12,9 @@
 #include <script-nui-components/pill_list.hpp>
 #include <script-nui-components/tag_box.hpp>
 #include <script-nui-components/toast.hpp>
+#include <script-nui-components/progress_bar.hpp>
 
+#include <cstdint>
 #include <memory>
 #include <set>
 #include <string>
@@ -45,6 +47,41 @@ class MainPage
     Nui::ElementRenderer collapsibleSections();
     Nui::ElementRenderer toastSection();
 
+    /**
+     * @brief Reactive and imperative progress bars in every text and color mode, see main_page_progress.cpp.
+     */
+    Nui::ElementRenderer progressBarSection();
+
+    /**
+     * @brief Progress rings: hue, theme and indeterminate, see main_page_progress.cpp.
+     */
+    Nui::ElementRenderer progressRingSection();
+
+    /**
+     * @brief Moves the progress bars and rings by an eighth, wrapping to 0 after complete.
+     */
+    void stepProgress();
+
+    /**
+     * @brief Badges in every variant, dots, a count badge and the pop animation, see main_page_indicators.cpp.
+     */
+    Nui::ElementRenderer badgeSection();
+
+    /**
+     * @brief A tab strip with count badges, see main_page_indicators.cpp.
+     */
+    Nui::ElementRenderer tabStripSection();
+
+    /**
+     * @brief Selectable list rows with leading, side text and trailing parts, see main_page_indicators.cpp.
+     */
+    Nui::ElementRenderer listRowSection();
+
+    /**
+     * @brief Collapsible sections with a header end slot and message strips with actions.
+     */
+    Nui::ElementRenderer slotExtensionsSection();
+
     /// Rebuilds the observed pill list from pillLabels_/pillSelected_ (the demo's source of truth).
     void rebuildFilterPills();
 
@@ -68,10 +105,29 @@ class MainPage
     std::shared_ptr<Nui::Observed<std::vector<ScriptNuiComponents::PillOptions>>> filterPills_{
         std::make_shared<Nui::Observed<std::vector<ScriptNuiComponents::PillOptions>>>()};
 
+    std::shared_ptr<Nui::Observed<std::int64_t>> progressCurrent_{std::make_shared<Nui::Observed<std::int64_t>>(0)};
+    std::shared_ptr<Nui::Observed<std::int64_t>> progressMaximum_{
+        std::make_shared<Nui::Observed<std::int64_t>>(5'000'000)};
+    std::shared_ptr<Nui::Observed<std::int64_t>> progressZero_{std::make_shared<Nui::Observed<std::int64_t>>(0)};
+    std::shared_ptr<Nui::Observed<double>> ringFraction_{std::make_shared<Nui::Observed<double>>(0.0)};
+    Nui::Observed<bool> ringIndeterminate_{true};
+
+    Nui::Observed<int> badgeCount_{3};
+    Nui::Observed<int> badgePop_{0};
+    std::shared_ptr<Nui::Observed<std::string>> selectedTab_{std::make_shared<Nui::Observed<std::string>>("conflicts")};
+    Nui::Observed<int> selectedRow_{0};
+
     ScriptNuiComponents::ResizableTable table_;
     ScriptNuiComponents::Dialog dialog_;
     ScriptNuiComponents::Tabs tabs_;
     ScriptNuiComponents::PopupMenu popupMenu_;
     ScriptNuiComponents::TagBox tagBox_;
     ScriptNuiComponents::Toast toast_;
+    ScriptNuiComponents::ProgressBar imperativeBar_{{
+        .height = "11px",
+        .min = 0,
+        .max = 5'000'000,
+        .showMinMax = true,
+        .byteMode = true,
+    }};
 };

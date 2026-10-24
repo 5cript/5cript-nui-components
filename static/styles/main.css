@@ -16,6 +16,11 @@
 @import "./tag_box.css";
 @import "./collapsible_section.css";
 @import "./toast.css";
+@import "./progress_bar.css";
+@import "./progress_ring.css";
+@import "./badge.css";
+@import "./tab_strip.css";
+@import "./list_row.css";
 @import "./themes/light.css";
 
 :root {
