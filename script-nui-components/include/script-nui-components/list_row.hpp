@@ -121,7 +121,8 @@ namespace ScriptNuiComponents
      * Markup: div.script-nui-list-row[role=option][tabindex=0][aria-selected] with data-selected present while
      * selected, holding span.script-nui-list-row-leading (only with leading), span.script-nui-list-row-label,
      * span.script-nui-list-row-side and span.script-nui-list-row-trailing (only with trailing). Clicks and keydowns
-     * inside the trailing part stop propagating, so they never reach the row.
+     * inside the trailing part never activate the row but keep bubbling, so document listeners still see them. The
+     * row listens with addEventListener, so click and keydown handlers in attributes run next to its own.
      *
      * @code
      * listRow({

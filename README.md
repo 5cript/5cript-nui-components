@@ -725,7 +725,7 @@ Nui::ElementRenderer MainPage::render()
                 // Strings, Observed<std::string> or combinators.
                 .label = "notes.txt",
                 .sideText = "3 changes",
-                // Clicks in here do not reach the row.
+                // Clicks in here do not activate the row.
                 .trailing = button({.icon = Ui5Icons::delete_(), .styleVariant = StyleVariant::Transparent}),
                 // A bool, an Observed<bool> or a combinator.
                 .selected = Nui::observe(selected_).generate([this]() { return selected_.value() == 0; }),
