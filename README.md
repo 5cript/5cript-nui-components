@@ -630,7 +630,7 @@ owns the selection.
 Markup: `div.script-nui-tab-strip[role=tablist]` holding one
 `button.script-nui-tab-strip-tab[role=tab][data-tab-key][aria-selected]` per tab, `data-selected` on the selected
 one, each with `span.script-nui-tab-strip-title` and the count badge. Left / Right (wrapping), Home and End move the
-selection between tabs.
+selection and the focus between tabs. Only the selected tab (or the first one while none is) is in the tab order.
 
 #### C++
 
