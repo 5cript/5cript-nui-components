@@ -159,4 +159,16 @@
     /* Progress ring (light) */
     --script-nui-components-progress-ring-track: #d0d0d0;
     --script-nui-components-progress-ring-theme: #3b8a12;
+
+    /* Badge (light): accents follow the light toast colors. */
+    --script-nui-components-badge-regular-background: #dcdcdc;
+    --script-nui-components-badge-regular-color: #333333;
+    --script-nui-components-badge-primary-background: #1a73c7;
+    --script-nui-components-badge-primary-color: #ffffff;
+    --script-nui-components-badge-warning-background: #b0740a;
+    --script-nui-components-badge-warning-color: #ffffff;
+    --script-nui-components-badge-danger-background: #c23934;
+    --script-nui-components-badge-danger-color: #ffffff;
+    --script-nui-components-badge-success-background: #3b8a12;
+    --script-nui-components-badge-success-color: #ffffff;
 }
