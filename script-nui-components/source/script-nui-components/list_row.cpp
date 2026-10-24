@@ -6,8 +6,6 @@
 #include <nui/frontend/elements/nil.hpp>
 #include <nui/frontend/elements/span.hpp>
 #include <nui/frontend/attributes/class.hpp>
-#include <nui/frontend/attributes/on_click.hpp>
-#include <nui/frontend/attributes/on_key_down.hpp>
 
 #include <memory>
 #include <string>
@@ -23,9 +21,11 @@ namespace ScriptNuiComponents
             return key == "Enter" || key == " ";
         }
 
-        void stopPropagation(Nui::val event)
+        bool isInsideTrailing(Nui::val const& event)
         {
-            event.call<void>("stopPropagation");
+            const auto trailing =
+                event["target"].call<Nui::val>("closest", std::string{".script-nui-list-row-trailing"});
+            return !trailing.isNull() && event["currentTarget"].call<bool>("contains", trailing);
         }
     } // namespace
 
@@ -50,10 +50,12 @@ namespace ScriptNuiComponents
         if (options.onActivate)
         {
             const auto activate = std::make_shared<std::function<void()> const>(std::move(options.onActivate));
-            rowAttributes.push_back(onClick = [activate]() {
+            rowAttributes.push_back("click"_event = [activate](Nui::val event) {
+                if (isInsideTrailing(event))
+                    return;
                 (*activate)();
             });
-            rowAttributes.push_back(onKeyDown = [activate](Nui::WebApi::KeyboardEvent event) {
+            rowAttributes.push_back("keydown"_event = [activate](Nui::WebApi::KeyboardEvent event) {
                 if (!event.target().strictlyEquals(event.currentTarget()) || !isActivationKey(event.key()))
                     return;
                 event.preventDefault();
@@ -69,11 +71,7 @@ namespace ScriptNuiComponents
             span{class_ = "script-nui-list-row-label"}(std::move(label)),
             span{class_ = "script-nui-list-row-side"}(std::move(sideText)),
             options.trailing
-                ? span{
-                      class_ = "script-nui-list-row-trailing",
-                      onClick = stopPropagation,
-                      onKeyDown = stopPropagation,
-                  }(std::move(*options.trailing))
+                ? span{class_ = "script-nui-list-row-trailing"}(std::move(*options.trailing))
                 : Nui::nil()
         );
         // clang-format on
