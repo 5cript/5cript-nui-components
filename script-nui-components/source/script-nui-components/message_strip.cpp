@@ -17,7 +17,12 @@ namespace ScriptNuiComponents
         return section{Nui::mergeAttributes(
             std::move(options.attributes),
             {"data-style-variant"_attr = toString(options.styleVariant), class_ = "script-nui-message-strip"}
-        )}(options.icon ? *options.icon : Nui::nil(), span{}(std::get<0>(options.text.reify())));
+        )}(
+            options.icon ? *options.icon : Nui::nil(),
+            span{}(std::get<0>(options.text.reify())),
+            options.actions ? span{class_ = "script-nui-message-strip-actions"}(std::move(*options.actions))
+                            : Nui::nil()
+        );
     }
 
 } // namespace ScriptNuiComponents
