@@ -33,6 +33,12 @@ namespace ScriptNuiComponents
             else
                 return std::nullopt;
         }();
+
+        /**
+         * @brief Optional controls after the text, for example buttons, in span.script-nui-message-strip-actions.
+         */
+        std::optional<Nui::ElementRenderer> actions = std::nullopt;
+
         std::vector<Nui::Attribute> attributes = {};
     };
 

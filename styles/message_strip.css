@@ -32,6 +32,14 @@
         min-width: 0;
     }
 
+    &>.script-nui-message-strip-actions {
+        display: inline-flex;
+        flex: 0 0 auto;
+        align-self: center;
+        align-items: center;
+        gap: 6px;
+    }
+
     &[data-style-variant="regular"] {
         --bg: var(--script-nui-message-strip-regular-bg, #2C2C2A);
         --border-color: var(--script-nui-message-strip-regular-border-color, #5F5E5A);
