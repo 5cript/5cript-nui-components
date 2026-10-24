@@ -1,4 +1,4 @@
-target_sources(${PROJECT_NAME}-test PRIVATE main.cpp main_page.cpp)
+target_sources(${PROJECT_NAME}-test PRIVATE main.cpp main_page.cpp main_page_progress.cpp main_page_indicators.cpp)
 
 target_include_directories(${PROJECT_NAME}-test PRIVATE ${CMAKE_SOURCE_DIR}/frontend/include)
 
@@ -59,4 +59,9 @@ nui_prepare_emscripten_target(
         "${CMAKE_SOURCE_DIR}/styles/pill.css"
         "${CMAKE_SOURCE_DIR}/styles/tag_box.css"
         "${CMAKE_SOURCE_DIR}/styles/collapsible_section.css"
+        "${CMAKE_SOURCE_DIR}/styles/progress_bar.css"
+        "${CMAKE_SOURCE_DIR}/styles/progress_ring.css"
+        "${CMAKE_SOURCE_DIR}/styles/badge.css"
+        "${CMAKE_SOURCE_DIR}/styles/tab_strip.css"
+        "${CMAKE_SOURCE_DIR}/styles/list_row.css"
 )
