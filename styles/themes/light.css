@@ -150,4 +150,9 @@
     --script-nui-components-toast-success: #3b8a12;
     --script-nui-components-toast-warning: #b0740a;
     --script-nui-components-toast-error: #c23934;
+
+    /* Progress bar (light): the same grey track as dark, the hue fill reads on both. */
+    --script-nui-components-progress-bar-track: #606060;
+    --script-nui-components-progress-bar-text-color: #303030;
+    --script-nui-components-progress-bar-theme: #3b8a12;
 }
