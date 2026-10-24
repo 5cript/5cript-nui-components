@@ -125,9 +125,9 @@ class MainPage
     ScriptNuiComponents::Toast toast_;
     ScriptNuiComponents::ProgressBar imperativeBar_{{
         .height = "11px",
-        .min = 0,
-        .max = 5'000'000,
-        .showMinMax = true,
+        .minimum = 0,
+        .maximum = 5'000'000,
+        .showMinimumAndMaximum = true,
         .byteMode = true,
     }};
 };

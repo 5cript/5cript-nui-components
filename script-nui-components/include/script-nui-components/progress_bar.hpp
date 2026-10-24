@@ -167,10 +167,11 @@ namespace ScriptNuiComponents
     /**
      * @brief A horizontal progress bar bound to shared observed values.
      *
-     * Markup: div.script-nui-progress-bar[data-color-mode][data-complete] holding, in this order,
+     * Markup: div.script-nui-progress-bar[role=progressbar][data-color-mode][data-complete] holding, in this order,
      * div.script-nui-progress-bar-fill, div.script-nui-progress-bar-text and div.script-nui-progress-bar-shine.
      * data-color-mode is "hue" or "theme"; data-complete is present once complete. The shine part is missing when
-     * ProgressBarOptions::shine is false and hidden while complete or under prefers-reduced-motion.
+     * ProgressBarOptions::shine is false and hidden while complete or under prefers-reduced-motion. aria-valuenow
+     * carries the whole percentage (aria-valuemin 0, aria-valuemax 100) and aria-valuetext the text, if any.
      *
      * @code
      * auto done = std::make_shared<Nui::Observed<std::int64_t>>(0);
@@ -196,21 +197,21 @@ namespace ScriptNuiComponents
         /**
          * @brief The lower bound.
          */
-        std::int64_t min{0};
+        std::int64_t minimum{0};
 
         /**
          * @brief The initial upper bound.
          */
-        std::int64_t max{100};
+        std::int64_t maximum{100};
 
         /**
          * @brief Shows current and maximum next to the percentage: Counts, or Bytes with byteMode. False shows
          *        Percent.
          */
-        bool showMinMax{false};
+        bool showMinimumAndMaximum{false};
 
         /**
-         * @brief Formats current and maximum as byte sizes when showMinMax is set.
+         * @brief Formats current and maximum as byte sizes when showMinimumAndMaximum is set.
          */
         bool byteMode{false};
 
@@ -242,7 +243,12 @@ namespace ScriptNuiComponents
      * Nui::globalEventContext.executeActiveEventsImmediately() once when it is done.
      *
      * @code
-     * ScriptNuiComponents::ProgressBar bar_{{.height = "11px", .max = 0, .showMinMax = true, .byteMode = true}};
+     * ScriptNuiComponents::ProgressBar bar_{{
+     *     .height = "11px",
+     *     .maximum = 0,
+     *     .showMinimumAndMaximum = true,
+     *     .byteMode = true,
+     * }};
      * // in the render tree:
      * bar_()
      * // on progress:
@@ -259,7 +265,7 @@ namespace ScriptNuiComponents
         /**
          * @brief Creates the bar.
          *
-         * @param settings The settings; the text mode follows from showMinMax and byteMode.
+         * @param settings The settings; the text mode follows from showMinimumAndMaximum and byteMode.
          */
         explicit ProgressBar(Settings settings = {});
         ~ProgressBar();
@@ -286,7 +292,7 @@ namespace ScriptNuiComponents
         /**
          * @brief The current value.
          *
-         * @return The value last set, initially Settings::min.
+         * @return The value last set, initially Settings::minimum.
          */
         std::int64_t progress() const;
 
@@ -300,7 +306,7 @@ namespace ScriptNuiComponents
         /**
          * @brief The upper bound.
          *
-         * @return The value last set, initially Settings::max.
+         * @return The value last set, initially Settings::maximum.
          */
         std::int64_t maximum() const;
 

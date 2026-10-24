@@ -406,9 +406,10 @@ A horizontal bar with a fill, a text and a shine. `progressBar` binds to shared 
 class is driven by setters and renders the same markup. Setters never sync: call
 `Nui::globalEventContext.executeActiveEventsImmediately()` once after changing them.
 
-Markup: `div.script-nui-progress-bar[data-color-mode][data-complete]` holding `div.script-nui-progress-bar-fill`,
-`div.script-nui-progress-bar-text` and `div.script-nui-progress-bar-shine`, in this order. `data-color-mode` is `hue`
-or `theme`, `data-complete` is present once current reached maximum.
+Markup: `div.script-nui-progress-bar[role=progressbar][data-color-mode][data-complete]` holding
+`div.script-nui-progress-bar-fill`, `div.script-nui-progress-bar-text` and `div.script-nui-progress-bar-shine`, in this
+order. `data-color-mode` is `hue` or `theme`, `data-complete` is present once current reached maximum.
+`aria-valuenow` carries the whole percentage and `aria-valuetext` the text.
 
 #### C++
 
@@ -421,7 +422,13 @@ using namespace ScriptNuiComponents;
 //
 // std::shared_ptr<Nui::Observed<std::int64_t>> done_{std::make_shared<Nui::Observed<std::int64_t>>(0)};
 // std::shared_ptr<Nui::Observed<std::int64_t>> total_{std::make_shared<Nui::Observed<std::int64_t>>(4096)};
-// ProgressBar bar_{{.height = "11px", .min = 0, .max = 0, .showMinMax = true, .byteMode = true}};
+// ProgressBar bar_{{
+//     .height = "11px",
+//     .minimum = 0,
+//     .maximum = 0,
+//     .showMinimumAndMaximum = true,
+//     .byteMode = true,
+// }};
 
 Nui::ElementRenderer MainPage::render()
 {
