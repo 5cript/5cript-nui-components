@@ -1,0 +1,109 @@
+.script-nui-badge {
+    --font: var(--script-nui-components-badge-font, inherit);
+    --font-size: var(--script-nui-components-badge-font-size, 0.7rem);
+    --font-weight: var(--script-nui-components-badge-font-weight, 600);
+    --height: var(--script-nui-components-badge-height, 1.5em);
+    --radius: var(--script-nui-components-badge-radius, 999px);
+    --dot-size: var(--script-nui-components-badge-dot-size, 0.5rem);
+    --pop-duration: var(--script-nui-components-badge-pop-duration, 320ms);
+    --background: var(--script-nui-components-badge-regular-background, #3b3b3b);
+    --color: var(--script-nui-components-badge-regular-color, #d6d6d6);
+
+    box-sizing: border-box;
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--height);
+    height: var(--height);
+    padding: 0 0.45em;
+    border-radius: var(--radius);
+    background-color: var(--background);
+    color: var(--color);
+    font-family: var(--font);
+    font-size: var(--font-size);
+    font-weight: var(--font-weight);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    white-space: nowrap;
+    user-select: none;
+
+    &[data-variant="primary"] {
+        --background: var(--script-nui-components-badge-primary-background, #185fa5);
+        --color: var(--script-nui-components-badge-primary-color, #ffffff);
+    }
+
+    &[data-variant="warning"] {
+        --background: var(--script-nui-components-badge-warning-background, #e0a02e);
+        --color: var(--script-nui-components-badge-warning-color, #1a1a1a);
+    }
+
+    &[data-variant="danger"] {
+        --background: var(--script-nui-components-badge-danger-background, #d9534f);
+        --color: var(--script-nui-components-badge-danger-color, #ffffff);
+    }
+
+    &[data-variant="success"] {
+        --background: var(--script-nui-components-badge-success-background, #7cb342);
+        --color: var(--script-nui-components-badge-success-color, #1a1a1a);
+    }
+
+    &[data-variant="transparent"] {
+        --background: transparent;
+        --color: var(--script-nui-components-badge-transparent-color, currentColor);
+    }
+
+    &[data-dot] {
+        width: var(--dot-size);
+        min-width: 0;
+        height: var(--dot-size);
+        padding: 0;
+        font-size: 0;
+    }
+
+    &[data-hidden] {
+        display: none;
+    }
+
+    &[data-pop="a"] {
+        animation: script-nui-badge-pop-a var(--pop-duration) ease-out 1;
+    }
+
+    &[data-pop="b"] {
+        animation: script-nui-badge-pop-b var(--pop-duration) ease-out 1;
+    }
+}
+
+@keyframes script-nui-badge-pop-a {
+    0% {
+        transform: scale(1);
+    }
+
+    40% {
+        transform: scale(1.35);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes script-nui-badge-pop-b {
+    0% {
+        transform: scale(1);
+    }
+
+    40% {
+        transform: scale(1.35);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .script-nui-badge[data-pop] {
+        animation: none;
+    }
+}
