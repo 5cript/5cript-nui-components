@@ -171,4 +171,11 @@
     --script-nui-components-badge-danger-color: #ffffff;
     --script-nui-components-badge-success-background: #3b8a12;
     --script-nui-components-badge-success-color: #ffffff;
+
+    /* Tab strip (light) */
+    --script-nui-components-tab-strip-color: #555555;
+    --script-nui-components-tab-strip-color-selected: #1a1a1a;
+    --script-nui-components-tab-strip-accent-color: #1a9e0a;
+    --script-nui-components-tab-strip-hover-background: rgba(0, 0, 0, 0.05);
+    --script-nui-components-tab-strip-border-color: #d4d4d4;
 }
