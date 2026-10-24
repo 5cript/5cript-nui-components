@@ -104,10 +104,12 @@ namespace ScriptNuiComponents
      * Markup: div.script-nui-tab-strip[role=tablist] holding one
      * button.script-nui-tab-strip-tab[role=tab][type=button][data-tab-key][aria-selected] per tab, with
      * data-selected present on the selected one. Each tab holds span.script-nui-tab-strip-title and, when it has
-     * one, the count badge (span.script-nui-badge). The selected tab has tabindex 0, the others -1.
+     * one, the count badge (span.script-nui-badge). The selected tab has tabindex 0, the others -1; while no tab is
+     * selected the first one has tabindex 0.
      *
      * Clicking a tab, or Left / Right (wrapping) and Home / End on a focused tab, selects it: the strip assigns the
-     * key to selected (when it differs), moves the focus with the keys and calls onSelect.
+     * key to selected (when it differs), moves the focus with the keys and calls onSelect. Keys pressed with Alt, Ctrl
+     * or Meta are left alone. Without a selected pointer the strip keeps the selection itself.
      *
      * @code
      * auto selected = std::make_shared<Nui::Observed<std::string>>("conflicts");
