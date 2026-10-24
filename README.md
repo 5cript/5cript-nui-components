@@ -376,3 +376,490 @@ Nui::ElementRenderer MainPage::render()
     --script-nui-components-table-handle-active: #0078d4;
 }
 ```
+
+### Progress Color
+
+Header only. The hue curve the progress bar and the progress ring use in `ProgressColorMode::Hue`.
+
+#### C++
+
+```cpp
+#include <script-nui-components/progress_color.hpp>
+
+using namespace ScriptNuiComponents;
+
+// 120 * fraction^1.8, at least 5, and 120 once the fraction reaches 1.
+const double hue = progressHue(0.5);
+// "hsl(34, 40%, 45%)", the hue truncated to whole degrees.
+const std::string color = progressHueColor(0.5);
+// "hue" or "theme", the value of data-color-mode.
+const std::string mode = toString(ProgressColorMode::Theme);
+```
+
+#### Css Variables
+
+None.
+
+### Progress Bar
+
+A horizontal bar with a fill, a text and a shine. `progressBar` binds to shared observed values; the `ProgressBar`
+class is driven by setters and renders the same markup. Setters never sync: call
+`Nui::globalEventContext.executeActiveEventsImmediately()` once after changing them.
+
+Markup: `div.script-nui-progress-bar[data-color-mode][data-complete]` holding `div.script-nui-progress-bar-fill`,
+`div.script-nui-progress-bar-text` and `div.script-nui-progress-bar-shine`, in this order. `data-color-mode` is `hue`
+or `theme`, `data-complete` is present once current reached maximum.
+
+#### C++
+
+```cpp
+#include <script-nui-components/progress_bar.hpp>
+
+using namespace ScriptNuiComponents;
+
+// MainPage members:
+//
+// std::shared_ptr<Nui::Observed<std::int64_t>> done_{std::make_shared<Nui::Observed<std::int64_t>>(0)};
+// std::shared_ptr<Nui::Observed<std::int64_t>> total_{std::make_shared<Nui::Observed<std::int64_t>>(4096)};
+// ProgressBar bar_{{.height = "11px", .min = 0, .max = 0, .showMinMax = true, .byteMode = true}};
+
+Nui::ElementRenderer MainPage::render()
+{
+    return body{}(
+        progressBar({
+            .current = done_,
+            .maximum = total_,
+            .minimum = 0,
+            // None, Percent ("{:.1f}%"), Counts ("{} / {} ({:.1f}%)") or Bytes ("{} - {} ({:.1f}%)").
+            .textMode = ProgressBarTextMode::Bytes,
+            // Hue colors the fill from red to green, Theme uses the theme variable.
+            .colorMode = ProgressColorMode::Hue,
+            // A bar from 0 to 0 fills completely instead of staying empty.
+            .zeroAsComplete = false,
+            // Runs the shine animation while the bar is not complete.
+            .shine = true,
+            // Overrides --script-nui-components-progress-bar-height.
+            .height = "11px",
+            // Replaces the text of Percent, Counts and Bytes.
+            .formatText = [](ProgressBarValues const& values) {
+                return fmt::format("{:.0f} %", values.fraction * 100.0);
+            },
+            // The format strings of the built-in texts, English defaults.
+            .texts = {},
+            .attributes = {},
+        }),
+        bar_()
+    );
+}
+
+void MainPage::onProgress(std::int64_t done, std::int64_t total)
+{
+    bar_.setMaximum(total);
+    bar_.setProgress(done);
+    // Also: setZeroAsComplete(), setTextMode(ProgressBarTextMode::Counts), progress(), maximum(), textMode().
+    Nui::globalEventContext.executeActiveEventsImmediately();
+}
+```
+
+#### Css Variables
+
+```css
+:root {
+    --script-nui-components-progress-bar-height: 30px;
+    --script-nui-components-progress-bar-track: #606060;
+    --script-nui-components-progress-bar-radius: 15px;
+    --script-nui-components-progress-bar-text-color: #303030;
+    --script-nui-components-progress-bar-text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+    --script-nui-components-progress-bar-font: inherit;
+    --script-nui-components-progress-bar-font-size: inherit;
+    --script-nui-components-progress-bar-font-weight: bold;
+    /* Fill color in ProgressColorMode::Theme. */
+    --script-nui-components-progress-bar-theme: #4caf50;
+    --script-nui-components-progress-bar-fill-transition: none;
+    /* Highlight of the shine gradient; prefers-reduced-motion stops the shine. */
+    --script-nui-components-progress-bar-shine: rgba(255, 255, 255, 0.5);
+    --script-nui-components-progress-bar-shine-duration: 2s;
+}
+```
+
+### Progress Ring
+
+A small circular indicator for rows and headers: an svg with a track and a fill circle (`pathLength` 100) whose
+`stroke-dashoffset` and, in Hue mode, `stroke` follow the fraction.
+
+Markup: `svg.script-nui-progress-ring[role=progressbar][data-color-mode][data-complete][data-indeterminate]` holding
+`circle.script-nui-progress-ring-track` and `circle.script-nui-progress-ring-fill`.
+
+#### C++
+
+```cpp
+#include <script-nui-components/progress_ring.hpp>
+
+using namespace ScriptNuiComponents;
+
+// MainPage members:
+//
+// std::shared_ptr<Nui::Observed<double>> fraction_{std::make_shared<Nui::Observed<double>>(0.25)};
+// Nui::Observed<bool> waiting_{false};
+
+Nui::ElementRenderer MainPage::render()
+{
+    return body{}(
+        progressRing({
+            // From 0 to 1.
+            .fraction = fraction_,
+            .colorMode = ProgressColorMode::Hue,
+            // Spins a fixed arc instead; a bool, an Observed<bool> or a combinator.
+            .indeterminate = waiting_,
+            // aria-label.
+            .label = "Uploading",
+            .attributes = {},
+        })
+    );
+}
+```
+
+#### Css Variables
+
+```css
+:root {
+    --script-nui-components-progress-ring-size: 16px;
+    /* In units of the 24 unit viewBox; the circles have a radius of 9. */
+    --script-nui-components-progress-ring-stroke-width: 3;
+    --script-nui-components-progress-ring-track: #505050;
+    /* Fill color in ProgressColorMode::Theme. */
+    --script-nui-components-progress-ring-theme: #4caf50;
+    --script-nui-components-progress-ring-transition: stroke-dashoffset 200ms linear, stroke 200ms linear;
+    /* One turn while indeterminate; prefers-reduced-motion stops it. */
+    --script-nui-components-progress-ring-spin-duration: 1s;
+}
+```
+
+### Badge
+
+A small rounded label for counts and states. `countBadge` shows a count and hides itself at 0.
+
+The markup is a contract, so code outside Nui (for example a TypeScript tab renderer) can produce the same badge with
+nothing but the stylesheet:
+
+```html
+<span class="script-nui-badge" data-variant="warning">3</span>
+<span class="script-nui-badge" data-variant="danger" data-hidden>0</span>
+<span class="script-nui-badge" data-variant="primary" data-dot></span>
+```
+
+- `data-variant`: `regular`, `primary`, `warning`, `danger`, `success` or `transparent`; missing looks like `regular`.
+- `data-hidden`, `data-dot`: presence only, the value is ignored.
+- `data-pop`: optional, `a` or `b`; switching between them replays the pop animation.
+- The text is the only child; a dot badge has none.
+
+#### C++
+
+```cpp
+#include <script-nui-components/badge.hpp>
+
+using namespace ScriptNuiComponents;
+
+// MainPage members:
+//
+// Nui::Observed<std::size_t> conflicts_{0u};
+// Nui::Observed<int> pop_{0};
+
+Nui::ElementRenderer MainPage::render()
+{
+    return body{}(
+        badge({
+            // A string, an Observed<std::string> or a combinator.
+            .text = "Syncing",
+            // A StyleVariant, an Observed<StyleVariant> or a combinator.
+            .styleVariant = StyleVariant::Primary,
+            // A bool, an Observed<bool> or a combinator.
+            .hidden = false,
+            .dot = false,
+            // Increment pop_ to replay the pop animation; 0 never pops.
+            .pop = &pop_,
+            .attributes = {},
+        }),
+        // An integer, an Observed of one (reference or shared_ptr) or a combinator generating one.
+        countBadge(conflicts_, StyleVariant::Warning)
+    );
+}
+```
+
+#### Css Variables
+
+```css
+:root {
+    --script-nui-components-badge-font: inherit;
+    --script-nui-components-badge-font-size: 0.7rem;
+    --script-nui-components-badge-font-weight: 600;
+    /* Also the minimum width, so short counts are round. */
+    --script-nui-components-badge-height: 1.5em;
+    --script-nui-components-badge-radius: 999px;
+    --script-nui-components-badge-dot-size: 0.5rem;
+    /* prefers-reduced-motion stops the pop. */
+    --script-nui-components-badge-pop-duration: 320ms;
+
+    --script-nui-components-badge-regular-background: #3b3b3b;
+    --script-nui-components-badge-regular-color: #d6d6d6;
+    --script-nui-components-badge-primary-background: #185fa5;
+    --script-nui-components-badge-primary-color: #ffffff;
+    --script-nui-components-badge-warning-background: #e0a02e;
+    --script-nui-components-badge-warning-color: #1a1a1a;
+    --script-nui-components-badge-danger-background: #d9534f;
+    --script-nui-components-badge-danger-color: #ffffff;
+    --script-nui-components-badge-success-background: #7cb342;
+    --script-nui-components-badge-success-color: #1a1a1a;
+    /* The transparent variant has no background. */
+    --script-nui-components-badge-transparent-color: currentColor;
+}
+```
+
+### Tab Strip
+
+A row of fixed tabs with optional count badges. Unlike `Tabs` it does not drag, close or own its tabs; the caller
+owns the selection.
+
+Markup: `div.script-nui-tab-strip[role=tablist]` holding one
+`button.script-nui-tab-strip-tab[role=tab][data-tab-key][aria-selected]` per tab, `data-selected` on the selected
+one, each with `span.script-nui-tab-strip-title` and the count badge. Left / Right (wrapping), Home and End move the
+selection between tabs.
+
+#### C++
+
+```cpp
+#include <script-nui-components/tab_strip.hpp>
+
+using namespace ScriptNuiComponents;
+
+// MainPage members:
+//
+// std::shared_ptr<Nui::Observed<std::string>> detailTab_{std::make_shared<Nui::Observed<std::string>>("conflicts")};
+// Nui::Observed<std::size_t> conflicts_{0u};
+
+Nui::ElementRenderer MainPage::render()
+{
+    return body{}(
+        tabStrip({
+            .tabs = {
+                {
+                    .key = "conflicts",
+                    // A string, an Observed<std::string> or a combinator.
+                    .title = "Conflicts",
+                    // Hidden while the count is 0.
+                    .badge = TabStripBadge{.count = conflicts_, .styleVariant = StyleVariant::Warning},
+                    .attributes = {},
+                },
+                {.key = "options", .title = "Options"},
+            },
+            // The strip assigns the key of the activated tab, then calls onSelect.
+            .selected = detailTab_,
+            .onSelect = [](std::string const& key) {
+                Nui::WebApi::Console::log("Selected ", key);
+            },
+            // aria-label of the tab list.
+            .label = "Details",
+            .attributes = {},
+        })
+    );
+}
+```
+
+#### Css Variables
+
+```css
+:root {
+    --script-nui-components-tab-strip-color: #a0a0a0;
+    --script-nui-components-tab-strip-color-selected: #e6e6e6;
+    /* Underline of the selected tab and the focus ring. */
+    --script-nui-components-tab-strip-accent-color: #90d26d;
+    --script-nui-components-tab-strip-background: transparent;
+    --script-nui-components-tab-strip-hover-background: rgba(255, 255, 255, 0.06);
+    --script-nui-components-tab-strip-border-color: #3a3a3a;
+    --script-nui-components-tab-strip-font: inherit;
+    --script-nui-components-tab-strip-font-size: 0.8rem;
+    --script-nui-components-tab-strip-gap: 0.25rem;
+}
+```
+
+### List Row
+
+A selectable row for lists and outliners, meant to sit in an element with `role=listbox`.
+
+Markup: `div.script-nui-list-row[role=option][tabindex=0][aria-selected]`, `data-selected` while selected, holding
+`span.script-nui-list-row-leading` (only with `leading`), `span.script-nui-list-row-label`,
+`span.script-nui-list-row-side` and `span.script-nui-list-row-trailing` (only with `trailing`). Clicks and keys inside
+the trailing part never activate the row.
+
+#### C++
+
+```cpp
+#include <script-nui-components/list_row.hpp>
+
+using namespace ScriptNuiComponents;
+
+// MainPage members:
+//
+// Nui::Observed<int> selected_{0};
+
+Nui::ElementRenderer MainPage::render()
+{
+    return body{}(
+        div{"role"_attr = "listbox"}(
+            listRow({
+                .leading = Ui5Icons::document(),
+                // Strings, Observed<std::string> or combinators.
+                .label = "notes.txt",
+                .sideText = "3 changes",
+                // Clicks in here do not reach the row.
+                .trailing = button({.icon = Ui5Icons::delete_(), .styleVariant = StyleVariant::Transparent}),
+                // A bool, an Observed<bool> or a combinator.
+                .selected = Nui::observe(selected_).generate([this]() { return selected_.value() == 0; }),
+                // Click, Enter or Space.
+                .onActivate = [this]() { selected_ = 0; },
+                .attributes = {},
+            })
+        )
+    );
+}
+```
+
+#### Css Variables
+
+```css
+:root {
+    --script-nui-components-list-row-color: #dddddd;
+    --script-nui-components-list-row-side-color: #9a9a9a;
+    --script-nui-components-list-row-hover-background: rgba(255, 255, 255, 0.05);
+    --script-nui-components-list-row-selected-background: rgba(74, 158, 218, 0.22);
+    --script-nui-components-list-row-selected-color: #ffffff;
+    --script-nui-components-list-row-focus-color: #4a9eda;
+    /* Minimum height. */
+    --script-nui-components-list-row-height: 1.9rem;
+    --script-nui-components-list-row-padding: 0 0.5rem;
+    --script-nui-components-list-row-gap: 0.5rem;
+    --script-nui-components-list-row-radius: 4px;
+    --script-nui-components-list-row-font-size: 0.8rem;
+}
+```
+
+### Collapsible Section
+
+A titled section that folds (native `details` / `summary`). `headerEnd` puts content at the end of the header, in
+`span.script-nui-collapsible-header-end`; clicks in it never fold the section.
+
+#### C++
+
+```cpp
+#include <script-nui-components/collapsible_section.hpp>
+
+using namespace ScriptNuiComponents;
+
+// MainPage members:
+//
+// Nui::Observed<std::size_t> stopped_{2u};
+
+Nui::ElementRenderer MainPage::render()
+{
+    return body{}(
+        collapsibleSection(
+            {
+                // A string, an Observed<std::string> or a combinator.
+                .title = "Stopped",
+                // Small text badge after the title.
+                .badge = std::nullopt,
+                // Clicks in here are default-prevented, so they never fold the section.
+                .headerEnd = countBadge(stopped_, StyleVariant::Regular),
+                .initiallyExpanded = true,
+                .onToggle = [](bool expanded) {},
+                .attributes = {},
+            },
+            div{}("Content")
+        )
+    );
+}
+```
+
+#### Css Variables
+
+```css
+:root {
+    --script-nui-components-collapsible-color: #dddddd;
+    --script-nui-components-collapsible-muted-color: color-mix(in srgb, var(--color) 55%, transparent);
+    --script-nui-components-collapsible-badge-color: #c8c8c8;
+    --script-nui-components-collapsible-badge-background: #2f2f2f;
+    --script-nui-components-collapsible-hover-background: color-mix(in srgb, var(--color) 8%, transparent);
+    --script-nui-components-collapsible-font-size: 0.85rem;
+}
+```
+
+### Message Strip
+
+A highlighted message with an icon. `actions` puts controls after the text, in `span.script-nui-message-strip-actions`.
+
+#### C++
+
+```cpp
+#include <script-nui-components/message_strip.hpp>
+
+using namespace ScriptNuiComponents;
+
+Nui::ElementRenderer MainPage::render()
+{
+    return body{}(
+        messageStrip({
+            // A string, an Observed<std::string> or a combinator.
+            .text = "Stopped: another watch covers this folder.",
+            .styleVariant = StyleVariant::Warning,
+            // Defaults to an icon matching the variant.
+            .icon = Ui5Icons::warning(),
+            .actions = button({.text = "Show it", .styleVariant = StyleVariant::Transparent}),
+            .attributes = {},
+        })
+    );
+}
+```
+
+#### Css Variables
+
+```css
+:root {
+    /* Per variant: regular, primary, warning, danger and success. */
+    --script-nui-message-strip-warning-bg: #412402;
+    --script-nui-message-strip-warning-border-color: #854F0B;
+    --script-nui-message-strip-warning-accent-color: #EF9F27;
+    --script-nui-message-strip-warning-text-color: #FAC775;
+    --script-nui-message-strip-warning-icon-color: #EF9F27;
+
+    --script-nui-message-strip-regular-bg: #2C2C2A;
+    --script-nui-message-strip-regular-border-color: #5F5E5A;
+    --script-nui-message-strip-regular-accent-color: #B4B2A9;
+    --script-nui-message-strip-regular-text-color: #D3D1C7;
+    --script-nui-message-strip-regular-icon-color: #B4B2A9;
+
+    --script-nui-message-strip-primary-bg: #042C53;
+    --script-nui-message-strip-primary-border-color: #185FA5;
+    --script-nui-message-strip-primary-accent-color: #85B7EB;
+    --script-nui-message-strip-primary-text-color: #B5D4F4;
+    --script-nui-message-strip-primary-icon-color: #85B7EB;
+
+    --script-nui-message-strip-danger-bg: #501313;
+    --script-nui-message-strip-danger-border-color: #A32D2D;
+    --script-nui-message-strip-danger-accent-color: #F09595;
+    --script-nui-message-strip-danger-text-color: #F7C1C1;
+    --script-nui-message-strip-danger-icon-color: #F09595;
+
+    --script-nui-message-strip-success-bg: #173404;
+    --script-nui-message-strip-success-border-color: #3B6D11;
+    --script-nui-message-strip-success-accent-color: #97C459;
+    --script-nui-message-strip-success-text-color: #C0DD97;
+    --script-nui-message-strip-success-icon-color: #97C459;
+
+    /* Without a variant match (transparent): */
+    --script-nui-message-strip-bg: transparent;
+    --script-nui-message-strip-border-color: currentColor;
+    --script-nui-message-strip-accent-color: currentColor;
+    --script-nui-message-strip-text-color: inherit;
+    --script-nui-message-strip-icon-color: currentColor;
+}
+```
