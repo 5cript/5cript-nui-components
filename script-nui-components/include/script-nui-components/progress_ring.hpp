@@ -55,7 +55,8 @@ namespace ScriptNuiComponents
         ProgressColorMode colorMode = ProgressColorMode::Hue;
 
         /**
-         * @brief Spins a fixed arc instead of showing the fraction (plain bool, Observed or combinator).
+         * @brief Spins a fixed arc in the theme color instead of showing the fraction (plain bool, Observed or
+         *        combinator).
          */
         Nui::StateTransformer<ProgressRingDetail::IndeterminateReify> indeterminate = false;
 

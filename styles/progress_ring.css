@@ -35,6 +35,7 @@
     }
 
     &[data-indeterminate] > .script-nui-progress-ring-fill {
+        stroke: var(--theme);
         stroke-dashoffset: 72;
     }
 }

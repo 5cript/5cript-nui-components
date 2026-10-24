@@ -516,7 +516,7 @@ Nui::ElementRenderer MainPage::render()
             // From 0 to 1.
             .fraction = fraction_,
             .colorMode = ProgressColorMode::Hue,
-            // Spins a fixed arc instead; a bool, an Observed<bool> or a combinator.
+            // Spins a fixed arc in the theme color instead; a bool, an Observed<bool> or a combinator.
             .indeterminate = waiting_,
             // aria-label.
             .label = "Uploading",
