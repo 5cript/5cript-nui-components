@@ -604,8 +604,8 @@ Nui::ElementRenderer MainPage::render()
     --script-nui-components-badge-height: 1.5em;
     --script-nui-components-badge-radius: 999px;
     --script-nui-components-badge-dot-size: 0.5rem;
-    /* prefers-reduced-motion stops the pop. */
-    --script-nui-components-badge-pop-duration: 320ms;
+    /* The pop grows the badge in from nothing; prefers-reduced-motion stops it. */
+    --script-nui-components-badge-pop-duration: 450ms;
 
     --script-nui-components-badge-regular-background: #3b3b3b;
     --script-nui-components-badge-regular-color: #d6d6d6;
