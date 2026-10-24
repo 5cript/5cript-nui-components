@@ -24,6 +24,7 @@ target_link_libraries(your_target PRIVATE script-nui-components)
 ## Styling
 
 The components use CSS variables for styling, which can be set on the component itself or globally.
+`styles/themes/light.css` sets light values for them under `:root[data-theme="light"]`; the defaults are dark.
 
 ## Components
 
@@ -411,6 +412,11 @@ Markup: `div.script-nui-progress-bar[role=progressbar][data-color-mode][data-com
 order. `data-color-mode` is `hue` or `theme`, `data-complete` is present once current reached maximum.
 `aria-valuenow` carries the whole percentage and `aria-valuetext` the text.
 
+- Counts and Bytes show current and maximum as given; Bytes formats both in the unit of the maximum (`512  B`,
+  `1.50 KB`, ... in steps of 1024).
+- A bar from 0 to 0 counts as complete (no shine) but stays empty at 0.0 % unless `zeroAsComplete` is set.
+- In Hue mode the fill follows `progressHueColor`, from red to green at completion.
+
 #### C++
 
 ```cpp
@@ -495,7 +501,8 @@ A small circular indicator for rows and headers: an svg with a track and a fill 
 `stroke-dashoffset` and, in Hue mode, `stroke` follow the fraction.
 
 Markup: `svg.script-nui-progress-ring[role=progressbar][data-color-mode][data-complete][data-indeterminate]` holding
-`circle.script-nui-progress-ring-track` and `circle.script-nui-progress-ring-fill`.
+`circle.script-nui-progress-ring-track` and `circle.script-nui-progress-ring-fill`. `aria-valuenow` carries the whole
+percentage. While indeterminate the arc spins in the theme color in both color modes.
 
 #### C++
 
@@ -533,7 +540,7 @@ Nui::ElementRenderer MainPage::render()
     --script-nui-components-progress-ring-size: 16px;
     /* In units of the 24 unit viewBox; the circles have a radius of 9. */
     --script-nui-components-progress-ring-stroke-width: 3;
-    --script-nui-components-progress-ring-track: #505050;
+    --script-nui-components-progress-ring-track: #606060;
     /* Fill color in ProgressColorMode::Theme. */
     --script-nui-components-progress-ring-theme: #4caf50;
     --script-nui-components-progress-ring-transition: stroke-dashoffset 200ms linear, stroke 200ms linear;
@@ -557,7 +564,7 @@ nothing but the stylesheet:
 
 - `data-variant`: `regular`, `primary`, `warning`, `danger`, `success` or `transparent`; missing looks like `regular`.
 - `data-hidden`, `data-dot`: presence only, the value is ignored.
-- `data-pop`: optional, `a` or `b`; switching between them replays the pop animation.
+- `data-pop`: optional, `a` or `b`; switching between them replays the pop, which grows the badge in.
 - The text is the only child; a dot badge has none.
 
 #### C++
@@ -696,7 +703,7 @@ A selectable row for lists and outliners, meant to sit in an element with `role=
 Markup: `div.script-nui-list-row[role=option][tabindex=0][aria-selected]`, `data-selected` while selected, holding
 `span.script-nui-list-row-leading` (only with `leading`), `span.script-nui-list-row-label`,
 `span.script-nui-list-row-side` and `span.script-nui-list-row-trailing` (only with `trailing`). Clicks and keys inside
-the trailing part never activate the row.
+the trailing part never activate the row; Enter and Space activate it only while the row itself has the focus.
 
 #### C++
 
