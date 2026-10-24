@@ -26,6 +26,9 @@ namespace ScriptNuiComponents
      *
      * @param title Header label (plain value, Observed or combinator).
      * @param badge Optional small count/label shown next to the title.
+     * @param headerEnd Optional content at the end of the header, in span.script-nui-collapsible-header-end, for
+     *                  example a count badge or an icon button. Clicks in it never fold the section; they are
+     *                  default-prevented, so a native checkbox or link placed there does not react.
      * @param initiallyExpanded Whether the section starts open.
      * @param onToggle Optional callback fired on expand/collapse with the new open state.
      * @param attributes Extra attributes merged onto the <details> root.
@@ -34,6 +37,7 @@ namespace ScriptNuiComponents
     {
         Nui::StateTransformer<StateTransformers::TextNode> title = "";
         std::optional<std::string> badge = std::nullopt;
+        std::optional<Nui::ElementRenderer> headerEnd = std::nullopt;
         bool initiallyExpanded = true;
         std::function<void(bool expanded)> onToggle = {};
         std::vector<Nui::Attribute> attributes = {};
